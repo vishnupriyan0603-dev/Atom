@@ -1,0 +1,32 @@
+# Environment
+.env
+.env.*
+!.env.example
+
+# Dependencies
+node_modules/
+vendor/
+.venv/
+venv/
+__pycache__/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Runtime storage
+storage/uploads/*
+storage/cache/*
+storage/logs/*
+storage/temp/*
+
+!storage/uploads/README.md
+!storage/cache/README.md
+!storage/logs/README.md
+!storage/temp/README.md
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+
