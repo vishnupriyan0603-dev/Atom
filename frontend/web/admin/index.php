@@ -114,6 +114,63 @@ require_once __DIR__ . '/../bootstrap.php';
           </div>
         </div>
       </div>
+
+      <!-- ATOM SELF-LEARNING & HUMAN SAFETY GATE SECTION -->
+      <div class="space-y-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
+              <span>🛡️</span> ATOM Safety Gate &amp; Self-Improvement Engine
+            </h2>
+            <p class="text-xs text-gray-400 mt-1">Autonomous flaw detection, A/B sandbox benchmarking, and mandatory human authorization gate</p>
+          </div>
+          <button onclick="loadSafetyGateData()" class="px-3 py-1.5 rounded-lg text-xs font-medium bg-[#1e2838] hover:bg-[#2a384e] text-gray-300 transition">
+            Refresh Safety Gate
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Pending Approvals Widget -->
+          <div class="bg-[#11151c] border border-[#1e2838] rounded-2xl p-6 shadow-lg lg:col-span-1 flex flex-col">
+            <div class="flex items-center justify-between border-b border-[#1e2838] pb-4 mb-4">
+              <h3 class="font-bold text-sky-400 text-sm flex items-center gap-2">
+                <span>🛡️</span> Pending Safety Approvals
+              </h3>
+              <span id="pendingCountBadge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500/20 text-amber-400 border border-amber-500/30">0 Pending</span>
+            </div>
+            <div class="flex-1 overflow-y-auto space-y-3 max-h-72" id="pendingApprovalsList">
+              <div class="text-center py-6 text-gray-500 text-xs">Loading pending approvals...</div>
+            </div>
+          </div>
+
+          <!-- A/B Experiments Widget -->
+          <div class="bg-[#11151c] border border-[#1e2838] rounded-2xl p-6 shadow-lg lg:col-span-2 flex flex-col">
+            <div class="border-b border-[#1e2838] pb-4 mb-4 flex items-center justify-between">
+              <h3 class="font-bold text-emerald-400 text-sm flex items-center gap-2">
+                <span>🧪</span> Sandbox A/B Benchmarks &amp; Experiments
+              </h3>
+              <span class="text-[10px] text-gray-400">Min. Threshold: +5.0%</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs text-gray-300">
+                <thead class="text-[10px] uppercase font-bold text-gray-500 border-b border-[#1e2838]">
+                  <tr>
+                    <th class="pb-2">Title</th>
+                    <th class="pb-2">Target</th>
+                    <th class="pb-2">Baseline</th>
+                    <th class="pb-2">Candidate</th>
+                    <th class="pb-2">Improvement</th>
+                    <th class="pb-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="experimentsTableBody" class="divide-y divide-[#1e2838]">
+                  <tr><td colspan="6" class="text-center py-6 text-gray-500">Loading experiments...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -177,6 +234,79 @@ require_once __DIR__ . '/../bootstrap.php';
         showToast('Optimization command failed', 'error');
       }
     }
+
+    async function loadSafetyGateData() {
+      const approvalsListEl = document.getElementById('pendingApprovalsList');
+      const badgeEl = document.getElementById('pendingCountBadge');
+      const expBodyEl = document.getElementById('experimentsTableBody');
+
+      try {
+        const appRes = await apiFetch('/improvement/approvals');
+        if (appRes && appRes.data) {
+          badgeEl.textContent = `${appRes.data.length} Pending`;
+          if (appRes.data.length > 0) {
+            approvalsListEl.innerHTML = appRes.data.map(item => `
+              <div class="p-3.5 rounded-xl bg-[#080a0d] border border-[#1e2838] space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-sky-400">${escapeHtml(item.action)}</span>
+                  <span class="text-[9px] text-gray-500">${escapeHtml(item.created_at || '')}</span>
+                </div>
+                <p class="text-xs text-gray-300">${escapeHtml(item.reason || 'Candidate experiment promotion')}</p>
+                <div class="flex items-center justify-end gap-2 pt-1">
+                  <button onclick="approveSafetyItem(${item.id})" class="px-2.5 py-1 rounded text-[11px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white transition">Approve ✅</button>
+                  <button onclick="rejectSafetyItem(${item.id})" class="px-2.5 py-1 rounded text-[11px] font-bold bg-rose-600 hover:bg-rose-500 text-white transition">Reject ❌</button>
+                </div>
+              </div>
+            `).join('');
+          } else {
+            approvalsListEl.innerHTML = '<div class="text-center py-6 text-emerald-400 text-xs font-medium">All candidate promotions authorized!</div>';
+          }
+        }
+
+        const expRes = await apiFetch('/improvement/experiments');
+        if (expRes && expRes.data && expRes.data.length > 0) {
+          expBodyEl.innerHTML = expRes.data.map(exp => `
+            <tr class="hover:bg-[#16202e]/50 transition">
+              <td class="py-2.5 font-medium text-white">${escapeHtml(exp.title)}</td>
+              <td class="py-2.5 text-gray-400">${escapeHtml(exp.target_component)}</td>
+              <td class="py-2.5 text-gray-300">${(exp.baseline_score * 100).toFixed(1)}%</td>
+              <td class="py-2.5 text-emerald-400 font-semibold">${(exp.candidate_score * 100).toFixed(1)}%</td>
+              <td class="py-2.5 text-emerald-400 font-bold">+${parseFloat(exp.improvement_pct).toFixed(1)}%</td>
+              <td class="py-2.5">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${exp.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}">${escapeHtml(exp.status)}</span>
+              </td>
+            </tr>
+          `).join('');
+        } else {
+          expBodyEl.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-gray-500">No active or past experiments found.</td></tr>';
+        }
+      } catch (e) {
+        approvalsListEl.innerHTML = '<div class="text-center py-6 text-red-400 text-xs">Failed to load approvals.</div>';
+        expBodyEl.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-red-400">Failed to load experiments.</td></tr>';
+      }
+    }
+
+    async function approveSafetyItem(id) {
+      try {
+        const json = await apiFetch(`/improvement/approvals/${id}/approve`, { method: 'POST', body: JSON.stringify({ approver: 'WebAdmin' }) });
+        showToast(json.message || 'Approved experiment promotion', 'success');
+        loadSafetyGateData();
+      } catch (e) {
+        showToast('Approval action failed', 'error');
+      }
+    }
+
+    async function rejectSafetyItem(id) {
+      try {
+        const json = await apiFetch(`/improvement/approvals/${id}/reject`, { method: 'POST', body: JSON.stringify({ approver: 'WebAdmin', reason: 'Rejected from web admin UI' }) });
+        showToast(json.message || 'Rejected experiment promotion', 'info');
+        loadSafetyGateData();
+      } catch (e) {
+        showToast('Rejection action failed', 'error');
+      }
+    }
+
+    loadSafetyGateData();
   </script>
 </body>
 </html>
