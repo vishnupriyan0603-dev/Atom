@@ -460,4 +460,22 @@ class Knowledge extends BaseApiController
             $dbPort ?: '3306'
         );
     }
+
+    /**
+     * Hybrid RAG search combining document text chunks and Knowledge Graph triples.
+     */
+    public function search()
+    {
+        $query = $this->request->getGet('q') ?? $this->request->getGet('query');
+        if (empty($query)) {
+            return $this->respondError('Search query parameter "q" is required');
+        }
+
+        $limit = (int) ($this->request->getGet('limit') ?? 5);
+        $conn = $this->getDbConnection();
+        $searchEngine = new \Atom\Knowledge\KnowledgeSearch($conn);
+
+        $results = $searchEngine->searchHybrid((string)$query, $limit);
+        return $this->respondSuccess($results);
+    }
 }

@@ -141,4 +141,48 @@ class KnowledgeSearch
             return [];
         }
     }
+
+    /**
+     * Queries matching Knowledge Graph triples for a given search string.
+     */
+    public function searchTriples(string $query, int $limit = 5): array
+    {
+        if (!$this->connection->isConnected()) {
+            return [];
+        }
+
+        try {
+            $pdo = $this->connection->getPdo();
+            $stmt = $pdo->prepare("
+                SELECT * FROM atom_knowledge_triples 
+                WHERE subject LIKE ? OR predicate LIKE ? OR object LIKE ?
+                ORDER BY confidence DESC
+                LIMIT " . (int)$limit . "
+            ");
+            $likeQuery = "%" . trim($query) . "%";
+            $stmt->bindValue(1, $likeQuery);
+            $stmt->bindValue(2, $likeQuery);
+            $stmt->bindValue(3, $likeQuery);
+            $stmt->execute();
+            return $stmt->fetchAll();
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
+
+    /**
+     * Performs hybrid RAG search returning matching document chunks and Knowledge Graph triples.
+     */
+    public function searchHybrid(string $query, int $limit = 5): array
+    {
+        $chunks = $this->search($query, $limit);
+        $triples = $this->searchTriples($query, $limit);
+
+        return [
+            'query' => $query,
+            'chunks' => $chunks,
+            'triples' => $triples,
+            'total_matches' => count($chunks) + count($triples)
+        ];
+    }
 }

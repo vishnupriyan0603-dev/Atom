@@ -106,6 +106,7 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
     $routes->delete('settings/(:any)', 'Api\Settings::delete/$1');
 
     // Knowledge
+    $routes->get('knowledge/search', 'Api\Knowledge::search');
     $routes->get('knowledge', 'Api\Knowledge::index');
     $routes->post('knowledge', 'Api\Knowledge::create');
     $routes->get('knowledge/(:num)', 'Api\Knowledge::show/$1');
