@@ -1,47 +1,33 @@
-# opencode Agent Instructions
+# ATOM Agent Instructions
 
 ## Knowledge Base
-- `.ai/` - Reusable engineering knowledge (principles, architecture, standards, security, etc.)
-- `.antigravity/` - Project-specific knowledge (rules, UI, database, API, deployment, etc.)
-- `.opencode/agents/` - Subagent definitions (backend, frontend, database, debugger, reviewer, web, architect, devops, tester)
-- `.opencode/skills/` - Domain skills (php-dev, database, deployment, frontend)
+- `.antigravity/` - Unified AI Engineering Knowledge Base (principles, rules, UI, database, API, deployment, security)
+- `.antigravity/skills/` - Technology-specific skills (php, codeigniter, mysql, javascript, bootstrap, api, security)
 
 ## Workflow
-Always follow this workflow for every task:
+Always follow this workflow for every task (see `docs/svgAtom_strict_rules.md`):
 1. Analyze - Read all relevant files before making changes
 2. Plan - Determine files to modify, identify side effects
-3. Backup - Backup affected files
-4. Implement - Make changes following project standards
-5. Test - Verify the change works
-6. Verify UI - Check visual consistency
-7. Verify Database - Confirm queries/schema are correct
-8. Verify API - Test endpoints
-9. Review Performance - Check for N+1, missing indexes
-10. Security Review - Validate input, escape output, check auth
-11. Regression Test - Verify existing functionality
-12. Final Review - Confirm nothing is broken
+3. Branch - Create task branch (`feature/*`, `fix/*`, `refactor/*`, `docs/*`, `test/*`)
+4. Backup - Backup affected files
+5. Implement - Make targeted changes following project standards
+6. Test - Verify PHPUnit, C# build, and feature acceptance criteria
+7. Verify UI & DB - Check visual consistency and query correctness
+8. Security Review - Validate input, escape output, check auth
+9. Final Review - Confirm backwards compatibility
 
-See `.ai/core/workflow.md` and `.antigravity/workflow.md` for detailed descriptions.
+See `.antigravity/workflow.md` and `docs/svgAtom_strict_rules.md` for detailed descriptions.
 
 ## Loading Strategy
-- PHP tasks: `.ai/core/workflow.md`, `.ai/core/debugging.md`, `.ai/skills/php.md`, `.ai/skills/codeigniter.md`, `.antigravity/project.md`, `.antigravity/rules.md`, `.antigravity/personal_metadata.md`
-- UI tasks: `.ai/skills/bootstrap.md`, `.ai/skills/javascript.md`, `.antigravity/ui.md`, `.antigravity/personal_metadata.md`
-- Database tasks: `.ai/skills/mysql.md`, `.ai/core/performance.md`, `.antigravity/database.md`, `.antigravity/personal_metadata.md`
-- Deployment: `.ai/skills/ubuntu.md`, `.ai/skills/apache.md`, `.ai/skills/cron.md`, `.antigravity/deployment.md`, `.antigravity/personal_metadata.md`
-- Security: `.ai/core/security.md`, `.antigravity/security.md`, `.antigravity/personal_metadata.md`
-- API: `.ai/skills/api.md`, `.antigravity/api.md`, `.antigravity/personal_metadata.md`
-
-## Agent Selection
-- Backend work: use `backend` agent
-- Frontend/web UI: use `frontend` or `web` agent
-- Database: use `database` agent
-- Bug fixing: use `debugger` agent
-- Code review: use `reviewer` agent
-- Architecture: use `architect` agent
-- Infrastructure: use `devops` agent
-- Testing: use `tester` agent
+- PHP tasks: `.antigravity/workflow.md`, `.antigravity/skills/php.md`, `.antigravity/skills/codeigniter.md`, `.antigravity/project.md`, `.antigravity/rules.md`, `.antigravity/personal_metadata.md`
+- UI tasks: `.antigravity/skills/bootstrap.md`, `.antigravity/skills/javascript.md`, `.antigravity/ui.md`, `.antigravity/personal_metadata.md`
+- Database tasks: `.antigravity/skills/mysql.md`, `.antigravity/database.md`, `.antigravity/personal_metadata.md`
+- Deployment: `.antigravity/skills/ubuntu.md`, `.antigravity/skills/apache.md`, `.antigravity/skills/cron.md`, `.antigravity/deployment.md`, `.antigravity/personal_metadata.md`
+- Security: `.antigravity/security.md`, `.antigravity/personal_metadata.md`
+- API: `.antigravity/skills/api.md`, `.antigravity/api.md`, `.antigravity/personal_metadata.md`
 
 ## Project Rules
+- Follow `docs/svgAtom_strict_rules.md` strictly (Understand first. Change second. Verify third. Merge last.)
 - Never change UI unless requested
 - Never rename database columns or tables
 - Never change existing APIs or remove functionality
@@ -55,5 +41,5 @@ See `.ai/core/workflow.md` and `.antigravity/workflow.md` for detailed descripti
 - Never hardcode secrets
 
 ## Test Commands
-- Backend tests: `cd backend && vendor/bin/phpunit`
-- Backend server: `cd backend && php spark serve` (port 8080)
+- Backend tests: `cd backend && php -d extension=intl -d extension=sqlite3 -d extension=pdo_sqlite vendor/bin/phpunit --testdox`
+- Desktop solution build: `dotnet build PersonalAIAssistant.sln`
