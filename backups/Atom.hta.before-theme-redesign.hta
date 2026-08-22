@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Atom</title>
+  <hta:application
+    id="AtomDesktopApp"
+    applicationname="Atom"
+    border="thin"
+    borderstyle="normal"
+    caption="yes"
+    maximizebutton="yes"
+    minimizebutton="yes"
+    scroll="no"
+    showintaskbar="yes"
+    singleinstance="yes"
+    sysmenu="yes"
+    windowstate="normal"
+  />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #101214;
+      color: #f4f6f8;
+    }
+
+    .app {
+      display: table;
+      width: 100%;
+      height: 100%;
+      background: #101214;
+    }
+
+    .sidebar {
+      display: table-cell;
+      width: 248px;
+      padding: 24px;
+      vertical-align: top;
+      background: #171a1f;
+      border-right: 1px solid #2b3138;
+    }
+
+    .main {
+      display: table-cell;
+      padding: 28px;
+      vertical-align: top;
+    }
+
+    .brand {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: 0;
+      margin-bottom: 8px;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 6px 10px;
+      margin: 8px 0 24px;
+      border: 1px solid #34404c;
+      border-radius: 6px;
+      color: #9fe3c2;
+      background: #14251d;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .nav-item {
+      padding: 12px 10px;
+      margin-bottom: 6px;
+      border-radius: 6px;
+      color: #cbd3dc;
+      background: #20252b;
+      font-size: 14px;
+    }
+
+    .nav-item.active {
+      color: #ffffff;
+      background: #2f6f86;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 720px;
+      margin: 0 0 28px;
+      color: #b9c2cc;
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .panel {
+      max-width: 860px;
+      border: 1px solid #2b3138;
+      border-radius: 8px;
+      background: #171a1f;
+    }
+
+    .panel-header {
+      padding: 16px 18px;
+      border-bottom: 1px solid #2b3138;
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .panel-body {
+      padding: 18px;
+    }
+
+    .message-area {
+      height: 220px;
+      padding: 14px;
+      overflow: auto;
+      border: 1px solid #303741;
+      border-radius: 6px;
+      background: #0f1114;
+      color: #d9e0e7;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+    .input-row {
+      display: table;
+      width: 100%;
+      margin-top: 14px;
+    }
+
+    .input-cell {
+      display: table-cell;
+      width: 100%;
+      padding-right: 10px;
+    }
+
+    .button-cell {
+      display: table-cell;
+      width: 104px;
+    }
+
+    input {
+      box-sizing: border-box;
+      width: 100%;
+      height: 42px;
+      padding: 0 12px;
+      border: 1px solid #39424e;
+      border-radius: 6px;
+      outline: none;
+      background: #101214;
+      color: #f4f6f8;
+      font-size: 14px;
+    }
+
+    button {
+      width: 104px;
+      height: 42px;
+      border: 0;
+      border-radius: 6px;
+      color: #ffffff;
+      background: #2f6f86;
+      font-size: 14px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .workspace {
+      display: table;
+      width: 100%;
+      max-width: 1120px;
+      table-layout: fixed;
+    }
+
+    .console-column {
+      display: table-cell;
+      width: 62%;
+      padding-right: 18px;
+      vertical-align: top;
+    }
+
+    .model-column {
+      display: table-cell;
+      width: 38%;
+      vertical-align: top;
+    }
+
+    .bot-panel {
+      border: 1px solid #2b3138;
+      border-radius: 8px;
+      background: #171a1f;
+    }
+
+    .bot-stage {
+      position: relative;
+      height: 306px;
+      border-bottom: 1px solid #2b3138;
+      background: #0f1114;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .atom-bot {
+      position: relative;
+      width: 180px;
+      height: 230px;
+      margin: 34px auto 0;
+    }
+
+    .bot-head {
+      position: absolute;
+      left: 34px;
+      top: 0;
+      width: 112px;
+      height: 86px;
+      border: 2px solid #5cc7de;
+      border-radius: 18px;
+      background: #18272e;
+      box-shadow: 0 0 22px rgba(92, 199, 222, 0.28);
+    }
+
+    .bot-antenna {
+      position: absolute;
+      left: 88px;
+      top: -28px;
+      width: 3px;
+      height: 28px;
+      background: #5cc7de;
+    }
+
+    .bot-antenna-dot {
+      position: absolute;
+      left: 81px;
+      top: -42px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #9fe3c2;
+      box-shadow: 0 0 18px rgba(159, 227, 194, 0.7);
+    }
+
+    .bot-eye {
+      position: absolute;
+      top: 31px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #9fe3c2;
+      box-shadow: 0 0 14px rgba(159, 227, 194, 0.75);
+    }
+
+    .bot-eye.left {
+      left: 28px;
+    }
+
+    .bot-eye.right {
+      right: 28px;
+    }
+
+    .bot-mouth {
+      position: absolute;
+      left: 38px;
+      top: 60px;
+      width: 36px;
+      height: 3px;
+      border-radius: 3px;
+      background: #5cc7de;
+    }
+
+    .bot-body {
+      position: absolute;
+      left: 22px;
+      top: 94px;
+      width: 136px;
+      height: 104px;
+      border: 2px solid #3c8da3;
+      border-radius: 22px 22px 14px 14px;
+      background: #1b2229;
+    }
+
+    .bot-core {
+      position: absolute;
+      left: 47px;
+      top: 24px;
+      width: 42px;
+      height: 42px;
+      border: 2px solid #9fe3c2;
+      border-radius: 50%;
+      background: #14251d;
+      box-shadow: 0 0 22px rgba(159, 227, 194, 0.45);
+    }
+
+    .bot-core-dot {
+      position: absolute;
+      left: 14px;
+      top: 14px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #9fe3c2;
+    }
+
+    .bot-arm {
+      position: absolute;
+      top: 112px;
+      width: 32px;
+      height: 76px;
+      border-radius: 18px;
+      background: #202d35;
+      border: 2px solid #344b56;
+    }
+
+    .bot-arm.left {
+      left: -8px;
+    }
+
+    .bot-arm.right {
+      right: -8px;
+    }
+
+    .bot-base {
+      position: absolute;
+      left: 42px;
+      top: 204px;
+      width: 96px;
+      height: 18px;
+      border-radius: 18px;
+      background: #2f6f86;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .bot-meta {
+      padding: 16px 18px 18px;
+    }
+
+    .bot-title {
+      margin-bottom: 8px;
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .bot-description {
+      margin-bottom: 14px;
+      color: #8f9aa6;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .asset-note {
+      margin-top: 18px;
+      color: #8f9aa6;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="sidebar">
+      <div class="brand">Atom</div>
+      <div class="status">Desktop shell ready</div>
+      <div class="nav-item active">Assistant</div>
+      <div class="nav-item">Automation</div>
+      <div class="nav-item">Knowledge</div>
+      <div class="nav-item">Settings</div>
+    </div>
+
+    <div class="main">
+      <h1>Atom AI Assistant</h1>
+      <p class="subtitle">
+        Desktop app shell for the Atom personal assistant. This window is ready for future AI, automation, and knowledge features.
+      </p>
+
+      <div class="workspace">
+        <div class="console-column">
+          <div class="panel">
+            <div class="panel-header">Assistant Console</div>
+            <div class="panel-body">
+              <div id="messages" class="message-area">
+                Atom is running as a desktop window. AI chat is not connected yet.
+              </div>
+              <div class="input-row">
+                <div class="input-cell">
+                  <input id="messageInput" type="text" placeholder="Type a message for the future assistant..." />
+                </div>
+                <div class="button-cell">
+                  <button onclick="sendMessage()">Send</button>
+                </div>
+              </div>
+              <div class="asset-note">
+                Custom Atom bot visual is built into this desktop shell.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="model-column">
+          <div class="bot-panel">
+            <div class="bot-stage">
+              <div class="atom-bot" aria-label="Atom bot illustration">
+                <div class="bot-antenna"></div>
+                <div class="bot-antenna-dot"></div>
+                <div class="bot-head">
+                  <div class="bot-eye left"></div>
+                  <div class="bot-eye right"></div>
+                  <div class="bot-mouth"></div>
+                </div>
+                <div class="bot-arm left"></div>
+                <div class="bot-arm right"></div>
+                <div class="bot-body">
+                  <div class="bot-core">
+                    <div class="bot-core-dot"></div>
+                  </div>
+                </div>
+                <div class="bot-base"></div>
+              </div>
+            </div>
+            <div class="bot-meta">
+              <div class="bot-title">Atom Bot</div>
+              <div class="bot-description">
+                A lightweight built-in desktop avatar for Atom. No external 3D model files are required.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    function sendMessage() {
+      var input = document.getElementById("messageInput");
+      var messages = document.getElementById("messages");
+      var text = input.value.replace(/^\s+|\s+$/g, "");
+
+      if (!text) {
+        return;
+      }
+
+      messages.innerHTML += "<br><br><strong>You:</strong> " + escapeHtml(text);
+      messages.innerHTML += "<br><strong>Atom:</strong> Assistant logic is not connected yet.";
+      input.value = "";
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>

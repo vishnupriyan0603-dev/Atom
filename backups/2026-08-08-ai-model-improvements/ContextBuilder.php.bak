@@ -1,0 +1,161 @@
+<?php
+
+namespace Atom\Brain;
+
+class ContextBuilder
+{
+    private string $workspaceRoot;
+    private array $systemInstructions = [
+        "You are ATOM, a local-first Personal AI PHP Development Assistant.",
+        "Your expertise covers Core PHP, MySQL, CSS/HTML, Javascript, Bootstrap, CRM, ERP, and billing systems.",
+        "You run entirely in the user's terminal/CLI context.",
+        "Keep answers clear, technically accurate, and formatted in clean markdown.",
+        "Prioritize safety: recommend validation, output escaping, and prepared statements.",
+        "Do NOT write dummy values or assume project file structures. Rely on context or ask the user.",
+        "\n--- AGENTIC TOOL ACCESS & RESPONSE SCHEMA ---",
+        "You can execute local development tools to inspect or edit the project workspace.",
+        "To run a tool, you MUST return a valid JSON block containing your explanation and a 'tool_call' request.",
+        "JSON SCHEMA REQUIREMENT:",
+        "Your complete output must be a single JSON object (with markdown json fences if desired):",
+        "{",
+        "  \"explanation\": \"Text explaining what you are doing or answering the user.\",",
+        "  \"tool_call\": {",
+        "    \"name\": \"tool_name\",",
+        "    \"arguments\": {",
+        "       \"param_key\": \"param_val\"",
+        "    }",
+        "  }",
+        "}",
+        "If you do not need to execute a tool and are ready to respond to the user, omit 'tool_call':",
+        "{",
+        "  \"explanation\": \"Your final answer to the user in markdown formatting.\"",
+        "}",
+        "\nALLOWED TOOLS SCHEMA:",
+        "- 'read_file': Reads file text. Args: {\"file_path\": \"filename\"}",
+        "- 'search_code': Scans codebase. Args: {\"query\": \"search_term\"}",
+        "- 'php_lint': Validates PHP syntax. Args: {\"file_path\": \"filename\"}",
+        "- 'create_file': Creates a new file. Args: {\"file_path\": \"filename\", \"content\": \"text\"}",
+        "- 'patch_file': Replaces code block. Args: {\"file_path\": \"filename\", \"target_content\": \"old\", \"replacement_content\": \"new\", \"interactive\": true}",
+        "Do NOT call tools that are not listed here."
+    ];
+
+    public function __construct(string $workspaceRoot)
+    {
+        $this->workspaceRoot = $workspaceRoot;
+    }
+
+    /**
+     * Builds standard system instructions.
+     */
+    public function buildSystemMessage(array $workspaceStats = []): array
+    {
+        $instructions = $this->systemInstructions;
+        
+        $instructions[] = "\n--- ENVIRONMENT ---";
+        $instructions[] = "Current Active Workspace: " . $this->workspaceRoot;
+        $instructions[] = "PHP Version: " . PHP_VERSION;
+        
+        // Add ATOM Personal Communication Preferences if present
+        if (!empty($workspaceStats['personalization_prompt'])) {
+            $instructions[] = $workspaceStats['personalization_prompt'];
+        }
+
+        // Add owner preferred name if set
+        if (!empty($workspaceStats['owner_preferred_name'])) {
+            $instructions[] = "You are speaking with your owner, " . $workspaceStats['owner_preferred_name'] . ".";
+        }
+
+        // Add detailed Personal Profile from JSON if available
+        if (!empty($workspaceStats['personal_profile'])) {
+            $profile = $workspaceStats['personal_profile'];
+            $instructions[] = "\n--- OWNER PERSONAL PROFILE ---";
+            $instructions[] = "Owner Name: " . ($profile['name'] ?? 'Vishnupriyan R') . " (Nickname: " . ($profile['nickname'] ?? 'Vichu') . ")";
+            $instructions[] = "Role: " . ($profile['role'] ?? '');
+            $instructions[] = "Location: " . ($profile['location'] ?? '');
+            if (!empty($profile['communication_preferences'])) {
+                $instructions[] = "Explanation Style: " . ($profile['communication_preferences']['explanation_style'] ?? '');
+                $instructions[] = "Teaching Approach: " . ($profile['communication_preferences']['approach'] ?? '');
+            }
+            if (!empty($profile['learning_goals'])) {
+                $instructions[] = "Learning Goals: " . implode(', ', array_slice($profile['learning_goals'], 0, 8));
+            }
+            $instructions[] = "-------------------------------\n";
+        }
+
+        // Add Session Memory if available
+        if (!empty($workspaceStats['session_memory'])) {
+            $session = $workspaceStats['session_memory'];
+            $instructions[] = "\n--- ACTIVE SESSION CONTEXT ---";
+            if (!empty($session['opened_files'])) {
+                $instructions[] = "Recently Opened Files: " . implode(', ', $session['opened_files']);
+            }
+            if (!empty($session['current_task'])) {
+                $instructions[] = "Current Task: " . $session['current_task'];
+            }
+            $instructions[] = "------------------------------\n";
+        }
+        
+        if (!empty($workspaceStats)) {
+            $instructions[] = "Files scanned in workspace: " . ($workspaceStats['total_files'] ?? 0);
+            if (!empty($workspaceStats['extensions'])) {
+                $extList = [];
+                foreach (array_slice($workspaceStats['extensions'], 0, 5) as $ext => $count) {
+                    $extList[] = ".$ext ($count)";
+                }
+                $instructions[] = "Workspace breakdown: " . implode(', ', $extList);
+            }
+        }
+
+        // Add long term memories to prompt if present (limit to last 15 memories for context safety)
+        if (!empty($workspaceStats['memories'])) {
+            $instructions[] = "\n--- LONG TERM MEMORIES & USER PREFERENCES ---";
+            $memoriesSlice = array_slice($workspaceStats['memories'], -15);
+            foreach ($memoriesSlice as $mem) {
+                $instructions[] = "- [" . $mem['type'] . "] " . $mem['memory_key'] . ": " . $mem['memory_value'];
+            }
+            $instructions[] = "-------------------------------------------\n";
+        }
+
+        // Add RAG knowledge chunks to prompt if present (limit to max 3 chunks)
+        if (!empty($workspaceStats['knowledge'])) {
+            $instructions[] = "\n--- RELEVANT KNOWLEDGE DATABASE REFERENCE CHUNKS ---";
+            $knowledgeSlice = array_slice($workspaceStats['knowledge'], 0, 3);
+            foreach ($knowledgeSlice as $chunk) {
+                $instructions[] = "Source Document: " . $chunk['title'] . " (" . $chunk['filename'] . ")";
+                $instructions[] = "Page Number: " . $chunk['page_number'];
+                // Ensure chunk text is not excessively long
+                $chunkText = substr($chunk['chunk_text'], 0, 1500);
+                if (strlen($chunk['chunk_text']) > 1500) {
+                    $chunkText .= " [TRUNCATED]";
+                }
+                $instructions[] = "Excerpt content: " . $chunkText;
+                $instructions[] = "---";
+            }
+            $instructions[] = "Ensure you cite the Source Document and Page Number in your reply when answering from this knowledge.\n";
+        }
+
+        return [
+            'role' => 'system',
+            'content' => implode("\n", $instructions)
+        ];
+    }
+
+    /**
+     * Combines system context, history, and user input.
+     */
+    public function assemble(array $history, array $userInputMessage, array $workspaceStats = []): array
+    {
+        $messages = [];
+        $messages[] = $this->buildSystemMessage($workspaceStats);
+
+        // Add history
+        foreach ($history as $msg) {
+            $messages[] = $msg;
+        }
+
+        // Add current user input
+        $messages[] = $userInputMessage;
+
+        return $messages;
+    }
+}

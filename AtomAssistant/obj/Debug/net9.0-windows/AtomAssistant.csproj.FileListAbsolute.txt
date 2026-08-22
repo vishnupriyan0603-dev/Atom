@@ -1,0 +1,9 @@
+F:\Atom\AtomAssistant\obj\Debug\net9.0-windows\AtomAssistant.csproj.AssemblyReference.cache
+F:\Atom\AtomAssistant\obj\Debug\net9.0-windows\MainWindow.g.cs
+F:\Atom\AtomAssistant\obj\Debug\net9.0-windows\App.g.cs
+F:\Atom\AtomAssistant\obj\Debug\net9.0-windows\AtomAssistant_Content.g.cs
+F:\Atom\AtomAssistant\obj\Debug\net9.0-windows\GeneratedInternalTypeHelper.g.cs
+F:\Atom\AtomAssistant\obj\Debug\net9.0-windows\AtomAssistant_MarkupCompile.cache
+F:\Atom\AtomAssistant\obj\Debug\net9.0-windows\AtomAssistant_MarkupCompile.lref
+F:\Atom\AtomAssistant\obj\Debug\net9.0-windows\Controls\ChatControl.baml
+F:\Atom\AtomAssistant\obj\Debug\net9.0-windows\Controls\ChatControl.g.cs

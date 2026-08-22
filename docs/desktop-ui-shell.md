@@ -18,18 +18,16 @@ The app uses a Windows HTA shell so it can open in a desktop window without inst
 
 - Shows the Atom desktop assistant shell.
 - Provides a placeholder assistant console.
-- References the synced Atom 3D model asset.
-- Shows an Atom bot model preview panel.
-- Opens the Blender model file from the UI.
+- Shows a custom Atom bot avatar built into the desktop UI.
 
 ## Not Included
 
 - AI model integration.
 - Backend API integration.
 - Desktop automation.
-- Full embedded 3D model rendering.
+- External 3D model rendering.
 - Package installation.
 
-## 3D Model Rendering Note
+## Bot Visual Note
 
-The current synced model is a Blender `.blend` file. The HTA desktop shell cannot render `.blend` files directly inside the window. Full interactive rendering should use an exported `.glb` or `.gltf` asset in a future desktop runtime.
+The previous downloaded 3D model files were removed from the active project and replaced with a lightweight built-in Atom bot visual. A backup record is stored under `backups/2026-07-23-remove-3d-model/`.

@@ -14,11 +14,6 @@ frontend\desktop\run-atom-desktop.bat
 
 This is a UI shell only. It does not include AI chat, automation, backend services, or full embedded 3D rendering logic yet.
 
-## Model Panel
+## Bot Panel
 
-The desktop window shows an Atom bot model preview using the synced texture asset and includes an `Open Model` button for the Blender source file:
-
-```text
-assets/models/atom-bot/source/Atom.blend
-```
-
+The desktop window includes a custom Atom bot avatar built directly into the UI. It does not depend on external 3D model files.

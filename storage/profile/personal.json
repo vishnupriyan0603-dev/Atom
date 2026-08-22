@@ -1,0 +1,43 @@
+{
+    "name": "Vishnupriyan R",
+    "nickname": "Vichu",
+    "role": "PHP Developer / PHP Full-Stack Developer",
+    "education": "BE in Computer Science and Engineering from VSB Engineering College, Karur (2020\u20132024)",
+    "location": "Karur, Tamil Nadu, India",
+    "interests": {
+        "games": ["ARK: Survival Evolved (The Island map)"],
+        "colors": ["Black", "Red", "Green", "White"],
+        "food": ["sour and spicy foods", "curd without salt"]
+    },
+    "development_environment": {
+        "os": "Windows 11 Home Single Language",
+        "wsl": "Ubuntu / WSL 2",
+        "stack": ["XAMPP", "WAMP", "Apache", "nginx", "MySQL", "PHP CLI", "Composer", "VS Code", "Git", "Notion", "Cron"]
+    },
+    "learning_goals": [
+        "Advanced PHP",
+        "Laravel",
+        "React",
+        "React Native CLI",
+        "Redux",
+        "Gluestack UI",
+        "Angular",
+        "Node.js",
+        "Express.js",
+        "Dart",
+        ".NET",
+        "APIs",
+        "DevOps fundamentals",
+        "GATE 2028 preparation"
+    ],
+    "career_goals": {
+        "gate": "GATE 2028 preparation",
+        "organizations": ["DRDO", "ISRO", "BARC"],
+        "income": ["PHP full-stack development", "Freelancing", "Website/Server maintenance contracts"]
+    },
+    "communication_preferences": {
+        "language": "English",
+        "explanation_style": "Problem -> Explanation -> Solution -> Code -> Testing -> Improvements",
+        "approach": "practical, project-oriented"
+    }
+}

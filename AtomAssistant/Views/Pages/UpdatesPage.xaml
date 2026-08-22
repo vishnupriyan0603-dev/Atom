@@ -1,0 +1,180 @@
+<ui:UiPage x:Class="AtomAssistant.Views.Pages.UpdatesPage"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+            xmlns:vm="clr-namespace:AtomAssistant.ViewModels.Pages"
+            mc:Ignorable="d"
+            Title="Updates"
+            Scrollable="True"
+            d:DataContext="{d:DesignInstance vm:UpdatesPageViewModel, IsDesignTimeCreatable=False}">
+
+    <Grid MaxWidth="800" Margin="32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Text="Updates"
+                       FontSize="28"
+                       FontWeight="SemiBold" />
+            <TextBlock Text="Check for new versions and view release notes"
+                       FontSize="14"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       Margin="0,4,0,0" />
+        </StackPanel>
+
+        <!-- Current Version & Check Button -->
+        <Border Grid.Row="1" Margin="0,0,0,24"
+                CornerRadius="12" Padding="20"
+                Background="{DynamicResource CardBackgroundColor}"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource CardBorderColor}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock FontSize="14">
+                        <Run FontWeight="SemiBold">Current Version: </Run>
+                        <Run Text="{Binding CurrentVersion}" />
+                    </TextBlock>
+                    <TextBlock Text="{Binding UpdateStatus}"
+                               FontSize="13"
+                               Foreground="{Binding UpdateStatusColor}"
+                               Margin="0,4,0,0" />
+                </StackPanel>
+                <ui:Button Grid.Column="1"
+                           Content="Check for Updates"
+                           Icon="{ui:SymbolIcon Download16}"
+                           Command="{Binding CheckForUpdatesCommand}"
+                           IsEnabled="{Binding IsCheckingEnabled}"
+                           Appearance="Primary"
+                           Padding="16,8" />
+            </Grid>
+        </Border>
+
+        <!-- Checking Progress -->
+        <Border Grid.Row="2" Margin="0,0,0,24"
+                CornerRadius="12" Padding="20"
+                Background="{DynamicResource CardBackgroundColor}"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource CardBorderColor}"
+                Visibility="{Binding IsChecking, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <ui:ProgressRing IsIndeterminate="True"
+                                 Width="20" Height="20"
+                                 Margin="0,0,12,0" />
+                <TextBlock Text="Checking for updates..."
+                           FontSize="14"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+        <!-- Available Updates -->
+        <Border Grid.Row="3" Margin="0,0,0,24"
+                CornerRadius="12" Padding="20"
+                Background="{DynamicResource CardBackgroundColor}"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource CardBorderColor}"
+                Visibility="{Binding HasUpdates, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel>
+                <TextBlock Text="Available Updates"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+                <ItemsControl ItemsSource="{Binding AvailableUpdates}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,8"
+                                    Padding="16"
+                                    CornerRadius="8"
+                                    Background="{DynamicResource ControlBackgroundColor}"
+                                    BorderThickness="1"
+                                    BorderBrush="{DynamicResource ControlElevationBorderBrush}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Border Grid.Column="0"
+                                            Width="40" Height="40"
+                                            CornerRadius="8"
+                                            Background="{DynamicResource SystemAccentColor}"
+                                            Margin="0,0,12,0">
+                                        <ui:SymbolIcon Symbol="Download16"
+                                                       FontSize="20"
+                                                       Foreground="White" />
+                                    </Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding Version}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold" />
+                                        <TextBlock Text="{Binding Date}"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                    </StackPanel>
+                                    <ui:Button Grid.Column="2"
+                                               Content="Update"
+                                               Appearance="Primary"
+                                               Command="{Binding DataContext.UpdateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                               CommandParameter="{Binding}"
+                                               Padding="12,6" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- Release Notes -->
+        <Border Grid.Row="4"
+                CornerRadius="12" Padding="20"
+                Background="{DynamicResource CardBackgroundColor}"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource CardBorderColor}">
+            <StackPanel>
+                <TextBlock Text="Release Notes"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+                <ItemsControl ItemsSource="{Binding ReleaseNotes}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,12"
+                                    Padding="16"
+                                    CornerRadius="8"
+                                    Background="{DynamicResource ControlBackgroundColor}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                        <TextBlock Text="{Binding Version}"
+                                                   FontSize="14"
+                                                   FontWeight="SemiBold"
+                                                   Margin="0,0,12,0" />
+                                        <TextBlock Text="{Binding Date}"
+                                                   FontSize="12"
+                                                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                   VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding Notes}"
+                                               FontSize="13"
+                                               TextWrapping="Wrap"
+                                               LineHeight="20" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+    </Grid>
+</ui:UiPage>

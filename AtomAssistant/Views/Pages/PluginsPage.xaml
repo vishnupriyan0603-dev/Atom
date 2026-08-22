@@ -1,0 +1,160 @@
+<ui:UiPage x:Class="AtomAssistant.Views.Pages.PluginsPage"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+            xmlns:local="clr-namespace:AtomAssistant.Views.Pages"
+            mc:Ignorable="d"
+            d:DesignHeight="800" d:DesignWidth="1200"
+            Title="Plugins">
+
+    <Grid Margin="32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Plugin Manager"
+                   FontSize="28"
+                   FontWeight="Bold"
+                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                   Margin="0,0,0,16" />
+
+        <ui:TabControl Grid.Row="1">
+            <ui:TabItem Header="Installed">
+                <Grid Margin="0,12,0,0">
+                    <ListView ItemsSource="{Binding InstalledPlugins}"
+                              SelectedItem="{Binding SelectedPlugin}"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="12,8" CornerRadius="6" Margin="2">
+                                    <Border.Background>
+                                        <SolidColorBrush Color="{DynamicResource CardBackgroundColor}" Opacity="0.8"/>
+                                    </Border.Background>
+                                    <Border.BorderBrush>
+                                        <SolidColorBrush Color="{DynamicResource CardBorderColor}" Opacity="0.5"/>
+                                    </Border.BorderBrush>
+                                    <Border BorderThickness="1" CornerRadius="4" Padding="8">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <ui:SymbolIcon Grid.Column="0"
+                                                           Symbol="Extension24"
+                                                           FontSize="28"
+                                                           VerticalAlignment="Center"
+                                                           Margin="0,0,12,0" />
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontSize="15"
+                                                           FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding Description}"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                           TextTrimming="CharacterEllipsis" />
+                                                <TextBlock Text="{Binding Version, StringFormat='v{0}'}"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                            </StackPanel>
+
+                                            <ui:ToggleSwitch Grid.Column="2"
+                                                             IsChecked="{Binding IsEnabled}"
+                                                             Content="Enabled"
+                                                             VerticalAlignment="Center"
+                                                             Margin="8,0" />
+
+                                            <ui:Button Grid.Column="3"
+                                                       Appearance="Subtle"
+                                                       Icon="Settings24"
+                                                       ToolTip="Plugin Settings"
+                                                       Command="{Binding DataContext.PluginSettingsCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                       CommandParameter="{Binding}"
+                                                       Margin="4,0" />
+
+                                            <ui:Button Grid.Column="4"
+                                                       Appearance="Subtle"
+                                                       Icon="ArrowDownload24"
+                                                       ToolTip="Update"
+                                                       Command="{Binding DataContext.UpdatePluginCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                       CommandParameter="{Binding}"
+                                                       Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                       Margin="4,0" />
+                                        </Grid>
+                                    </Border>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </ui:TabItem>
+
+            <ui:TabItem Header="Marketplace">
+                <Grid Margin="0,12,0,0">
+                    <ListView ItemsSource="{Binding MarketplacePlugins}"
+                              SelectedItem="{Binding SelectedMarketplacePlugin}"
+                              ScrollViewer.VerticalScrollBarVisibility="Auto">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Border Padding="12,8" CornerRadius="6" Margin="2">
+                                    <Border BorderThickness="1" CornerRadius="4" Padding="8"
+                                            BorderBrush="{DynamicResource CardBorderBrush}"
+                                            Background="{DynamicResource CardBackgroundBrush}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <ui:SymbolIcon Grid.Column="0"
+                                                           Symbol="StoreMicrosoft24"
+                                                           FontSize="28"
+                                                           VerticalAlignment="Center"
+                                                           Margin="0,0,12,0" />
+
+                                            <StackPanel Grid.Column="1">
+                                                <TextBlock Text="{Binding Name}"
+                                                           FontSize="15"
+                                                           FontWeight="SemiBold" />
+                                                <TextBlock Text="{Binding Description}"
+                                                           FontSize="12"
+                                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                                <TextBlock Text="{Binding Author, StringFormat='by {0}'}"
+                                                           FontSize="11"
+                                                           Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="2"
+                                                       Text="{Binding Version, StringFormat='v{0}'}"
+                                                       FontSize="12"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                       Margin="8,0" />
+
+                                            <ui:Button Grid.Column="3"
+                                                       Appearance="Primary"
+                                                       Content="Install"
+                                                       Command="{Binding DataContext.InstallPluginCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                       CommandParameter="{Binding}"
+                                                       Margin="8,0,0,0" />
+                                        </Grid>
+                                    </Border>
+                                </Border>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </ui:TabItem>
+        </ui:TabControl>
+    </Grid>
+</ui:UiPage>

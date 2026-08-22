@@ -1,0 +1,40 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "instructions": ["AGENTS.md", ".opencode/skills/frontend/web.md"],
+  "references": {
+    "ai": {
+      "path": ".ai",
+      "description": "Reusable engineering knowledge: principles, architecture, workflow, coding standards, debugging, testing, security, performance. Use for ALL development tasks."
+    },
+    "project": {
+      "path": ".antigravity",
+      "description": "Project-specific knowledge: overview, rules, UI, database, API, deployment, known issues. Use for THIS project's context."
+    },
+    "web": {
+      "path": "frontend/web",
+      "description": "Web frontend chat: index.html, css/style.css, js/chat.js. Side-by-side layout with chat and manual panel."
+    }
+  },
+  "command": {
+    "fix": {
+      "description": "Fix a bug. Provide the issue description after the command.",
+      "template": "Debug and fix this issue: $ARGUMENTS. Follow .antigravity/workflow.md. Reference .ai/core/debugging.md."
+    },
+    "review": {
+      "description": "Review code changes for quality, security, and performance.",
+      "template": "Review the current changes for quality, security, performance, and regressions. Use .ai/agents/reviewer.md checklist."
+    },
+    "test": {
+      "description": "Run tests and report results.",
+      "template": "Run the test suite and report any failures. Check .ai/core/testing.md for testing strategy."
+    },
+    "deploy": {
+      "description": "Run deployment checklist and deploy.",
+      "template": "Run pre-deployment checks from .ai/skills/deployment.md, then deploy. Check .antigravity/deployment.md for project-specific steps."
+    },
+    "migrate": {
+      "description": "Create or run database migrations.",
+      "template": "Handle database migration: $ARGUMENTS. Check .antigravity/database.md for schema context."
+    }
+  }
+}

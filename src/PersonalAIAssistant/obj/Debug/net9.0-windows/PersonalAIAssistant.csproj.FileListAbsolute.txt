@@ -1,0 +1,283 @@
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.csproj.AssemblyReference.cache
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Resources\Styles.baml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Resources\Themes\Dark.baml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Resources\Themes\Light.baml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\ChatView.baml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\DashboardView.baml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\FilesView.baml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\ModelsView.baml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\PluginsView.baml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\PromptLibraryView.baml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\SettingsView.baml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\App.baml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\MainWindow.g.cs
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\ChatView.g.cs
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\DashboardView.g.cs
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\FilesView.g.cs
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\ModelsView.g.cs
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\PluginsView.g.cs
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\PromptLibraryView.g.cs
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\SettingsView.g.cs
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\App.g.cs
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant_Content.g.cs
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\GeneratedInternalTypeHelper.g.cs
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant_MarkupCompile.cache
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant_MarkupCompile.lref
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x86\native\WebView2Loader.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x64\native\WebView2Loader.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-arm64\native\WebView2Loader.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\appsettings.json
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\PersonalAIAssistant.exe
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\PersonalAIAssistant.deps.json
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\PersonalAIAssistant.runtimeconfig.json
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\PersonalAIAssistant.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\PersonalAIAssistant.pdb
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\ICSharpCode.AvalonEdit.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\CommunityToolkit.Mvvm.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Dapper.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\HarfBuzzSharp.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\LiveChartsCore.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\LiveChartsCore.SkiaSharpView.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\LiveChartsCore.SkiaSharpView.WPF.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Markdig.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\MaterialDesignColors.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\MaterialDesignThemes.Wpf.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Data.Sqlite.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.Abstractions.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.Binder.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.CommandLine.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.FileExtensions.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.Json.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.UserSecrets.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.DependencyInjection.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Diagnostics.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Diagnostics.Abstractions.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.FileProviders.Abstractions.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.FileProviders.Physical.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.FileSystemGlobbing.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Hosting.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Hosting.Abstractions.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.Abstractions.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.Configuration.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.Console.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.Debug.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.EventLog.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.EventSource.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Options.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Options.ConfigurationExtensions.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Primitives.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Xaml.Behaviors.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Newtonsoft.Json.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\OpenTK.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\GLWpfControl.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Serilog.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Serilog.Extensions.Hosting.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Serilog.Extensions.Logging.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Serilog.Sinks.File.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SkiaSharp.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SkiaSharp.HarfBuzz.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SkiaSharp.Views.Desktop.Common.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SkiaSharp.Views.WPF.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SQLitePCLRaw.batteries_v2.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SQLitePCLRaw.core.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SQLitePCLRaw.provider.e_sqlite3.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\System.Diagnostics.EventLog.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\WPF.UI.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\osx\native\libHarfBuzzSharp.dylib
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-arm64\native\libHarfBuzzSharp.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x64\native\libHarfBuzzSharp.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x86\native\libHarfBuzzSharp.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\osx\native\libSkiaSharp.dylib
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-arm64\native\libSkiaSharp.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x64\native\libSkiaSharp.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x86\native\libSkiaSharp.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\browser-wasm\nativeassets\net9.0\e_sqlite3.a
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-arm\native\libe_sqlite3.so
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-arm64\native\libe_sqlite3.so
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-armel\native\libe_sqlite3.so
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-mips64\native\libe_sqlite3.so
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-musl-arm\native\libe_sqlite3.so
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-musl-arm64\native\libe_sqlite3.so
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-musl-s390x\native\libe_sqlite3.so
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-musl-x64\native\libe_sqlite3.so
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-ppc64le\native\libe_sqlite3.so
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-s390x\native\libe_sqlite3.so
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-x64\native\libe_sqlite3.so
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-x86\native\libe_sqlite3.so
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\maccatalyst-arm64\native\libe_sqlite3.dylib
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\maccatalyst-x64\native\libe_sqlite3.dylib
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\osx-arm64\native\libe_sqlite3.dylib
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\osx-x64\native\libe_sqlite3.dylib
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-arm\native\e_sqlite3.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-arm64\native\e_sqlite3.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x64\native\e_sqlite3.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x86\native\e_sqlite3.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win\lib\net9.0\System.Diagnostics.EventLog.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Web.WebView2.Core.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Web.WebView2.WinForms.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Web.WebView2.Wpf.dll
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Web.WebView2.Core.xml
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Web.WebView2.WinForms.xml
+F:\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Web.WebView2.Wpf.xml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\MainWindow.baml
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.g.resources
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.GeneratedMSBuildEditorConfig.editorconfig
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.AssemblyInfoInputs.cache
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.AssemblyInfo.cs
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.csproj.CoreCompileInputs.cache
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Personal.EE43E84F.Up2Date
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.dll
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\refint\PersonalAIAssistant.dll
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.pdb
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.genruntimeconfig.cache
+F:\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\ref\PersonalAIAssistant.dll
+C:\tmp\PersonalAIAssistant-build-check\runtimes\win-x86\native\WebView2Loader.dll
+C:\tmp\PersonalAIAssistant-build-check\runtimes\win-x64\native\WebView2Loader.dll
+C:\tmp\PersonalAIAssistant-build-check\runtimes\win-arm64\native\WebView2Loader.dll
+C:\tmp\PersonalAIAssistant-build-check\appsettings.json
+C:\tmp\PersonalAIAssistant-build-check\PersonalAIAssistant.exe
+C:\tmp\PersonalAIAssistant-build-check\PersonalAIAssistant.deps.json
+C:\tmp\PersonalAIAssistant-build-check\PersonalAIAssistant.runtimeconfig.json
+C:\tmp\PersonalAIAssistant-build-check\PersonalAIAssistant.dll
+C:\tmp\PersonalAIAssistant-build-check\PersonalAIAssistant.pdb
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.csproj.AssemblyReference.cache
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Resources\Styles.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Resources\Themes\Dark.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Resources\Themes\Light.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\ChatView.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\DashboardView.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\FilesView.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\ModelsView.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\PluginsView.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\PromptLibraryView.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\SettingsView.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\App.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\MainWindow.g.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\ChatView.g.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\DashboardView.g.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\FilesView.g.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\ModelsView.g.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\PluginsView.g.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\PromptLibraryView.g.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\SettingsView.g.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\App.g.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant_Content.g.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\GeneratedInternalTypeHelper.g.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant_MarkupCompile.cache
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant_MarkupCompile.lref
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\refint\PersonalAIAssistant.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.pdb
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x86\native\WebView2Loader.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x64\native\WebView2Loader.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-arm64\native\WebView2Loader.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\appsettings.json
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\PersonalAIAssistant.exe
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\PersonalAIAssistant.deps.json
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\PersonalAIAssistant.runtimeconfig.json
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\PersonalAIAssistant.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\PersonalAIAssistant.pdb
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\ICSharpCode.AvalonEdit.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\CommunityToolkit.Mvvm.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Dapper.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\HarfBuzzSharp.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\LiveChartsCore.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\LiveChartsCore.SkiaSharpView.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\LiveChartsCore.SkiaSharpView.WPF.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Markdig.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\MaterialDesignColors.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\MaterialDesignThemes.Wpf.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Data.Sqlite.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.Abstractions.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.Binder.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.CommandLine.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.FileExtensions.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.Json.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Configuration.UserSecrets.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.DependencyInjection.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Diagnostics.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Diagnostics.Abstractions.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.FileProviders.Abstractions.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.FileProviders.Physical.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.FileSystemGlobbing.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Hosting.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Hosting.Abstractions.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.Abstractions.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.Configuration.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.Console.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.Debug.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.EventLog.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Logging.EventSource.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Options.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Options.ConfigurationExtensions.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Extensions.Primitives.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Xaml.Behaviors.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Newtonsoft.Json.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\OpenTK.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\GLWpfControl.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Serilog.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Serilog.Extensions.Hosting.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Serilog.Extensions.Logging.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Serilog.Sinks.File.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SkiaSharp.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SkiaSharp.HarfBuzz.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SkiaSharp.Views.Desktop.Common.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SkiaSharp.Views.WPF.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SQLitePCLRaw.batteries_v2.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SQLitePCLRaw.core.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\SQLitePCLRaw.provider.e_sqlite3.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\System.Diagnostics.EventLog.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\WPF.UI.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\osx\native\libHarfBuzzSharp.dylib
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-arm64\native\libHarfBuzzSharp.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x64\native\libHarfBuzzSharp.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x86\native\libHarfBuzzSharp.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\osx\native\libSkiaSharp.dylib
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-arm64\native\libSkiaSharp.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x64\native\libSkiaSharp.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x86\native\libSkiaSharp.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\browser-wasm\nativeassets\net9.0\e_sqlite3.a
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-arm\native\libe_sqlite3.so
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-arm64\native\libe_sqlite3.so
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-armel\native\libe_sqlite3.so
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-mips64\native\libe_sqlite3.so
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-musl-arm\native\libe_sqlite3.so
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-musl-arm64\native\libe_sqlite3.so
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-musl-s390x\native\libe_sqlite3.so
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-musl-x64\native\libe_sqlite3.so
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-ppc64le\native\libe_sqlite3.so
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-s390x\native\libe_sqlite3.so
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-x64\native\libe_sqlite3.so
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\linux-x86\native\libe_sqlite3.so
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\maccatalyst-arm64\native\libe_sqlite3.dylib
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\maccatalyst-x64\native\libe_sqlite3.dylib
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\osx-arm64\native\libe_sqlite3.dylib
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\osx-x64\native\libe_sqlite3.dylib
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-arm\native\e_sqlite3.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-arm64\native\e_sqlite3.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x64\native\e_sqlite3.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win-x86\native\e_sqlite3.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\runtimes\win\lib\net9.0\System.Diagnostics.EventLog.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Web.WebView2.Core.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Web.WebView2.WinForms.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Web.WebView2.Wpf.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Web.WebView2.Core.xml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Web.WebView2.WinForms.xml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\bin\Debug\net9.0-windows\Microsoft.Web.WebView2.Wpf.xml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\MainWindow.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.g.resources
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.GeneratedMSBuildEditorConfig.editorconfig
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.AssemblyInfoInputs.cache
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.AssemblyInfo.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.csproj.CoreCompileInputs.cache
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Personal.EE43E84F.Up2Date
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.genruntimeconfig.cache
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\ref\PersonalAIAssistant.dll

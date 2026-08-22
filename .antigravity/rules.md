@@ -1,0 +1,25 @@
+# Project Rules
+
+- Never change UI unless requested.
+- Never rename database columns.
+- Never rename tables.
+- Never change existing APIs.
+- Never remove existing functionality.
+- Always preserve backward compatibility.
+- Modify only requested modules.
+- Avoid unnecessary refactoring.
+- Keep code modular.
+- Avoid duplicate logic.
+- Reuse existing functions whenever possible.
+- Follow project architecture.
+- Write maintainable code.
+- Optimize SQL queries.
+- Validate every input.
+- Escape every output.
+- Use prepared statements / query builder.
+- Handle errors gracefully.
+- Never hardcode secrets.
+- Keep CSS unchanged unless requested.
+- Do not modify layouts without permission.
+- Run tests before considering a change complete.
+- Document changes in `.antigravity/changelog.md`.

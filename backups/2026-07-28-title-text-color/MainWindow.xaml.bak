@@ -1,0 +1,70 @@
+<Window x:Class="PersonalAIAssistant.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:PersonalAIAssistant.Views"
+        Title="AI Desktop Assistant"
+        Width="1280"
+        Height="820"
+        MinWidth="1000"
+        MinHeight="680"
+        Background="{DynamicResource AppBackgroundBrush}">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type views:DashboardView}">
+            <views:DashboardView />
+        </DataTemplate>
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="248" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="{DynamicResource SidebarBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,1,0" Padding="16">
+            <DockPanel LastChildFill="True">
+                <StackPanel DockPanel.Dock="Top" Margin="0,0,0,20">
+                    <TextBlock Text="Atom Assistant" Style="{StaticResource AppTitleText}" Foreground="{DynamicResource TextBrush}" />
+                    <Button Content="+ New Chat" Command="{Binding NewChatCommand}" Style="{StaticResource PrimaryButton}" Margin="0,18,0,0" />
+                </StackPanel>
+
+                <ListBox ItemsSource="{Binding NavigationItems}"
+                         SelectedItem="{Binding SelectedNavigationItem}"
+                         BorderThickness="0"
+                         Background="Transparent"
+                         Foreground="{DynamicResource TextBrush}"
+                         Padding="0">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Title}" Margin="10,8" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="72" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1" Padding="22,14">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource SearchTextBox}" />
+                    <TextBlock Grid.Column="1" Text="{Binding CurrentModel}" VerticalAlignment="Center" Margin="18,0" Foreground="{DynamicResource MutedTextBrush}" />
+                    <ComboBox Grid.Column="2" ItemsSource="{Binding ThemeOptions}" SelectedItem="{Binding SelectedTheme}" Width="120" Margin="0,0,14,0" />
+                    <Border Grid.Column="3" Width="36" Height="36" CornerRadius="18" Background="{DynamicResource AccentBrush}">
+                        <TextBlock Text="KA" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="White" FontWeight="SemiBold" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <ContentControl Grid.Row="1" Content="{Binding CurrentPage}" />
+        </Grid>
+    </Grid>
+</Window>

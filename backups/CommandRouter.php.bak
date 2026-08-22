@@ -1,0 +1,454 @@
+<?php
+
+namespace Atom\CLI;
+
+use Atom\Project\ProjectScanner;
+use Atom\Tools\ReadFileTool;
+use Atom\Tools\SearchCodeTool;
+use Atom\Tools\PhpLintTool;
+use Atom\Tools\CreateFileTool;
+use Atom\Tools\PatchFileTool;
+use Atom\Brain\AtomBrain;
+use Atom\Memory\MemoryManager;
+use Atom\Knowledge\DocumentImporter;
+use Atom\Knowledge\KnowledgeSearch;
+
+class CommandRouter
+{
+    private TerminalUI $ui;
+    private string $workspaceRoot;
+    private ProjectScanner $scanner;
+    private ReadFileTool $readFileTool;
+    private SearchCodeTool $searchCodeTool;
+    private PhpLintTool $phpLintTool;
+    private CreateFileTool $createFileTool;
+    private PatchFileTool $patchFileTool;
+    private AtomBrain $brain;
+    private MemoryManager $memory;
+    private DocumentImporter $importer;
+    private KnowledgeSearch $kSearch;
+    private array $history = [];
+
+    public function __construct(
+        TerminalUI $ui,
+        string $workspaceRoot,
+        ProjectScanner $scanner,
+        ReadFileTool $readFileTool,
+        SearchCodeTool $searchCodeTool,
+        PhpLintTool $phpLintTool,
+        CreateFileTool $createFileTool,
+        PatchFileTool $patchFileTool,
+        AtomBrain $brain,
+        MemoryManager $memory,
+        DocumentImporter $importer,
+        KnowledgeSearch $kSearch
+    ) {
+        $this->ui = $ui;
+        $this->workspaceRoot = $workspaceRoot;
+        $this->scanner = $scanner;
+        $this->readFileTool = $readFileTool;
+        $this->searchCodeTool = $searchCodeTool;
+        $this->phpLintTool = $phpLintTool;
+        $this->createFileTool = $createFileTool;
+        $this->patchFileTool = $patchFileTool;
+        $this->brain = $brain;
+        $this->memory = $memory;
+        $this->importer = $importer;
+        $this->kSearch = $kSearch;
+    }
+
+    /**
+     * Route and handle user command. Returns false if application should exit.
+     */
+    public function route(string $input): bool
+    {
+        $input = trim($input);
+        if ($input === '') {
+            return true;
+        }
+
+        // If it starts with / it's a command
+        if (strpos($input, '/') === 0) {
+            $parts = explode(' ', $input, 2);
+            $command = strtolower($parts[0]);
+            $args = isset($parts[1]) ? trim($parts[1]) : '';
+
+            switch ($command) {
+                case '/exit':
+                    $this->ui->info("Exiting ATOM. Goodbye!");
+                    return false;
+
+                case '/clear':
+                    $this->ui->clearScreen();
+                    return true;
+
+                case '/help':
+                    $this->handleHelp();
+                    return true;
+
+                case '/status':
+                    $this->handleStatus();
+                    return true;
+
+                case '/project':
+                    $this->handleProject();
+                    return true;
+
+                case '/files':
+                    $this->handleFiles();
+                    return true;
+
+                case '/read':
+                    $this->handleRead($args);
+                    return true;
+
+                case '/search':
+                    $this->handleSearch($args);
+                    return true;
+
+                case '/php-lint':
+                    $this->handleLint($args);
+                    return true;
+
+                case '/create':
+                    $this->handleCreate($args);
+                    return true;
+
+                case '/patch':
+                    $this->handlePatch($args);
+                    return true;
+
+                case '/memory':
+                case '/memories':
+                    $this->handleMemory();
+                    return true;
+
+                case '/history':
+                    $this->handleHistory();
+                    return true;
+
+                case '/knowledge':
+                    $this->handleKnowledge($args);
+                    return true;
+
+                default:
+                    $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
+                    return true;
+            }
+        }
+
+        // If it's natural language input, process it through the AtomBrain conversation pipeline
+        $response = $this->brain->process($input, $this->history);
+        
+        // Print the response nicely
+        if (strpos($response, 'ATOM:') === 0) {
+            $this->ui->writeLine($response);
+        } else {
+            $this->ui->writeLine("ATOM:");
+            $this->ui->writeLine($response);
+        }
+        $this->ui->writeLine();
+        
+        return true;
+    }
+
+    private function handleHelp(): void
+    {
+        $this->ui->highlight("Available Commands (ATOM v0.1):");
+        $this->ui->writeLine("  /help                     Display this help manual.");
+        $this->ui->writeLine("  /status                   Show current workspace and PHP configurations.");
+        $this->ui->writeLine("  /project                  View a visual tree of the current project directory.");
+        $this->ui->writeLine("  /files                    List all non-ignored project files.");
+        $this->ui->writeLine("  /read <file>              Read a file safely within your active workspace.");
+        $this->ui->writeLine("  /search <query>           Scan filenames and code contents for standard strings.");
+        $this->ui->writeLine("  /php-lint <file>          Run a syntax compile test on a PHP file.");
+        $this->ui->writeLine("  /create <file>; <text>    Create a new file with target contents.");
+        $this->ui->writeLine("  /patch <file>; <find>; <rep>  Safely apply a code replacement patch.");
+        $this->ui->writeLine("  /memory                   View saved long-term personal settings/decisions.");
+        $this->ui->writeLine("  /history                  View recent conversational inputs and outputs.");
+        $this->ui->writeLine("  /knowledge import <file>  Ingest a technical PDF guide into the knowledge base.");
+        $this->ui->writeLine("  /knowledge ask <query>    Query references/citations in the knowledge library.");
+        $this->ui->writeLine("  /clear                    Clear the terminal output.");
+        $this->ui->writeLine("  /exit                     Exit the interactive assistant.");
+        $this->ui->writeLine();
+        $this->ui->highlight("Natural Language Memory Controls:");
+        $this->ui->writeLine("  remember that <fact>       Save long term preferences (e.g. remember that I prefer PDO).");
+        $this->ui->writeLine("  forget memory <id>         Remove target memory by its ID (e.g. forget memory 3).");
+        $this->ui->writeLine("  remember solution: problem=X; cause=Y; fix=Z   Log a technical fix entry.");
+        $this->ui->writeLine();
+    }
+
+    private function handleStatus(): void
+    {
+        $files = $this->scanner->scan();
+        $stats = $this->scanner->getStats($files);
+
+        $this->ui->highlight("ATOM v0.1 Status:");
+        $this->ui->writeLine("  Workspace: " . $this->workspaceRoot);
+        $this->ui->writeLine("  PHP Version: " . PHP_VERSION);
+        $this->ui->writeLine("  Total Files Scanned: " . $stats['total_files']);
+        
+        $dbStatus = $this->memory->isDbConnected() ? "Connected" : "Offline (" . $this->memory->getDbError() . ")";
+        $this->ui->write("  Database Memory: ");
+        $this->ui->writeLine($dbStatus, $this->memory->isDbConnected() ? "\033[32m" : "\033[33m");
+
+        if (!empty($stats['extensions'])) {
+            $this->ui->writeLine("  Top File Extensions:");
+            $i = 0;
+            foreach ($stats['extensions'] as $ext => $count) {
+                $this->ui->writeLine("    .$ext : $count files");
+                if (++$i >= 5) break;
+            }
+        }
+        $this->ui->writeLine();
+    }
+
+    private function handleProject(): void
+    {
+        $this->ui->info("Generating project tree...");
+        $files = $this->scanner->scan();
+        $tree = $this->scanner->generateTree($files);
+        
+        $this->ui->writeLine();
+        echo $tree;
+        $this->ui->writeLine();
+    }
+
+    private function handleFiles(): void
+    {
+        $files = $this->scanner->scan();
+        $this->ui->highlight("Scanned files (" . count($files) . "):");
+        foreach ($files as $file) {
+            $this->ui->writeLine("  " . $file);
+        }
+        $this->ui->writeLine();
+    }
+
+    private function handleRead(string $args): void
+    {
+        if (empty($args)) {
+            $this->ui->error("Usage: /read <relative_or_absolute_file_path>");
+            return;
+        }
+
+        $res = $this->readFileTool->execute(['file_path' => $args]);
+
+        if ($res['success']) {
+            $this->ui->info("--- Content of $args ---");
+            echo $res['content'] . PHP_EOL;
+            $this->ui->info("--- End of File ---");
+        } else {
+            $this->ui->error($res['error']);
+        }
+    }
+
+    private function handleSearch(string $args): void
+    {
+        if (empty($args)) {
+            $this->ui->error("Usage: /search <query_string>");
+            return;
+        }
+
+        $res = $this->searchCodeTool->execute(['query' => $args]);
+
+        if (!$res['success']) {
+            $this->ui->error($res['error']);
+            return;
+        }
+
+        $results = $res['results'];
+
+        if (empty($results['filenames']) && empty($results['contents'])) {
+            $this->ui->warning("No matches found for '$args'.");
+            return;
+        }
+
+        if (!empty($results['filenames'])) {
+            $this->ui->highlight("Matching Filenames (" . count($results['filenames']) . "):");
+            foreach ($results['filenames'] as $file) {
+                $this->ui->writeLine("  " . $file, "\033[32m");
+            }
+            $this->ui->writeLine();
+        }
+
+        if (!empty($results['contents'])) {
+            $this->ui->highlight("Matching Content:");
+            foreach ($results['contents'] as $match) {
+                $this->ui->writeLine("  File: " . $match['file'], "\033[36m");
+                foreach ($match['matches'] as $line) {
+                    $this->ui->writeLine("    Line " . $line['line'] . ": " . $line['text']);
+                }
+            }
+            $this->ui->writeLine();
+        }
+    }
+
+    private function handleLint(string $args): void
+    {
+        if (empty($args)) {
+            $this->ui->error("Usage: /php-lint <relative_or_absolute_file_path>");
+            return;
+        }
+
+        $this->ui->info("Running syntax check on '$args'...");
+        $res = $this->phpLintTool->execute(['file_path' => $args]);
+
+        if ($res['success']) {
+            $this->ui->success("OK: " . $res['output']);
+        } else {
+            $this->ui->error("Error: " . $res['error']);
+        }
+    }
+
+    private function handleCreate(string $args): void
+    {
+        // Parse format: /create file.php; content
+        $parts = explode(';', $args, 2);
+        $file = trim($parts[0] ?? '');
+        $content = trim($parts[1] ?? '');
+
+        if (empty($file)) {
+            $this->ui->error("Usage: /create <file_path>; <file_content>");
+            return;
+        }
+
+        $res = $this->createFileTool->execute([
+            'file_path' => $file,
+            'content' => $content
+        ]);
+
+        if ($res['success']) {
+            $this->ui->success($res['output']);
+        } else {
+            $this->ui->error($res['error']);
+        }
+    }
+
+    private function handlePatch(string $args): void
+    {
+        // Parse format: /patch file.php; find_str; replacement_str
+        $parts = explode(';', $args, 3);
+        $file = trim($parts[0] ?? '');
+        $find = $parts[1] ?? '';
+        $replacement = $parts[2] ?? '';
+
+        if (empty($file) || empty($find)) {
+            $this->ui->error("Usage: /patch <file_path>; <search_text>; <replacement_text>");
+            return;
+        }
+
+        // We strip trailing / leading newlines only when explicitly wanted, but trim spaces for safe command parses
+        $res = $this->patchFileTool->execute([
+            'file_path' => $file,
+            'target_content' => $find,
+            'replacement_content' => $replacement,
+            'interactive' => true
+        ]);
+
+        if ($res['success']) {
+            $this->ui->success($res['output']);
+        } else {
+            $this->ui->error($res['error']);
+        }
+    }
+
+    private function handleMemory(): void
+    {
+        if (!$this->memory->isDbConnected()) {
+            $this->ui->error("Database is offline. Memory retrieval is not available.");
+            return;
+        }
+
+        $memories = $this->memory->getMemories();
+        if (empty($memories)) {
+            $this->ui->warning("No long-term memories or preferences found in database.");
+            return;
+        }
+
+        $this->ui->highlight("Stored Long-Term Memories:");
+        foreach ($memories as $mem) {
+            $this->ui->writeLine("  ID " . $mem['id'] . " [" . $mem['type'] . "] " . $mem['memory_key'] . ": " . $mem['memory_value']);
+        }
+        $this->ui->writeLine();
+    }
+
+    private function handleHistory(): void
+    {
+        if ($this->memory->isDbConnected()) {
+            $dbHistory = $this->memory->getHistory();
+            if (empty($dbHistory)) {
+                $this->ui->warning("No persistent conversation history found in database.");
+                return;
+            }
+
+            $this->ui->highlight("Persistent Conversation History (MySQL):");
+            foreach ($dbHistory as $msg) {
+                $role = strtoupper($msg['role']);
+                $color = ($role === 'USER') ? "\033[32m" : "\033[36m";
+                $this->ui->writeLine("[$role] - " . $msg['created_at'], $color);
+                $this->ui->writeLine($msg['content']);
+                $this->ui->writeLine();
+            }
+            return;
+        }
+
+        if (empty($this->history)) {
+            $this->ui->warning("No conversation history recorded in this session.");
+            return;
+        }
+
+        $this->ui->highlight("Conversation History (Current Session Only):");
+        foreach ($this->history as $msg) {
+            $role = strtoupper($msg['role']);
+            $color = ($role === 'USER') ? "\033[32m" : "\033[36m";
+            $this->ui->writeLine("[$role]:", $color);
+            $this->ui->writeLine($msg['content']);
+            $this->ui->writeLine();
+        }
+    }
+
+    private function handleKnowledge(string $args): void
+    {
+        $parts = explode(' ', $args, 2);
+        $sub = strtolower($parts[0] ?? '');
+        $val = trim($parts[1] ?? '');
+
+        if ($sub === 'import') {
+            if (empty($val)) {
+                $this->ui->error("Usage: /knowledge import <path_to_pdf_file>");
+                return;
+            }
+
+            $this->ui->info("Importing PDF knowledge file '$val'...");
+            $res = $this->importer->import($val);
+
+            if ($res['success']) {
+                $this->ui->success("OK: Successfully imported. Created " . $res['chunks_count'] . " text chunks.");
+            } else {
+                $this->ui->error("Error: " . $res['error']);
+            }
+        } elseif ($sub === 'ask') {
+            if (empty($val)) {
+                $this->ui->error("Usage: /knowledge ask <search_query>");
+                return;
+            }
+
+            $this->ui->info("Querying local knowledge references for '$val'...");
+            $chunks = $this->kSearch->search($val);
+
+            if (empty($chunks)) {
+                $this->ui->warning("No matching references found.");
+                return;
+            }
+
+            $this->ui->highlight("Matching Excerpts:");
+            foreach ($chunks as $idx => $chunk) {
+                $this->ui->writeLine("[" . ($idx + 1) . "] Source: " . $chunk['title'] . " (Page " . $chunk['page_number'] . ")", "\033[36m");
+                $this->ui->writeLine($chunk['chunk_text']);
+                $this->ui->writeLine();
+            }
+        } else {
+            $this->ui->error("Unknown knowledge option. Usage: /knowledge import <file> or /knowledge ask <query>");
+        }
+    }
+}

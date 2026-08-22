@@ -1,0 +1,7 @@
+F:\Atom\AtomAssistant\obj\Debug\net8.0-windows\AtomAssistant.csproj.AssemblyReference.cache
+F:\Atom\AtomAssistant\obj\Debug\net8.0-windows\MainWindow.g.cs
+F:\Atom\AtomAssistant\obj\Debug\net8.0-windows\App.g.cs
+F:\Atom\AtomAssistant\obj\Debug\net8.0-windows\AtomAssistant_Content.g.cs
+F:\Atom\AtomAssistant\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
+F:\Atom\AtomAssistant\obj\Debug\net8.0-windows\AtomAssistant_MarkupCompile.cache
+F:\Atom\AtomAssistant\obj\Debug\net8.0-windows\AtomAssistant_MarkupCompile.lref

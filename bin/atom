@@ -1,0 +1,4 @@
+#!/usr/bin/env php
+<?php
+// Call the primary atom.php script
+require __DIR__ . '/../atom.php';

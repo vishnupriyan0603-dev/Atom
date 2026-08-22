@@ -1,0 +1,78 @@
+<UserControl x:Class="AtomAssistant.Controls.SidebarControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml">
+    <Grid>
+        <ui:NavigationView x:Name="NavigationView"
+                            IsBackButtonVisible="Collapsed"
+                            IsPaneToggleVisible="False"
+                            PaneDisplayMode="Left"
+                            OpenPaneLength="240"
+                            CompactPaneLength="48">
+            <ui:NavigationView.Header>
+                <StackPanel Margin="12,8">
+                    <TextBlock Text="Atom Assistant"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                </StackPanel>
+            </ui:NavigationView.Header>
+
+            <ui:NavigationView.Items>
+                <ui:NavigationViewItem x:Uid="NavNewChat" Icon="Add24" Content="New Chat" Tag="newchat" TargetPageType="ui:DashboardPage">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Add24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem x:Uid="NavChats" Content="Chats" Tag="chats">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Chat24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem x:Uid="NavModels" Content="AI Models" Tag="models">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="BrainCircuit24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem x:Uid="NavPrompts" Content="Prompt Library" Tag="prompts">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Library24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem x:Uid="NavFiles" Content="Files" Tag="files">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Folder24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem x:Uid="NavPlugins" Content="Plugins" Tag="plugins">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="PlugDisconnected24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem x:Uid="NavHistory" Content="History" Tag="history">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="History24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem x:Uid="NavNotes" Content="Notes" Tag="notes">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Note24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+                <ui:NavigationViewItem x:Uid="NavKnowledge" Content="Knowledge Base" Tag="knowledge">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="BookOpen24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+            </ui:NavigationView.Items>
+
+            <ui:NavigationView.Footer>
+                <ui:NavigationViewItem x:Uid="NavSettings" Content="Settings" Tag="settings">
+                    <ui:NavigationViewItem.Icon>
+                        <ui:SymbolIcon Symbol="Settings24" />
+                    </ui:NavigationViewItem.Icon>
+                </ui:NavigationViewItem>
+            </ui:NavigationView.Footer>
+        </ui:NavigationView>
+    </Grid>
+</UserControl>

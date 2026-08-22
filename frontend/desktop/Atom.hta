@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Atom</title>
+  <title>Atom AI Assistant</title>
   <hta:application
     id="AtomDesktopApp"
     applicationname="Atom"
@@ -17,322 +17,101 @@
     windowstate="normal"
   />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <style>
-    html,
-    body {
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      overflow: hidden;
-      font-family: "Segoe UI", Arial, sans-serif;
-      background: #101214;
-      color: #f4f6f8;
-    }
-
-    .app {
-      display: table;
-      width: 100%;
-      height: 100%;
-      background: #101214;
-    }
-
-    .sidebar {
-      display: table-cell;
-      width: 248px;
-      padding: 24px;
-      vertical-align: top;
-      background: #171a1f;
-      border-right: 1px solid #2b3138;
-    }
-
-    .main {
-      display: table-cell;
-      padding: 28px;
-      vertical-align: top;
-    }
-
-    .brand {
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: 0;
-      margin-bottom: 8px;
-    }
-
-    .status {
-      display: inline-block;
-      padding: 6px 10px;
-      margin: 8px 0 24px;
-      border: 1px solid #34404c;
-      border-radius: 6px;
-      color: #9fe3c2;
-      background: #14251d;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .nav-item {
-      padding: 12px 10px;
-      margin-bottom: 6px;
-      border-radius: 6px;
-      color: #cbd3dc;
-      background: #20252b;
-      font-size: 14px;
-    }
-
-    .nav-item.active {
-      color: #ffffff;
-      background: #2f6f86;
-    }
-
-    h1 {
-      margin: 0 0 10px;
-      font-size: 34px;
-      font-weight: 700;
-      letter-spacing: 0;
-    }
-
-    .subtitle {
-      max-width: 720px;
-      margin: 0 0 28px;
-      color: #b9c2cc;
-      font-size: 15px;
-      line-height: 1.5;
-    }
-
-    .panel {
-      max-width: 860px;
-      border: 1px solid #2b3138;
-      border-radius: 8px;
-      background: #171a1f;
-    }
-
-    .panel-header {
-      padding: 16px 18px;
-      border-bottom: 1px solid #2b3138;
-      font-size: 15px;
-      font-weight: 650;
-    }
-
-    .panel-body {
-      padding: 18px;
-    }
-
-    .message-area {
-      height: 220px;
-      padding: 14px;
-      overflow: auto;
-      border: 1px solid #303741;
-      border-radius: 6px;
-      background: #0f1114;
-      color: #d9e0e7;
-      line-height: 1.5;
-      font-size: 14px;
-    }
-
-    .input-row {
-      display: table;
-      width: 100%;
-      margin-top: 14px;
-    }
-
-    .input-cell {
-      display: table-cell;
-      width: 100%;
-      padding-right: 10px;
-    }
-
-    .button-cell {
-      display: table-cell;
-      width: 104px;
-    }
-
-    input {
-      box-sizing: border-box;
-      width: 100%;
-      height: 42px;
-      padding: 0 12px;
-      border: 1px solid #39424e;
-      border-radius: 6px;
-      outline: none;
-      background: #101214;
-      color: #f4f6f8;
-      font-size: 14px;
-    }
-
-    button {
-      width: 104px;
-      height: 42px;
-      border: 0;
-      border-radius: 6px;
-      color: #ffffff;
-      background: #2f6f86;
-      font-size: 14px;
-      font-weight: 650;
-      cursor: pointer;
-    }
-
-    .workspace {
-      display: table;
-      width: 100%;
-      max-width: 1120px;
-      table-layout: fixed;
-    }
-
-    .console-column {
-      display: table-cell;
-      width: 62%;
-      padding-right: 18px;
-      vertical-align: top;
-    }
-
-    .model-column {
-      display: table-cell;
-      width: 38%;
-      vertical-align: top;
-    }
-
-    .model-panel {
-      border: 1px solid #2b3138;
-      border-radius: 8px;
-      background: #171a1f;
-    }
-
-    .model-preview {
-      height: 306px;
-      border-bottom: 1px solid #2b3138;
-      background: #0f1114;
-      text-align: center;
-      overflow: hidden;
-    }
-
-    .model-preview img {
-      max-width: 100%;
-      max-height: 306px;
-      margin-top: 0;
-    }
-
-    .model-meta {
-      padding: 16px 18px 18px;
-    }
-
-    .model-title {
-      margin-bottom: 8px;
-      font-size: 15px;
-      font-weight: 650;
-    }
-
-    .model-path {
-      margin-bottom: 14px;
-      color: #8f9aa6;
-      font-size: 12px;
-      line-height: 1.45;
-      word-break: break-all;
-    }
-
-    .model-button {
-      width: 132px;
-    }
-
-    .asset-note {
-      margin-top: 18px;
-      color: #8f9aa6;
-      font-size: 12px;
-    }
-  </style>
+  <link rel="stylesheet" href="assets/atom.css" />
 </head>
 <body>
   <div class="app">
     <div class="sidebar">
-      <div class="brand">Atom</div>
-      <div class="status">Desktop shell ready</div>
-      <div class="nav-item active">Assistant</div>
-      <div class="nav-item">Automation</div>
-      <div class="nav-item">Knowledge</div>
-      <div class="nav-item">Settings</div>
+      <div class="sidebar-top">
+        <div class="brand">
+          <div class="brand-box">A</div>
+          <span class="brand-name">Atom</span>
+        </div>
+        <div class="status-bar">
+          <span class="status-dot"></span>
+          <span id="statusText">System Online</span>
+        </div>
+      </div>
+
+      <div class="sidebar-nav">
+        <div class="nav-item active" data-tab="assistant"><span class="nav-icon">&#9679;</span> Assistant</div>
+        <div class="nav-item" data-tab="automation"><span class="nav-icon">&#9881;</span> Automation</div>
+        <div class="nav-item" data-tab="knowledge"><span class="nav-icon">&#128214;</span> Knowledge <span class="nav-badge">3</span></div>
+        <div class="nav-item" data-tab="settings"><span class="nav-icon">&#9878;</span> Settings</div>
+      </div>
+
+      <div class="sidebar-footer"></div>
     </div>
 
     <div class="main">
-      <h1>Atom AI Assistant</h1>
-      <p class="subtitle">
-        Desktop app shell for the Atom personal assistant. This window is ready for future AI, automation, and knowledge features.
-      </p>
+      <div class="main-top">
+        <div class="main-head">
+          <h1>AI Assistant</h1>
+          <p>Atom AI Assistant - connected to backend API for chat, models, and knowledge features.</p>
+        </div>
+        <div class="main-actions">
+          <span class="badge badge-green" id="statusBadge">&#9679; Connected</span>
+        </div>
+      </div>
 
       <div class="workspace">
-        <div class="console-column">
-          <div class="panel">
-            <div class="panel-header">Assistant Console</div>
-            <div class="panel-body">
-              <div id="messages" class="message-area">
-                Atom is running as a desktop window. AI chat is not connected yet.
+        <div class="col-console">
+          <div class="card">
+            <div class="card-head"><span class="dot"></span> Assistant Console</div>
+            <div class="card-body">
+              <div id="msgBox" class="msg-box">
+                <div class="welcome">Welcome to Atom AI Assistant. Type a message below to get started.</div>
+              </div>
+              <div id="typingIndicator" class="typing" style="display:none">
+                <span>Atom is typing</span>
+                <span class="typing-dots"><span></span><span></span><span></span></span>
               </div>
               <div class="input-row">
-                <div class="input-cell">
-                  <input id="messageInput" type="text" placeholder="Type a message for the future assistant..." />
-                </div>
-                <div class="button-cell">
-                  <button onclick="sendMessage()">Send</button>
-                </div>
+                <input id="msgInput" type="text" placeholder="Type a message for the assistant..." onkeydown="if(event.key==='Enter')sendMsg()" />
+                <button class="btn btn-p" onclick="sendMsg()">Send</button>
               </div>
-              <div class="asset-note">
-                3D model asset: assets/models/atom-bot/source/Atom.blend
+              <div class="quick-bar">
+                <button class="btn btn-s" onclick="quickAct('help')">Help</button>
+                <button class="btn btn-s" onclick="quickAct('status')">Status</button>
+                <button class="btn btn-s" onclick="quickAct('clear')">Clear</button>
+              </div>
+              <div class="card-foot">
+                <span class="ft">Atom v1.0 &mdash; Desktop Shell</span>
+                <button class="btn-ghost" onclick="clearChat()">Clear Chat</button>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="model-column">
-          <div class="model-panel">
-            <div class="model-preview">
-              <img src="../../assets/models/atom-bot/textures/atom_off1.png" alt="Atom bot model texture preview" />
-            </div>
-            <div class="model-meta">
-              <div class="model-title">Atom Bot 3D Model</div>
-              <div class="model-path">
-                Source: assets/models/atom-bot/source/Atom.blend
+        <div class="col-bot">
+          <div class="bot-card">
+            <div class="bot-stage">
+              <div class="bot-fig">
+                <div class="b-ant"></div><div class="b-ant-dot"></div>
+                <div class="b-head"><div class="b-eye l"></div><div class="b-eye r"></div><div class="b-mouth"></div></div>
+                <div class="b-arm l"></div><div class="b-arm r"></div>
+                <div class="b-body"><div class="b-core"><div class="b-core-dot"></div></div></div>
+                <div class="b-base"></div>
               </div>
-              <button class="model-button" onclick="openModel()">Open Model</button>
+            </div>
+            <div class="bot-info">
+              <div class="bot-info-row">
+                <span class="bot-name">Atom Bot</span>
+                <span class="bot-tag">Online</span>
+              </div>
+              <div class="bot-desc">Built-in desktop avatar. Pure CSS. No external files needed.</div>
+              <div class="bot-stats">
+                <div class="bot-stat"><div class="bot-stat-val" id="msgCount">0</div><div class="bot-stat-lbl">Messages</div></div>
+                <div class="bot-stat"><div class="bot-stat-val" id="sessions">1</div><div class="bot-stat-lbl">Session</div></div>
+                <div class="bot-stat"><div class="bot-stat-val" id="uptime">0m</div><div class="bot-stat-lbl">Uptime</div></div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-
-  <script type="text/javascript">
-    function sendMessage() {
-      var input = document.getElementById("messageInput");
-      var messages = document.getElementById("messages");
-      var text = input.value.replace(/^\s+|\s+$/g, "");
-
-      if (!text) {
-        return;
-      }
-
-      messages.innerHTML += "<br><br><strong>You:</strong> " + escapeHtml(text);
-      messages.innerHTML += "<br><strong>Atom:</strong> Assistant logic is not connected yet.";
-      input.value = "";
-      messages.scrollTop = messages.scrollHeight;
-    }
-
-    function escapeHtml(value) {
-      return value
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    function openModel() {
-      var shell = new ActiveXObject("WScript.Shell");
-      shell.Run('"' + getProjectPath() + '\\assets\\models\\atom-bot\\source\\Atom.blend"', 1, false);
-    }
-
-    function getProjectPath() {
-      var path = unescape(location.pathname).replace(/\//g, "\\");
-      path = path.replace(/^\\/, "");
-      return path.replace("\\frontend\\desktop\\Atom.hta", "");
-    }
-  </script>
+  <div id="toast" class="toast"></div>
+  <script src="assets/atom.js"></script>
 </body>
 </html>

@@ -1,0 +1,141 @@
+<ui:UiPage x:Class="AtomAssistant.Views.Pages.NotesPage"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+            xmlns:local="clr-namespace:AtomAssistant.Views.Pages"
+            mc:Ignorable="d"
+            d:DesignHeight="800" d:DesignWidth="1200"
+            Title="Notes">
+
+    <Grid Margin="32">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0"
+                CornerRadius="6"
+                Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}"
+                BorderThickness="1"
+                Padding="12"
+                Margin="0,0,12,0">
+            <StackPanel Spacing="8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Folders"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                    <ui:Button Grid.Column="1"
+                               Appearance="Subtle"
+                               Icon="Add24"
+                               ToolTip="New Folder"
+                               Command="{Binding CreateFolderCommand}"
+                               Height="28" Width="28" />
+                </Grid>
+
+                <TreeView ItemsSource="{Binding Folders}"
+                          SelectedItemChanged="FolderTree_SelectedItemChanged"
+                          Background="Transparent"
+                          BorderThickness="0">
+                    <TreeView.ItemTemplate>
+                        <HierarchicalDataTemplate ItemsSource="{Binding Notes}">
+                            <StackPanel Orientation="Horizontal" Spacing="6">
+                                <ui:SymbolIcon Symbol="Folder24" FontSize="16" />
+                                <TextBlock Text="{Binding Name}"
+                                           FontSize="14" />
+                                <TextBlock Text="{Binding NoteCount, StringFormat='({0})'}"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                            </StackPanel>
+                        </HierarchicalDataTemplate>
+                    </TreeView.ItemTemplate>
+                </TreeView>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         PlaceholderText="Search notes..."
+                         Margin="0,0,8,0" />
+                <ui:Button Grid.Column="1"
+                           Appearance="Primary"
+                           Icon="Add24"
+                           Content="New Note"
+                           Command="{Binding CreateNoteCommand}" />
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="0,0,0,8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0"
+                          ItemsSource="{Binding Notes}"
+                          SelectedItem="{Binding SelectedNote}"
+                          DisplayMemberPath="Title"
+                          PlaceholderText="Select a note..." />
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="8,0,0,0">
+                    <ui:Button Appearance="Subtle"
+                               Icon="Delete24"
+                               ToolTip="Delete Note"
+                               Command="{Binding DeleteNoteCommand}" />
+                    <ui:Button Appearance="Subtle"
+                               Icon="Edit24"
+                               ToolTip="Rename"
+                               Command="{Binding RenameNoteCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <Border Grid.Row="2"
+                    CornerRadius="6"
+                    Background="{DynamicResource CardBackgroundBrush}"
+                    BorderBrush="{DynamicResource CardBorderBrush}"
+                    BorderThickness="1"
+                    Padding="16">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0"
+                               Text="{Binding SelectedNote.Title, TargetNullValue='Select a note'}"
+                               FontSize="18"
+                               FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                               Margin="0,0,0,12" />
+
+                    <TextBox Grid.Row="1"
+                             Text="{Binding SelectedNote.Content, UpdateSourceTrigger=PropertyChanged}"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             FontSize="14"
+                             PlaceholderText="Start writing your note here..." />
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</ui:UiPage>

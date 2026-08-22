@@ -1,0 +1,178 @@
+<?php
+
+namespace Atom\CLI;
+
+use Atom\Config\Config;
+use Atom\Security\WorkspaceGuard;
+use Atom\Security\FilePolicy;
+use Atom\Security\SecretRedactor;
+use Atom\Project\ProjectScanner;
+use Atom\Project\CodeSearch;
+use Atom\Tools\ReadFileTool;
+use Atom\Tools\SearchCodeTool;
+use Atom\Tools\PhpLintTool;
+use Atom\Tools\CreateFileTool;
+use Atom\Tools\PatchFileTool;
+use Atom\Tools\ToolManager;
+use Atom\Brain\IntentDetector;
+use Atom\Brain\ContextBuilder;
+use Atom\Brain\AtomBrain;
+use Atom\LLM\OpenAIProvider;
+use Atom\LLM\GeminiProvider;
+use Atom\Database\Connection;
+use Atom\Memory\MemoryManager;
+use Atom\Knowledge\PdfExtractor;
+use Atom\Knowledge\Chunker;
+use Atom\Knowledge\DocumentImporter;
+use Atom\Knowledge\KnowledgeSearch;
+
+class Application
+{
+    private TerminalUI $ui;
+    private string $workspaceRoot;
+    private WorkspaceGuard $guard;
+    private FilePolicy $policy;
+    private SecretRedactor $redactor;
+    private ProjectScanner $scanner;
+    private CodeSearch $searcher;
+    private ReadFileTool $readFileTool;
+    private SearchCodeTool $searchCodeTool;
+    private PhpLintTool $phpLintTool;
+    private CreateFileTool $createFileTool;
+    private PatchFileTool $patchFileTool;
+    private ToolManager $toolManager;
+    private MemoryManager $memory;
+    private DocumentImporter $importer;
+    private KnowledgeSearch $kSearch;
+    private AtomBrain $brain;
+    private CommandRouter $router;
+
+    public function __construct()
+    {
+        $this->ui = new TerminalUI();
+        // Detect workspace root dynamically
+        $this->workspaceRoot = str_replace('\\', '/', getcwd());
+    }
+
+    /**
+     * Initializes core services and configuration.
+     */
+    public function bootstrap(): void
+    {
+        // 1. Load configuration from .env file
+        if (!class_exists('Atom\Config\Config')) {
+            require_once __DIR__ . '/../../config/config.php';
+        }
+        Config::load($this->workspaceRoot);
+
+        // 2. Initialize Database Connection & Memory Manager
+        $dbHost = Config::get('DB_HOST', 'localhost');
+        $dbName = Config::get('DB_NAME', 'atom_assistant');
+        $dbUser = Config::get('DB_USER', 'root');
+        $dbPass = Config::get('DB_PASSWORD', '');
+        $dbPort = Config::get('DB_PORT', '3306');
+
+        $dbConnection = new Connection($dbHost ?: 'localhost', $dbName ?: 'atom_assistant', $dbUser ?: 'root', $dbPass ?: '', $dbPort ?: '3306');
+        $this->memory = new MemoryManager($dbConnection, $this->workspaceRoot);
+
+        // 3. Initialize Security
+        $this->guard = new WorkspaceGuard($this->workspaceRoot);
+        $this->policy = new FilePolicy();
+        $this->redactor = new SecretRedactor();
+        
+        // 4. Initialize Scanner
+        $this->scanner = new ProjectScanner($this->workspaceRoot);
+        $this->searcher = new CodeSearch($this->workspaceRoot, $this->scanner);
+        
+        // 5. Initialize Tools
+        $this->readFileTool = new ReadFileTool($this->guard, $this->policy, $this->redactor);
+        $this->searchCodeTool = new SearchCodeTool($this->scanner, $this->searcher, $this->redactor);
+        $this->phpLintTool = new PhpLintTool($this->guard);
+        $this->createFileTool = new CreateFileTool($this->guard, $this->policy, $this->phpLintTool);
+        $this->patchFileTool = new PatchFileTool($this->guard, $this->policy, $this->phpLintTool, $this->workspaceRoot);
+        
+        // Register tools in ToolManager
+        $this->toolManager = new ToolManager();
+        $this->toolManager->registerTool($this->readFileTool);
+        $this->toolManager->registerTool($this->searchCodeTool);
+        $this->toolManager->registerTool($this->phpLintTool);
+        $this->toolManager->registerTool($this->createFileTool);
+        $this->toolManager->registerTool($this->patchFileTool);
+
+        // 6. Initialize Knowledge Services
+        $extractor = new PdfExtractor();
+        $chunker = new Chunker();
+        $this->importer = new DocumentImporter($dbConnection, $extractor, $chunker, $this->guard, $this->workspaceRoot);
+        $this->kSearch = new KnowledgeSearch($dbConnection);
+
+        // 7. Initialize LLM Provider if configured
+        $llm = null;
+        $provider = strtolower(Config::get('LLM_PROVIDER', 'openai'));
+        $apiKey = Config::get('LLM_API_KEY');
+        $apiUrl = Config::get('LLM_API_URL');
+        $model = Config::get('LLM_MODEL');
+
+        if (!empty($apiUrl)) {
+            if ($provider === 'gemini' || strpos($apiUrl, 'googleapis.com') !== false) {
+                $llm = new GeminiProvider($apiKey ?: '', $apiUrl, $model ?: 'gemini-1.5-flash');
+            } else {
+                $llm = new OpenAIProvider($apiKey ?: '', $apiUrl, $model ?: 'gpt-4o-mini');
+            }
+        }
+
+        // 8. Initialize Brain Services
+        $detector = new IntentDetector();
+        $contextBuilder = new ContextBuilder($this->workspaceRoot);
+        $this->brain = new AtomBrain($llm, $detector, $contextBuilder, $this->scanner, $this->redactor, $this->memory, $this->kSearch, $this->toolManager);
+
+        // 9. Initialize Router
+        $this->router = new CommandRouter(
+            $this->ui,
+            $this->workspaceRoot,
+            $this->scanner,
+            $this->readFileTool,
+            $this->searchCodeTool,
+            $this->phpLintTool,
+            $this->createFileTool,
+            $this->patchFileTool,
+            $this->brain,
+            $this->memory,
+            $this->importer,
+            $this->kSearch
+        );
+    }
+
+    /**
+     * Entry point to execute the CLI.
+     */
+    public function run(array $argv = []): void
+    {
+        $this->bootstrap();
+
+        // If arguments are provided (excluding entry file), execute them directly and exit
+        if (count($argv) > 1) {
+            array_shift($argv); // Remove script name
+            $input = implode(' ', $argv);
+            $this->router->route($input);
+            return;
+        }
+
+        // Standard interactive shell loop
+        $this->ui->clearScreen();
+        $this->ui->renderHeader($this->workspaceRoot);
+
+        // Pre-scan workspace summary
+        $files = $this->scanner->scan();
+        $this->ui->success("Workspace successfully loaded! " . count($files) . " active files indexed.");
+        $this->ui->writeLine("Type /help to see the commands list or /exit to quit.");
+        $this->ui->writeLine();
+
+        while (true) {
+            $input = $this->ui->readInput("atom> ");
+            $continue = $this->router->route($input);
+            if (!$continue) {
+                break;
+            }
+        }
+    }
+}

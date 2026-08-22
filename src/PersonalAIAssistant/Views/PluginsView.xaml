@@ -1,0 +1,32 @@
+<UserControl x:Class="PersonalAIAssistant.Views.PluginsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ScrollViewer Padding="24">
+        <StackPanel>
+            <TextBlock Text="Plugins" Style="{StaticResource SectionTitleText}" Foreground="{DynamicResource TextBrush}" />
+            <UniformGrid Columns="2">
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Installed Plugins" FontWeight="SemiBold" Margin="0,0,0,10" />
+                        <ItemsControl ItemsSource="{Binding InstalledPlugins}" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="Plugin Extension Points" FontWeight="SemiBold" Margin="0,0,0,10" />
+                        <ItemsControl ItemsSource="{Binding AvailableHooks}" />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+            <Border Style="{StaticResource Card}">
+                <DockPanel>
+                    <Button DockPanel.Dock="Right" Content="Install Plugin" Style="{StaticResource PrimaryButton}" />
+                    <StackPanel>
+                        <TextBlock Text="Local plugin system" FontWeight="SemiBold" />
+                        <TextBlock Text="Plugins can extend chat commands, file processors, model providers, and voice services." Foreground="{DynamicResource MutedTextBrush}" Margin="0,6,0,0" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

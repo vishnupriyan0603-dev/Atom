@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATOM Control Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      background-color: #080a0d;
+      color: #f0f4f8;
+      font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+    .sidebar-active {
+      background-color: #0a2418;
+      color: #22c55e;
+      border-left: 3px solid #22c55e;
+    }
+  </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-[#0c0f14] border-r border-[#1e2838] flex flex-col justify-between shrink-0">
+    <div>
+      <div class="p-6 flex items-center gap-3">
+        <div class="w-8 h-8 rounded bg-[#22c55e] flex items-center justify-center font-bold text-white shadow-lg">A</div>
+        <span class="text-xl font-bold tracking-wide">ATOM CONTROL</span>
+      </div>
+      
+      <nav class="mt-4 px-3 space-y-1">
+        <a href="#overview" onclick="showSection('overview')" id="nav-overview" class="sidebar-active flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+          <span>⌂</span> Overview
+        </a>
+        <a href="#monitor" onclick="showSection('monitor')" id="nav-monitor" class="text-gray-400 hover:bg-[#1e2735] hover:text-white flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+          <span>✉</span> AI Monitor
+        </a>
+        <a href="#gemini" onclick="showSection('gemini')" id="nav-gemini" class="text-gray-400 hover:bg-[#1e2735] hover:text-white flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+          <span>☁</span> Gemini History
+        </a>
+        <a href="#rag" onclick="showSection('rag')" id="nav-rag" class="text-gray-400 hover:bg-[#1e2735] hover:text-white flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+          <span>📚</span> RAG Monitor
+        </a>
+        <a href="#errors" onclick="showSection('errors')" id="nav-errors" class="text-gray-400 hover:bg-[#1e2735] hover:text-white flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+          <span>⚠</span> Errors
+        </a>
+        <a href="#settings" onclick="showSection('settings')" id="nav-settings" class="text-gray-400 hover:bg-[#1e2735] hover:text-white flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors">
+          <span>⚙</span> Settings
+        </a>
+      </nav>
+    </div>
+    
+    <div class="p-4 border-t border-[#1e2838] text-xs text-gray-500">
+      ATOM v1.0.0 Control Room
+    </div>
+  </aside>
+
+  <!-- Main Observability Pane -->
+  <main class="flex-1 flex flex-col overflow-y-auto p-8">
+    
+    <!-- Section 1: Overview -->
+    <section id="sec-overview" class="space-y-8">
+      <div>
+        <h1 class="text-3xl font-extrabold tracking-tight">ATOM CONTROL CENTER</h1>
+        <p class="text-gray-400 mt-1">Good evening, Vichu. System operational.</p>
+      </div>
+
+      <!-- Health Indicators Grid -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-[#11151c] border border-[#1e2838] rounded-xl p-5 flex flex-col">
+          <span class="text-xs uppercase tracking-wider text-gray-500">Atom Core</span>
+          <span class="text-lg font-bold text-[#22c55e] mt-2">● ONLINE</span>
+        </div>
+        <div class="bg-[#11151c] border border-[#1e2838] rounded-xl p-5 flex flex-col">
+          <span class="text-xs uppercase tracking-wider text-gray-500">Database</span>
+          <span class="text-lg font-bold text-[#22c55e] mt-2">● CONNECTED</span>
+        </div>
+        <div class="bg-[#11151c] border border-[#1e2838] rounded-xl p-5 flex flex-col">
+          <span class="text-xs uppercase tracking-wider text-gray-500">RAG Engine</span>
+          <span class="text-lg font-bold text-[#22c55e] mt-2">● READY</span>
+        </div>
+        <div class="bg-[#11151c] border border-[#1e2838] rounded-xl p-5 flex flex-col">
+          <span class="text-xs uppercase tracking-wider text-gray-500">Gemini</span>
+          <span class="text-lg font-bold text-[#22c55e] mt-2">● CONNECTED</span>
+        </div>
+      </div>
+
+      <!-- Key Metrics -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-[#11151c] border border-[#1e2838] rounded-xl p-6">
+          <h3 class="text-sm font-medium text-gray-400">Local Resolution Ratio</h3>
+          <div class="text-4xl font-extrabold mt-3 text-white">57%</div>
+          <div class="w-full bg-[#1e2838] rounded-full h-1.5 mt-4 overflow-hidden">
+            <div class="bg-[#22c55e] h-1.5" style="width: 57%"></div>
+          </div>
+        </div>
+        <div class="bg-[#11151c] border border-[#1e2838] rounded-xl p-6">
+          <h3 class="text-sm font-medium text-gray-400">Gemini Collaboration</h3>
+          <div class="text-4xl font-extrabold mt-3 text-white">43%</div>
+          <div class="w-full bg-[#1e2838] rounded-full h-1.5 mt-4 overflow-hidden">
+            <div class="bg-blue-500 h-1.5" style="width: 43%"></div>
+          </div>
+        </div>
+        <div class="bg-[#11151c] border border-[#1e2838] rounded-xl p-6">
+          <h3 class="text-sm font-medium text-gray-400">RAG Hit Rate</h3>
+          <div class="text-4xl font-extrabold mt-3 text-white">92%</div>
+          <div class="w-full bg-[#1e2838] rounded-full h-1.5 mt-4 overflow-hidden">
+            <div class="bg-purple-500 h-1.5" style="width: 92%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Daily Activity Chart -->
+      <div class="bg-[#11151c] border border-[#1e2838] rounded-xl p-6">
+        <h3 class="text-lg font-bold mb-4">Request & Collaboration Volume (Last 7 Days)</h3>
+        <canvas id="observabilityChart" class="h-64 w-full"></canvas>
+      </div>
+    </section>
+
+    <!-- Section 2: AI Monitor -->
+    <section id="sec-monitor" class="space-y-6 hidden">
+      <div>
+        <h2 class="text-2xl font-bold">AI Monitor</h2>
+        <p class="text-gray-400 text-sm mt-1">Audit log of natural language intents and trace executions.</p>
+      </div>
+      
+      <div class="bg-[#11151c] border border-[#1e2838] rounded-xl overflow-hidden">
+        <table class="w-full text-left text-sm text-gray-300">
+          <thead class="bg-[#0c0f14] text-gray-400 uppercase text-xs tracking-wider border-b border-[#1e2838]">
+            <tr>
+              <th class="p-4">Time</th>
+              <th class="p-4">Request ID</th>
+              <th class="p-4">Query</th>
+              <th class="p-4">Intent</th>
+              <th class="p-4">Resolution</th>
+              <th class="p-4">Confidence</th>
+              <th class="p-4">Duration</th>
+              <th class="p-4">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#1e2838]">
+            <tr>
+              <td class="p-4 text-xs text-gray-500">10:42:18</td>
+              <td class="p-4 font-mono text-xs text-green-400">REQ-A82F1</td>
+              <td class="p-4">"Explain login authentication"</td>
+              <td class="p-4"><span class="bg-[#0a2418] text-green-400 px-2 py-0.5 rounded text-xs">CODE_EXPLANATION</span></td>
+              <td class="p-4">ATOM × GEMINI</td>
+              <td class="p-4">91%</td>
+              <td class="p-4">1.82s</td>
+              <td class="p-4"><span class="text-green-500 font-bold">SUCCESS</span></td>
+            </tr>
+            <tr>
+              <td class="p-4 text-xs text-gray-500">10:45:02</td>
+              <td class="p-4 font-mono text-xs text-green-400">REQ-B1029</td>
+              <td class="p-4">"List current directories"</td>
+              <td class="p-4"><span class="bg-gray-800 text-gray-300 px-2 py-0.5 rounded text-xs">FILES_LIST</span></td>
+              <td class="p-4">LOCAL ATOM</td>
+              <td class="p-4">98%</td>
+              <td class="p-4">0.12s</td>
+              <td class="p-4"><span class="text-green-500 font-bold">SUCCESS</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 3: Gemini History -->
+    <section id="sec-gemini" class="space-y-6 hidden">
+      <div class="flex justify-between items-center">
+        <div>
+          <h2 class="text-2xl font-bold">Gemini Detailed History</h2>
+          <p class="text-gray-400 text-sm mt-1">Detailed response payloads are automatically purged after 7 days.</p>
+        </div>
+        <button class="bg-[#ef4444]/20 text-[#ef4444] border border-[#ef4444]/30 hover:bg-[#ef4444]/30 px-4 py-2 rounded-lg text-sm font-semibold transition-colors" onclick="triggerCleanup()">
+          Run 7-Day Cleanup
+        </button>
+      </div>
+
+      <div class="bg-[#11151c] border border-[#1e2838] rounded-xl overflow-hidden">
+        <table class="w-full text-left text-sm text-gray-300">
+          <thead class="bg-[#0c0f14] text-gray-400 uppercase text-xs tracking-wider border-b border-[#1e2838]">
+            <tr>
+              <th class="p-4">Time</th>
+              <th class="p-4">Purpose</th>
+              <th class="p-4">Model</th>
+              <th class="p-4">Input Context</th>
+              <th class="p-4">Response Size</th>
+              <th class="p-4">Duration</th>
+              <th class="p-4">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#1e2838]">
+            <tr>
+              <td class="p-4 text-xs text-gray-500">14:21</td>
+              <td class="p-4"><span class="bg-blue-900/50 text-blue-400 px-2 py-0.5 rounded text-xs">VALIDATION</span></td>
+              <td class="p-4 text-xs">gemini-flash-latest</td>
+              <td class="p-4 text-gray-500">8.2 KB</td>
+              <td class="p-4 text-gray-500">2.1 KB</td>
+              <td class="p-4">1.24s</td>
+              <td class="p-4"><span class="text-green-500 font-bold">SUCCESS</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 4: RAG Monitor -->
+    <section id="sec-rag" class="space-y-6 hidden">
+      <div>
+        <h2 class="text-2xl font-bold">RAG 2.0 Monitor</h2>
+        <p class="text-gray-400 text-sm mt-1">Check retrieval overlaps, scores, and chunk citations.</p>
+      </div>
+
+      <div class="bg-[#11151c] border border-[#1e2838] rounded-xl p-6">
+        <h3 class="font-bold mb-3 text-gray-300">Recent Hybrid Query Trace</h3>
+        <div class="p-4 bg-[#080a0d] rounded-lg border border-[#1e2838] font-mono text-xs space-y-4">
+          <div><span class="text-yellow-500">Query:</span> "How does authentication work?"</div>
+          <div><span class="text-blue-400">Candidates Found:</span> 42 chunks</div>
+          <div><span class="text-purple-400">Selected for Context:</span> 3 chunks</div>
+          <hr class="border-[#1e2838]">
+          <div class="space-y-1">
+            <div class="text-[#22c55e]">#1 Source: PHP Security.pdf (Page 81)</div>
+            <div class="text-gray-500">Relevance Score: 0.90 | Keyword Overlap: 0.84</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Errors -->
+    <section id="sec-errors" class="space-y-6 hidden">
+      <div>
+        <h2 class="text-2xl font-bold">System Error Registry</h2>
+        <p class="text-gray-400 text-sm mt-1">Audit log of failures, exceptions, and linter errors.</p>
+      </div>
+
+      <div class="bg-[#11151c] border border-[#1e2838] rounded-xl overflow-hidden">
+        <table class="w-full text-left text-sm text-gray-300">
+          <thead class="bg-[#0c0f14] text-gray-400 uppercase text-xs tracking-wider border-b border-[#1e2838]">
+            <tr>
+              <th class="p-4">Error ID</th>
+              <th class="p-4">Timestamp</th>
+              <th class="p-4">Category</th>
+              <th class="p-4">Severity</th>
+              <th class="p-4">Message</th>
+              <th class="p-4">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#1e2838]">
+            <tr>
+              <td class="p-4 font-mono text-xs text-red-400">ERR-92821</td>
+              <td class="p-4 text-xs text-gray-500">14:42:19</td>
+              <td class="p-4 text-xs">GEMINI_API</td>
+              <td class="p-4"><span class="bg-red-900/50 text-red-400 px-2 py-0.5 rounded text-xs font-bold">ERROR</span></td>
+              <td class="p-4 text-xs text-gray-400">Gemini request timed out. Local fallback returned.</td>
+              <td class="p-4 text-xs text-green-500 font-bold">RESOLVED</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Section 6: Settings -->
+    <section id="sec-settings" class="space-y-6 hidden">
+      <div>
+        <h2 class="text-2xl font-bold">ATOM Configuration & Settings</h2>
+        <p class="text-gray-400 text-sm mt-1">Manage local workspace directories, security settings, and Gemini keys.</p>
+      </div>
+
+      <div class="bg-[#11151c] border border-[#1e2838] rounded-xl p-6 space-y-6 max-w-xl">
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-300">AI Model</label>
+          <select id="settingModel" class="w-full h-10 px-3 bg-[#080a0d] border border-[#1e2838] rounded-lg text-sm text-white">
+            <option value="gemini-1.5-flash">gemini-1.5-flash (Recommended)</option>
+            <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+          </select>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-sm font-semibold text-gray-300">Gemini API Key</label>
+          <input type="password" id="settingApiKey" placeholder="••••••••••••••••" class="w-full h-10 px-3 bg-[#080a0d] border border-[#1e2838] rounded-lg text-sm text-white">
+          <span class="text-xs text-gray-500">Key is protected and saved securely in server-side configuration.</span>
+        </div>
+
+        <button class="bg-[#22c55e] hover:bg-[#22c55e]/90 text-white font-bold px-6 py-2 rounded-lg text-sm transition-colors" onclick="saveSettings()">
+          Save Configurations
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    function showSection(sectionId) {
+      document.querySelectorAll('.page-section').forEach(function(sec) {
+        sec.classList.add('hidden');
+      });
+      document.getElementById('sec-' + sectionId).classList.remove('hidden');
+
+      document.querySelectorAll('aside nav a').forEach(function(nav) {
+        nav.className = "text-gray-400 hover:bg-[#1e2735] hover:text-white flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors";
+      });
+      document.getElementById('nav-' + sectionId).className = "sidebar-active flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors";
+    }
+
+    // Chart.js Configuration
+    window.addEventListener('load', function() {
+      const ctx = document.getElementById('observabilityChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+          datasets: [{
+            label: 'Total Requests',
+            data: [12, 19, 3, 5, 2, 3, 10],
+            borderColor: '#22c55e',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            tension: 0.2,
+            fill: true
+          }, {
+            label: 'Gemini Collaborations',
+            data: [5, 8, 1, 4, 1, 2, 7],
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            tension: 0.2,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              labels: { color: '#8896a8' }
+            }
+          },
+          scales: {
+            y: {
+              grid: { color: '#1e2838' },
+              ticks: { color: '#8896a8' }
+            },
+            x: {
+              grid: { color: '#1e2838' },
+              ticks: { color: '#8896a8' }
+            }
+          }
+        }
+      });
+    });
+
+    async function triggerCleanup() {
+      showToast("Triggering Spark maintenance cleanup task...", "info");
+    }
+
+    async function saveSettings() {
+      showToast("Settings saved successfully.", "success");
+    }
+  </script>
+  <script src="/admin/js/shared.js"></script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+﻿PersonalAIAssistant
+
+
+winexe
+C#
+.cs
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\
+PersonalAIAssistant
+none
+false
+TRACE;DEBUG;NET;NET9_0;NETCOREAPP
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\App.xaml
+111615809055
+3-584160037
+34-1479975652
+2671179157146
+MainWindow.xaml;Resources\Styles.xaml;Resources\Themes\Dark.xaml;Resources\Themes\Light.xaml;Views\ChatView.xaml;Views\DashboardView.xaml;Views\FilesView.xaml;Views\ModelsView.xaml;Views\PluginsView.xaml;Views\PromptLibraryView.xaml;Views\SettingsView.xaml;
+
+False
+

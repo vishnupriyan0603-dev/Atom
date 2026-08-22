@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Atom AI Assistant</title>
+  <hta:application
+    id="AtomDesktopApp"
+    applicationname="Atom"
+    border="thin"
+    borderstyle="normal"
+    caption="yes"
+    maximizebutton="yes"
+    minimizebutton="yes"
+    scroll="no"
+    showintaskbar="yes"
+    singleinstance="yes"
+    sysmenu="yes"
+    windowstate="normal"
+  />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body {
+      width: 100%; height: 100%;
+      margin: 0; overflow: hidden;
+      font-family: "Segoe UI", Arial, sans-serif;
+      transition: background 0.35s ease, color 0.35s ease;
+    }
+
+    /* ===== THEME VARIABLES ===== */
+    body.dark {
+      --bg-page: #0c0f14;
+      --bg-sidebar: #12171f;
+      --bg-main: #0c0f14;
+      --bg-surface: #151b24;
+      --bg-surface-alt: #1a222d;
+      --bg-input: #0c0f14;
+      --bg-hover: #1e2733;
+      --bg-active: #1a3a2e;
+      --border: #263040;
+      --border-light: #1e2733;
+      --text-primary: #e8edf2;
+      --text-secondary: #9aa8b9;
+      --text-muted: #6b7c8f;
+      --accent-green: #34d399;
+      --accent-red: #f87171;
+      --accent-grey: #6b7c8f;
+      --accent-white: #ffffff;
+      --accent-black: #000000;
+      --brand-bg: #0d1f1a;
+      --shadow: rgba(0,0,0,0.4);
+      --msg-user-bg: #1a3a2e;
+      --msg-user-border: #34d399;
+      --msg-bot-bg: #1a222d;
+      --msg-bot-border: #263040;
+      --bot-glow: rgba(52, 211, 153, 0.25);
+      --scrollbar: #263040;
+      --scrollbar-hover: #344a5e;
+    }
+    body.light {
+      --bg-page: #f0f2f5;
+      --bg-sidebar: #ffffff;
+      --bg-main: #f0f2f5;
+      --bg-surface: #ffffff;
+      --bg-surface-alt: #f8f9fb;
+      --bg-input: #ffffff;
+      --bg-hover: #e8ecf1;
+      --bg-active: #dcfce7;
+      --border: #d1d5db;
+      --border-light: #e5e7eb;
+      --text-primary: #111827;
+      --text-secondary: #4b5563;
+      --text-muted: #9ca3af;
+      --accent-green: #059669;
+      --accent-red: #dc2626;
+      --accent-grey: #6b7280;
+      --accent-white: #ffffff;
+      --accent-black: #000000;
+      --brand-bg: #f0fdf4;
+      --shadow: rgba(0,0,0,0.08);
+      --msg-user-bg: #f0fdf4;
+      --msg-user-border: #34d399;
+      --msg-bot-bg: #ffffff;
+      --msg-bot-border: #e5e7eb;
+      --bot-glow: rgba(5, 150, 105, 0.15);
+      --scrollbar: #d1d5db;
+      --scrollbar-hover: #9ca3af;
+    }
+
+    body {
+      background: var(--bg-page);
+      color: var(--text-primary);
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
+
+    /* ===== LAYOUT ===== */
+    .app {
+      display: flex;
+      width: 100%; height: 100%;
+    }
+
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      width: 220px;
+      min-width: 220px;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border);
+      transition: background 0.35s ease, border-color 0.35s ease;
+    }
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+      padding: 4px 8px;
+    }
+    .sidebar-brand-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--accent-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      transition: background 0.35s ease;
+    }
+    .sidebar-brand-text {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+      transition: color 0.35s ease;
+    }
+
+    .sidebar-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      margin: 4px 0 18px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-green);
+    }
+    .sidebar-status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      transition: background 0.35s ease;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .nav-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+    .nav-item.active {
+      background: var(--bg-active);
+      color: var(--accent-green);
+      font-weight: 600;
+    }
+    .nav-item .nav-icon {
+      width: 20px;
+      text-align: center;
+      font-size: 15px;
+    }
+    .nav-item .nav-badge {
+      margin-left: auto;
+      padding: 1px 7px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      background: var(--accent-red);
+      color: #ffffff;
+    }
+
+    .sidebar-footer {
+      padding-top: 12px;
+      border-top: 1px solid var(--border-light);
+      transition: border-color 0.35s ease;
+    }
+
+    /* ===== THEME TOGGLE ===== */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .theme-toggle:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+    .theme-toggle-switch {
+      position: relative;
+      width: 36px; height: 20px;
+      border-radius: 10px;
+      background: var(--accent-grey);
+      transition: background 0.3s ease;
+      flex-shrink: 0;
+    }
+    .theme-toggle-switch::after {
+      content: "";
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #ffffff;
+      transition: transform 0.3s ease;
+    }
+    body.light .theme-toggle-switch {
+      background: var(--accent-green);
+    }
+    body.light .theme-toggle-switch::after {
+      transform: translateX(16px);
+    }
+    .theme-toggle-label {
+      flex: 1;
+    }
+
+    /* ===== MAIN AREA ===== */
+    .main {
+      flex: 1;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-main);
+      transition: background 0.35s ease;
+    }
+    .main-header {
+      margin-bottom: 20px;
+      flex-shrink: 0;
+    }
+    .main-header h1 {
+      margin: 0 0 4px;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      transition: color 0.35s ease;
+    }
+    .main-header .subtitle {
+      margin: 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+      transition: color 0.35s ease;
+      line-height: 1.5;
+    }
+
+    /* ===== WORKSPACE ===== */
+    .workspace {
+      flex: 1;
+      display: flex;
+      gap: 18px;
+      min-height: 0;
+    }
+    .console-column {
+      flex: 0 0 62%;
+      display: flex;
+      flex-direction: column;
+    }
+    .model-column {
+      flex: 0 0 38%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ===== PANEL ===== */
+    .panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-surface);
+      transition: background 0.35s ease, border-color 0.35s ease;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      transition: border-color 0.35s ease, color 0.35s ease;
+    }
+    .panel-header .header-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      transition: background 0.35s ease;
+    }
+    .panel-body {
+      flex: 1;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* ===== MESSAGE AREA ===== */
+    .message-area {
+      flex: 1;
+      padding: 12px;
+      overflow-y: auto;
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      font-size: 13px;
+      line-height: 1.6;
+      transition: background 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+    }
+    .message-area .msg {
+      margin-bottom: 10px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border-left: 3px solid;
+      font-size: 13px;
+      line-height: 1.5;
+      transition: background 0.35s ease, border-color 0.35s ease;
+    }
+    .message-area .msg.msg-user {
+      background: var(--msg-user-bg);
+      border-color: var(--accent-green);
+    }
+    .message-area .msg.msg-bot {
+      background: var(--msg-bot-bg);
+      border-color: var(--msg-bot-border);
+    }
+    .message-area .msg .msg-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .message-area .msg.msg-user .msg-label { color: var(--accent-green); transition: color 0.35s ease; }
+    .message-area .msg.msg-bot .msg-label { color: var(--accent-grey); transition: color 0.35s ease; }
+    .message-area .msg .msg-text { color: var(--text-primary); transition: color 0.35s ease; }
+    .message-area .welcome-msg {
+      padding: 20px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+      transition: color 0.35s ease;
+    }
+
+    /* ===== INPUT ROW ===== */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+      flex-shrink: 0;
+    }
+    .input-row input {
+      flex: 1;
+      height: 42px;
+      padding: 0 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      background: var(--bg-input);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: background 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+    }
+    .input-row input:focus {
+      border-color: var(--accent-green);
+    }
+    .input-row input::placeholder {
+      color: var(--text-muted);
+    }
+    .btn {
+      height: 42px;
+      padding: 0 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: var(--accent-green);
+      color: #ffffff;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-secondary {
+      background: var(--bg-surface-alt);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { background: var(--bg-hover); }
+
+    /* ===== BOT PANEL ===== */
+    .bot-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg-surface);
+      overflow: hidden;
+      transition: background 0.35s ease, border-color 0.35s ease;
+    }
+    .bot-stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 260px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-main);
+      transition: background 0.35s ease, border-color 0.35s ease;
+    }
+
+    /* ===== ATOM BOT ===== */
+    .atom-bot {
+      position: relative;
+      width: 160px;
+      height: 210px;
+      transition: all 0.35s ease;
+    }
+    .bot-antenna {
+      position: absolute;
+      left: 78px; top: -20px;
+      width: 3px; height: 20px;
+      background: var(--accent-green);
+      border-radius: 2px;
+      transition: background 0.35s ease;
+    }
+    .bot-antenna-dot {
+      position: absolute;
+      left: 71px; top: -32px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 16px var(--bot-glow);
+      transition: background 0.35s ease, box-shadow 0.35s ease;
+    }
+    .bot-head {
+      position: absolute;
+      left: 24px; top: 0;
+      width: 112px; height: 78px;
+      border: 2px solid var(--accent-green);
+      border-radius: 16px;
+      background: var(--bg-surface-alt);
+      box-shadow: 0 0 20px var(--bot-glow);
+      transition: all 0.35s ease;
+    }
+    .bot-eye {
+      position: absolute;
+      top: 28px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 12px var(--bot-glow);
+      transition: background 0.35s ease, box-shadow 0.35s ease;
+    }
+    .bot-eye.left { left: 24px; }
+    .bot-eye.right { right: 24px; }
+    .bot-mouth {
+      position: absolute;
+      left: 34px; top: 54px;
+      width: 44px; height: 4px;
+      border-radius: 3px;
+      background: var(--accent-green);
+      transition: background 0.35s ease;
+    }
+    .bot-body {
+      position: absolute;
+      left: 12px; top: 86px;
+      width: 136px; height: 96px;
+      border: 2px solid var(--accent-green);
+      border-radius: 20px 20px 12px 12px;
+      background: var(--bg-surface-alt);
+      opacity: 0.9;
+      transition: all 0.35s ease;
+    }
+    .bot-core {
+      position: absolute;
+      left: 42px; top: 20px;
+      width: 52px; height: 52px;
+      border: 2px solid var(--accent-green);
+      border-radius: 50%;
+      background: var(--brand-bg);
+      box-shadow: 0 0 20px var(--bot-glow), inset 0 0 20px var(--bot-glow);
+      transition: all 0.35s ease;
+    }
+    .bot-core-dot {
+      position: absolute;
+      left: 19px; top: 19px;
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      transition: background 0.35s ease;
+    }
+    .bot-arm {
+      position: absolute;
+      top: 104px;
+      width: 28px; height: 68px;
+      border-radius: 14px;
+      background: var(--bg-surface-alt);
+      border: 2px solid var(--accent-green);
+      transition: all 0.35s ease;
+    }
+    .bot-arm.left { left: -6px; }
+    .bot-arm.right { right: -6px; }
+    .bot-base {
+      position: absolute;
+      left: 33px; top: 188px;
+      width: 94px; height: 16px;
+      border-radius: 16px;
+      background: var(--accent-green);
+      box-shadow: 0 8px 24px var(--shadow);
+      transition: background 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    /* ===== BOT INFO ===== */
+    .bot-meta {
+      padding: 14px 18px 16px;
+      flex-shrink: 0;
+    }
+    .bot-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .bot-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      transition: color 0.35s ease;
+    }
+    .bot-badge {
+      padding: 2px 10px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .bot-badge.online {
+      background: var(--bg-active);
+      color: var(--accent-green);
+    }
+    .bot-description {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.45;
+      transition: color 0.35s ease;
+    }
+
+    /* ===== QUICK ACTIONS ===== */
+    .quick-actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .quick-actions .btn {
+      height: 30px;
+      padding: 0 12px;
+      font-size: 11px;
+      border-radius: 6px;
+    }
+
+    /* ===== PANEL FOOTER ===== */
+    .panel-footer {
+      padding: 10px 16px 14px;
+      border-top: 1px solid var(--border-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+      transition: border-color 0.35s ease;
+    }
+    .panel-footer .footer-text {
+      font-size: 11px;
+      color: var(--text-muted);
+      transition: color 0.35s ease;
+    }
+    .panel-footer .footer-actions {
+      display: flex;
+      gap: 6px;
+    }
+
+    /* ===== CLEAR BUTTON ===== */
+    .btn-clear {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border-light);
+      height: 28px;
+      padding: 0 12px;
+      font-size: 11px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-clear:hover {
+      background: var(--bg-hover);
+      color: var(--accent-red);
+      border-color: var(--accent-red);
+    }
+  </style>
+</head>
+<body class="dark">
+  <div class="app">
+    <!-- ===== SIDEBAR ===== -->
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">A</div>
+        <span class="sidebar-brand-text">Atom</span>
+      </div>
+      <div class="sidebar-status">
+        <span class="sidebar-status-dot"></span>
+        <span id="statusText">Online</span>
+      </div>
+
+      <div class="sidebar-nav">
+        <div class="nav-item active" data-tab="assistant">
+          <span class="nav-icon">&#9679;</span> Assistant
+        </div>
+        <div class="nav-item" data-tab="automation">
+          <span class="nav-icon">&#9881;</span> Automation
+        </div>
+        <div class="nav-item" data-tab="knowledge">
+          <span class="nav-icon">&#128214;</span> Knowledge
+          <span class="nav-badge">3</span>
+        </div>
+        <div class="nav-item" data-tab="settings">
+          <span class="nav-icon">&#9878;</span> Settings
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="theme-toggle" onclick="toggleTheme()">
+          <div class="theme-toggle-switch"></div>
+          <span class="theme-toggle-label">Dark Mode</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MAIN ===== -->
+    <div class="main">
+      <div class="main-header">
+        <h1>AI Assistant</h1>
+        <p class="subtitle">Desktop shell for the Atom personal assistant. Ready for AI, automation, and knowledge features.</p>
+      </div>
+
+      <div class="workspace">
+        <!-- CONSOLE COLUMN -->
+        <div class="console-column">
+          <div class="panel">
+            <div class="panel-header">
+              <span class="header-dot"></span>
+              Assistant Console
+            </div>
+            <div class="panel-body">
+              <div id="messages" class="message-area">
+                <div class="welcome-msg">Welcome to Atom AI Assistant. Type a message below to get started.</div>
+              </div>
+              <div class="input-row">
+                <input id="messageInput" type="text" placeholder="Type a message for the assistant..." onkeydown="if(event.key==='Enter')sendMessage()" />
+                <button class="btn btn-primary" onclick="sendMessage()">Send</button>
+              </div>
+              <div class="quick-actions">
+                <button class="btn btn-secondary" onclick="quickAction('help')">Help</button>
+                <button class="btn btn-secondary" onclick="quickAction('status')">Status</button>
+                <button class="btn btn-secondary" onclick="quickAction('clear')">Clear</button>
+              </div>
+              <div class="panel-footer">
+                <span class="footer-text">Atom v1.0 &mdash; Desktop Shell</span>
+                <div class="footer-actions">
+                  <button class="btn-clear" onclick="clearMessages()">Clear Chat</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODEL COLUMN -->
+        <div class="model-column">
+          <div class="bot-panel">
+            <div class="bot-stage">
+              <div class="atom-bot" aria-label="Atom bot illustration">
+                <div class="bot-antenna"></div>
+                <div class="bot-antenna-dot"></div>
+                <div class="bot-head">
+                  <div class="bot-eye left"></div>
+                  <div class="bot-eye right"></div>
+                  <div class="bot-mouth"></div>
+                </div>
+                <div class="bot-arm left"></div>
+                <div class="bot-arm right"></div>
+                <div class="bot-body">
+                  <div class="bot-core">
+                    <div class="bot-core-dot"></div>
+                  </div>
+                </div>
+                <div class="bot-base"></div>
+              </div>
+            </div>
+            <div class="bot-meta">
+              <div class="bot-meta-row">
+                <span class="bot-title">Atom Bot</span>
+                <span class="bot-badge online">Online</span>
+              </div>
+              <div class="bot-description">Lightweight built-in desktop avatar. No external model files required.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    // ===== THEME =====
+    function toggleTheme() {
+      var body = document.body;
+      var label = document.querySelector('.theme-toggle-label');
+      if (body.className === 'dark') {
+        body.className = 'light';
+        label.textContent = 'Light Mode';
+      } else {
+        body.className = 'dark';
+        label.textContent = 'Dark Mode';
+      }
+    }
+
+    // ===== MESSAGES =====
+    function sendMessage() {
+      var input = document.getElementById('messageInput');
+      var messages = document.getElementById('messages');
+      var text = input.value.replace(/^\s+|\s+$/g, '');
+
+      if (!text) return;
+
+      // Remove welcome message
+      var welcome = messages.querySelector('.welcome-msg');
+      if (welcome) welcome.style.display = 'none';
+
+      addMessage(messages, 'user', text);
+      input.value = '';
+      messages.scrollTop = messages.scrollHeight;
+
+      // Simulate bot response
+      setTimeout(function() {
+        addMessage(messages, 'bot', getBotResponse(text));
+        messages.scrollTop = messages.scrollHeight;
+      }, 400 + Math.random() * 400);
+    }
+
+    function addMessage(container, type, text) {
+      var div = document.createElement('div');
+      div.className = 'msg msg-' + type;
+      var label = type === 'user' ? 'You' : 'Atom';
+      div.innerHTML = '<div class="msg-label">' + label + '</div><div class="msg-text">' + escapeHtml(text) + '</div>';
+      container.appendChild(div);
+    }
+
+    function escapeHtml(value) {
+      return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function clearMessages() {
+      var messages = document.getElementById('messages');
+      messages.innerHTML = '<div class="welcome-msg">Chat cleared. Type a message to start again.</div>';
+    }
+
+    // ===== QUICK ACTIONS =====
+    function quickAction(action) {
+      var messages = document.getElementById('messages');
+      var welcome = messages.querySelector('.welcome-msg');
+      if (welcome) welcome.style.display = 'none';
+
+      if (action === 'help') {
+        addMessage(messages, 'bot', 'Available commands:\n  help  - Show this help\n  status - Check system status\n  clear - Clear chat history\n\nType any message and Atom will respond.');
+      } else if (action === 'status') {
+        addMessage(messages, 'bot', 'Atom Desktop Shell\n  Status: Online\n  Version: 1.0\n  Platform: Windows HTA\n  Theme: ' + (document.body.className === 'dark' ? 'Dark' : 'Light') + '\n  AI Backend: Not connected');
+      } else if (action === 'clear') {
+        clearMessages();
+      }
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    // ===== BOT RESPONSES =====
+    function getBotResponse(text) {
+      var lower = text.toLowerCase();
+      if (lower.indexOf('hello') !== -1 || lower.indexOf('hi') !== -1 || lower.indexOf('hey') !== -1) {
+        return 'Hello! How can I assist you today?';
+      }
+      if (lower.indexOf('help') !== -1) {
+        return 'I\'m here to help! Try asking about my features, status, or just say hello. Full AI integration is coming soon.';
+      }
+      if (lower.indexOf('who') !== -1 || lower.indexOf('what are you') !== -1) {
+        return 'I\'m Atom, your personal AI assistant desktop shell. I\'m being built with clean architecture principles for future AI, automation, and knowledge features.';
+      }
+      if (lower.indexOf('status') !== -1 || lower.indexOf('online') !== -1) {
+        return 'All systems operational. Desktop shell is running. AI backend is not yet connected.';
+      }
+      if (lower.indexOf('thank') !== -1) {
+        return 'You\'re welcome! Let me know if you need anything else.';
+      }
+      if (lower.indexOf('bye') !== -1 || lower.indexOf('goodbye') !== -1) {
+        return 'Goodbye! Feel free to come back anytime.';
+      }
+      if (lower.indexOf('theme') !== -1 || lower.indexOf('dark') !== -1 || lower.indexOf('light') !== -1) {
+        return 'You can toggle between dark and light themes using the switch at the bottom of the sidebar.';
+      }
+      return 'Thanks for your message. The AI backend is not connected yet, so I can only provide predefined responses. This will be upgraded in a future update. You said: "' + text + '"';
+    }
+
+    // ===== NAVIGATION =====
+    document.addEventListener('click', function(e) {
+      var item = e.target.closest('.nav-item');
+      if (!item) return;
+      document.querySelectorAll('.nav-item').forEach(function(n) { n.className = 'nav-item'; });
+      item.className = 'nav-item active';
+    });
+  </script>
+</body>
+</html>

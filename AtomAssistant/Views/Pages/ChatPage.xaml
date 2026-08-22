@@ -1,0 +1,162 @@
+<ui:UiPage x:Class="AtomAssistant.Views.Pages.ChatPage"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+            xmlns:local="clr-namespace:AtomAssistant.Views.Pages"
+            xmlns:controls="clr-namespace:AtomAssistant.Controls"
+            mc:Ignorable="d"
+            d:DesignHeight="800" d:DesignWidth="1200"
+            Title="Chat">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled"
+                      Margin="32,24,32,0">
+            <ItemsControl ItemsSource="{Binding Messages}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border x:Name="MessageBorder"
+                                Margin="0,0,0,12"
+                                Padding="16"
+                                CornerRadius="8"
+                                Background="{DynamicResource CardBackgroundBrush}"
+                                BorderBrush="{DynamicResource CardBorderBrush}"
+                                BorderThickness="1"
+                                MaxWidth="800"
+                                HorizontalAlignment="{Binding IsUser, Converter={StaticResource BoolToHorizontalAlignmentConverter}}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="{Binding IsUser, Converter={StaticResource BoolToRoleConverter}}"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                                <controls:ChatControl Content="{Binding Content}"
+                                                      Markdown="{Binding Content}"
+                                                      Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                <TextBlock Text="{Binding Timestamp, StringFormat='{0:HH:mm tt}'}"
+                                           FontSize="11"
+                                           Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                           HorizontalAlignment="Right" />
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Right"
+                                            Spacing="4">
+                                    <ui:Button Appearance="Subtle"
+                                               Icon="CopyCode24"
+                                               ToolTip="Copy Code"
+                                               Command="{Binding DataContext.CopyCodeCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                               CommandParameter="{Binding}"
+                                               Visibility="{Binding IsUser, Converter={StaticResource BoolToVisibilityInverterConverter}}" />
+                                    <ui:Button Appearance="Subtle"
+                                               Icon="Edit24"
+                                               ToolTip="Edit Message"
+                                               Command="{Binding DataContext.EditMessageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                               CommandParameter="{Binding}" />
+                                    <ui:Button Appearance="Subtle"
+                                               Icon="ArrowRepeatAll24"
+                                               ToolTip="Regenerate"
+                                               Command="{Binding DataContext.RegenerateCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                               CommandParameter="{Binding}"
+                                               Visibility="{Binding IsUser, Converter={StaticResource BoolToVisibilityInverterConverter}}" />
+                                    <ui:Button Appearance="Subtle"
+                                               Icon="Delete24"
+                                               ToolTip="Delete"
+                                               Command="{Binding DataContext.DeleteMessageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                               CommandParameter="{Binding}" />
+                                    <ui:Button Appearance="Subtle"
+                                               Icon="ShareIos24"
+                                               ToolTip="Export"
+                                               Command="{Binding DataContext.ExportMessageCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                               CommandParameter="{Binding}" />
+                                </StackPanel>
+                            </StackPanel>
+                            <Border.Triggers>
+                                <DataTrigger Binding="{Binding IsStreaming}" Value="True">
+                                    <DataTrigger.EnterActions>
+                                        <BeginStoryboard>
+                                            <Storyboard>
+                                                <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                 From="0.6" To="1.0"
+                                                                 Duration="0:0:0.5"
+                                                                 AutoReverse="True"
+                                                                 RepeatBehavior="Forever" />
+                                            </Storyboard>
+                                        </BeginStoryboard>
+                                    </DataTrigger.EnterActions>
+                                </DataTrigger>
+                            </Border.Triggers>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <Border Grid.Row="1"
+                Padding="24,16"
+                Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}"
+                BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <ui:Button Grid.Column="0"
+                           Appearance="Subtle"
+                           Icon="Attach24"
+                           ToolTip="Attach File"
+                           Command="{Binding AttachCommand}"
+                           Margin="0,0,8,0" />
+
+                <TextBox Grid.Column="1"
+                         Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         MaxLines="6"
+                         VerticalScrollBarVisibility="Auto"
+                         MinHeight="36"
+                         Padding="8,6"
+                         FontSize="14" />
+
+                <ui:Button Grid.Column="2"
+                           Appearance="Subtle"
+                           Icon="Send24"
+                           ToolTip="Send"
+                           Command="{Binding SendCommand}"
+                           Margin="8,0,4,0" />
+
+                <ui:Button Grid.Column="3"
+                           Appearance="Subtle"
+                           Icon="Microphone24"
+                           ToolTip="Voice Input"
+                           Command="{Binding VoiceInputCommand}"
+                           Margin="4,0" />
+
+                <ui:Button Grid.Column="4"
+                           Appearance="Subtle"
+                           Icon="Stop24"
+                           ToolTip="Stop Generation"
+                           Command="{Binding StopCommand}"
+                           Margin="4,0" />
+
+                <ui:Button Grid.Column="5"
+                           Appearance="Subtle"
+                           Icon="Image24"
+                           ToolTip="Add Image"
+                           Command="{Binding AddImageCommand}"
+                           Margin="4,0,0,0" />
+            </Grid>
+        </Border>
+    </Grid>
+</ui:UiPage>

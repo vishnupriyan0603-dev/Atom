@@ -1,0 +1,140 @@
+<ui:UiPage x:Class="AtomAssistant.Views.Pages.PromptsPage"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+            xmlns:local="clr-namespace:AtomAssistant.Views.Pages"
+            mc:Ignorable="d"
+            d:DesignHeight="800" d:DesignWidth="1200"
+            Title="Prompts">
+
+    <Grid Margin="32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Prompt Library"
+                   FontSize="28"
+                   FontWeight="Bold"
+                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                   Margin="0,0,0,16" />
+
+        <Grid Grid.Row="1" Margin="0,0,0,16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <ComboBox Grid.Column="0"
+                      ItemsSource="{Binding Categories}"
+                      SelectedItem="{Binding SelectedCategory}"
+                      PlaceholderText="All Categories"
+                      Width="160"
+                      Margin="0,0,12,0" />
+
+            <TextBox Grid.Column="1"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     PlaceholderText="Search prompts..."
+                     Margin="0,0,12,0" />
+
+            <ui:Button Grid.Column="2"
+                       Appearance="Primary"
+                       Icon="Add24"
+                       Content="Add"
+                       Command="{Binding AddPromptCommand}"
+                       Margin="0,0,8,0" />
+
+            <ui:Button Grid.Column="3"
+                       Appearance="Subtle"
+                       Icon="ArrowImport24"
+                       ToolTip="Import"
+                       Command="{Binding ImportCommand}"
+                       Margin="0,0,8,0" />
+
+            <ui:Button Grid.Column="4"
+                       Appearance="Subtle"
+                       Icon="ArrowExport24"
+                       ToolTip="Export"
+                       Command="{Binding ExportCommand}"
+                       Margin="0,0,8,0" />
+        </Grid>
+
+        <Border Grid.Row="2"
+                CornerRadius="6"
+                Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource CardBorderBrush}"
+                BorderThickness="1">
+            <ListView ItemsSource="{Binding FilteredPrompts}"
+                      SelectedItem="{Binding SelectedPrompt}"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Border Padding="12,8" CornerRadius="4" Margin="2">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <ui:ToggleButton Grid.Column="0"
+                                                 IsChecked="{Binding IsFavorite}"
+                                                 Icon="Star24"
+                                                 CheckedIcon="StarFocus24"
+                                                 Appearance="Subtle"
+                                                 VerticalAlignment="Center" />
+
+                                <StackPanel Grid.Column="1" Margin="8,0">
+                                    <TextBlock Text="{Binding Title}"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                                    <TextBlock Text="{Binding Content}"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                               TextTrimming="CharacterEllipsis"
+                                               MaxHeight="36" />
+                                    <TextBlock Text="{Binding Category}"
+                                               FontSize="11"
+                                               Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+                                </StackPanel>
+
+                                <ui:Button Grid.Column="3"
+                                           Appearance="Subtle"
+                                           Icon="Edit24"
+                                           ToolTip="Edit"
+                                           Command="{Binding DataContext.EditPromptCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                           CommandParameter="{Binding}" />
+
+                                <ui:Button Grid.Column="4"
+                                           Appearance="Subtle"
+                                           Icon="Delete24"
+                                           ToolTip="Delete"
+                                           Command="{Binding DataContext.DeletePromptCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                           CommandParameter="{Binding}" />
+
+                                <ui:Button Grid.Column="5"
+                                           Appearance="Subtle"
+                                           Icon="Copy24"
+                                           ToolTip="Copy"
+                                           Command="{Binding DataContext.CopyPromptCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                           CommandParameter="{Binding}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Border>
+    </Grid>
+</ui:UiPage>

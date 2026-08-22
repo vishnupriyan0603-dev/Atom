@@ -1,0 +1,196 @@
+<ui:UiPage x:Class="AtomAssistant.Views.Pages.AboutPage"
+            xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+            xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+            xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+            xmlns:vm="clr-namespace:AtomAssistant.ViewModels.Pages"
+            mc:Ignorable="d"
+            Title="About"
+            Scrollable="True"
+            d:DataContext="{d:DesignInstance vm:AboutPageViewModel, IsDesignTimeCreatable=False}">
+
+    <Grid MaxWidth="800" Margin="32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- App Icon and Name -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,24">
+            <Border Width="64" Height="64" CornerRadius="16"
+                    Background="{DynamicResource SystemAccentColor}"
+                    Margin="0,0,16,0">
+                <TextBlock Text="AA"
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center" />
+            </Border>
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Atom AI Assistant"
+                           FontSize="28"
+                           FontWeight="SemiBold" />
+                <TextBlock Text="{Binding Version}"
+                           FontSize="14"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Margin="0,4,0,0" />
+            </StackPanel>
+        </StackPanel>
+
+        <!-- Description -->
+        <Border Grid.Row="1" Margin="0,0,0,24"
+                CornerRadius="12" Padding="20"
+                Background="{DynamicResource CardBackgroundColor}"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource CardBorderColor}">
+            <TextBlock Text="{Binding Description}"
+                       FontSize="14"
+                       TextWrapping="Wrap"
+                       LineHeight="22" />
+        </Border>
+
+        <!-- App Details -->
+        <Border Grid.Row="2" Margin="0,0,0,24"
+                CornerRadius="12" Padding="20"
+                Background="{DynamicResource CardBackgroundColor}"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource CardBorderColor}">
+            <StackPanel>
+                <TextBlock Text="Application Details"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+                <TextBlock FontSize="13" LineHeight="22">
+                    <Run FontWeight="SemiBold">Version: </Run>
+                    <Run Text="{Binding Version}" />
+                </TextBlock>
+                <TextBlock FontSize="13" LineHeight="22" Margin="0,4,0,0">
+                    <Run FontWeight="SemiBold">Framework: </Run>
+                    <Run>.NET 9.0 (WPF)</Run>
+                </TextBlock>
+                <TextBlock FontSize="13" LineHeight="22" Margin="0,4,0,0">
+                    <Run FontWeight="SemiBold">UI Library: </Run>
+                    <Run>Wpf.Ui 3.x</Run>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!-- Links -->
+        <Border Grid.Row="3" Margin="0,0,0,24"
+                CornerRadius="12" Padding="20"
+                Background="{DynamicResource CardBackgroundColor}"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource CardBorderColor}">
+            <StackPanel>
+                <TextBlock Text="Links"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+                <ItemsControl ItemsSource="{Binding Links}" Margin="0">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <ui:HyperlinkButton Content="{Binding DisplayName}"
+                                                NavigateUri="{Binding Url}"
+                                                Margin="0,2" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- Keyboard Shortcuts -->
+        <Border Grid.Row="4" Margin="0,0,0,24"
+                CornerRadius="12" Padding="20"
+                Background="{DynamicResource CardBackgroundColor}"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource CardBorderColor}">
+            <StackPanel>
+                <TextBlock Text="Keyboard Shortcuts"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+                <ItemsControl ItemsSource="{Binding Shortcuts}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,4,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Border Grid.Column="0"
+                                        Padding="8,4,8,4"
+                                        CornerRadius="6"
+                                        MinWidth="100"
+                                        Background="{DynamicResource ControlBackgroundColor}"
+                                        BorderThickness="1"
+                                        BorderBrush="{DynamicResource ControlElevationBorderBrush}">
+                                    <TextBlock Text="{Binding Key}"
+                                               FontSize="12"
+                                               FontFamily="Consolas"
+                                               HorizontalAlignment="Center" />
+                                </Border>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Description}"
+                                           FontSize="13"
+                                           Margin="12,0,0,0"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+
+        <!-- License -->
+        <TextBlock Grid.Row="5"
+                   Text="{Binding License}"
+                   FontSize="12"
+                   Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                   TextWrapping="Wrap"
+                   Margin="0,0,0,16" />
+
+        <!-- Version History -->
+        <Border Grid.Row="6"
+                CornerRadius="12" Padding="20"
+                Background="{DynamicResource CardBackgroundColor}"
+                BorderThickness="1"
+                BorderBrush="{DynamicResource CardBorderColor}">
+            <StackPanel>
+                <TextBlock Text="Version History"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Margin="0,0,0,12" />
+                <ItemsControl ItemsSource="{Binding VersionHistory}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,8"
+                                    Padding="12"
+                                    CornerRadius="8"
+                                    Background="{DynamicResource ControlBackgroundColor}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Version}"
+                                               FontSize="14"
+                                               FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Date}"
+                                               FontSize="12"
+                                               Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                               Margin="0,2,0,4" />
+                                    <TextBlock Text="{Binding Notes}"
+                                               FontSize="13"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </Border>
+    </Grid>
+</ui:UiPage>

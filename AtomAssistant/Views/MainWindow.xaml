@@ -1,0 +1,234 @@
+<ui:UiWindow x:Class="AtomAssistant.Views.MainWindow"
+              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+              xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+              xmlns:local="clr-namespace:AtomAssistant.Views"
+              xmlns:vm="clr-namespace:AtomAssistant.ViewModels"
+              mc:Ignorable="d"
+              Title="Atom AI Assistant"
+              MinWidth="900" MinHeight="600"
+              Width="1280" Height="800"
+              WindowStartupLocation="CenterScreen"
+              d:DataContext="{d:DesignInstance vm:MainWindowViewModel, IsDesignTimeCreatable=False}"
+              ui:UiWindow.ExtendTitleBar="True"
+              ui:UiWindow.TitleBar="TitleBar">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- TitleBar -->
+        <ui:TitleBar x:Name="TitleBar"
+                     Grid.Row="0"
+                     Title="Atom AI Assistant"
+                     UseSnapLayout="True"
+                     MinMaxVisibility="Visible"
+                     CloseVisibility="Visible"
+                     Icon="pack://application:,,,/Assets/atom-icon.ico" />
+
+        <!-- Main Content Area -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Sidebar Navigation -->
+            <ui:NavigationView x:Name="RootNavigation"
+                               Grid.Column="0"
+                               IsBackButtonVisible="Collapsed"
+                               IsPaneToggleVisible="True"
+                               PaneDisplayMode="Left"
+                               OpenPaneLength="240"
+                               CompactPaneLength="48"
+                               Padding="0"
+                               FrameMargin="0">
+
+                <!-- Navigation Items -->
+                <ui:NavigationView.MenuItems>
+                    <ui:NavigationViewItem Content="New Chat"
+                                           Icon="{ui:SymbolIcon Chat16}"
+                                           TargetPageType="{x:Type local:Pages.ChatPage}"
+                                           Tag="newchat">
+                        <ui:NavigationViewItem.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="N" Modifiers="Control" />
+                        </ui:NavigationViewItem.KeyboardAccelerators>
+                    </ui:NavigationViewItem>
+                    <ui:NavigationViewItem Content="Chats"
+                                           Icon="{ui:SymbolIcon History16}"
+                                           TargetPageType="{x:Type local:Pages.ChatsPage}"
+                                           Tag="chats" />
+                    <ui:NavigationViewItem Content="AI Models"
+                                           Icon="{ui:SymbolIcon BrainCircuit16}"
+                                           TargetPageType="{x:Type local:Pages.ModelsPage}"
+                                           Tag="models" />
+                    <ui:NavigationViewItem Content="Prompt Library"
+                                           Icon="{ui:SymbolIcon Library16}"
+                                           TargetPageType="{x:Type local:Pages.PromptLibraryPage}"
+                                           Tag="prompts" />
+                    <ui:NavigationViewItem Content="Files"
+                                           Icon="{ui:SymbolIcon Document16}"
+                                           TargetPageType="{x:Type local:Pages.FilesPage}"
+                                           Tag="files" />
+                    <ui:NavigationViewItem Content="Plugins"
+                                           Icon="{ui:SymbolIcon PuzzlePiece16}"
+                                           TargetPageType="{x:Type local:Pages.PluginsPage}"
+                                           Tag="plugins" />
+                    <ui:NavigationViewItem Content="History"
+                                           Icon="{ui:SymbolIcon Clock16}"
+                                           TargetPageType="{x:Type local:Pages.HistoryPage}"
+                                           Tag="history" />
+                    <ui:NavigationViewItem Content="Notes"
+                                           Icon="{ui:SymbolIcon Note16}"
+                                           TargetPageType="{x:Type local:Pages.NotesPage}"
+                                           Tag="notes" />
+                    <ui:NavigationViewItem Content="Knowledge Base"
+                                           Icon="{ui:SymbolIcon BookOpen16}"
+                                           TargetPageType="{x:Type local:Pages.KnowledgeBasePage}"
+                                           Tag="knowledge" />
+                </ui:NavigationView.MenuItems>
+
+                <!-- Footer Menu Items -->
+                <ui:NavigationView.FooterMenuItems>
+                    <ui:NavigationViewItem Content="Settings"
+                                           Icon="{ui:SymbolIcon Settings16}"
+                                           TargetPageType="{x:Type local:Pages.SettingsPage}"
+                                           Tag="settings" />
+                </ui:NavigationView.FooterMenuItems>
+
+                <!-- Header Content (Top Bar) -->
+                <ui:NavigationView.Header>
+                    <Border Padding="0,0,0,0">
+                        <DockPanel LastChildFill="True" Margin="12,8,12,8">
+                            <!-- Search Box -->
+                            <TextBox x:Name="SearchBox"
+                                     DockPanel.Dock="Left"
+                                     Width="240"
+                                     Height="32"
+                                     Margin="0,0,8,0"
+                                     PlaceholderText="Search..."
+                                     Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                                     ui:ControlExtensions.Watermark="Search chats, files, notes..." />
+
+                            <!-- Spacer -->
+                            <Border DockPanel.Dock="Left" Width="*" />
+
+                            <!-- Current Model Dropdown -->
+                            <ui:ComboBox x:Name="ModelComboBox"
+                                         DockPanel.Dock="Right"
+                                         Width="180"
+                                         Height="32"
+                                         Margin="0,0,8,0"
+                                         PlaceholderText="Select Model"
+                                         ItemsSource="{Binding AvailableModels}"
+                                         SelectedItem="{Binding CurrentModel, Mode=TwoWay}" />
+
+                            <!-- Theme Toggle Button -->
+                            <ui:Button x:Name="ThemeToggleButton"
+                                       DockPanel.Dock="Right"
+                                       Width="32"
+                                       Height="32"
+                                       Margin="0,0,8,0"
+                                       ToolTip="Toggle Theme"
+                                       Command="{Binding ToggleThemeCommand}">
+                                <ui:SymbolIcon Symbol="{Binding ThemeIcon, Mode=OneWay}"
+                                               FontSize="16" />
+                            </ui:Button>
+
+                            <!-- Profile Avatar -->
+                            <ui:Button x:Name="ProfileButton"
+                                       DockPanel.Dock="Right"
+                                       Width="32"
+                                       Height="32"
+                                       ToolTip="Profile"
+                                       CornerRadius="16">
+                                <Border Width="28" Height="28" CornerRadius="14"
+                                        Background="{DynamicResource SystemAccentColor}">
+                                    <TextBlock Text="A"
+                                               FontSize="14"
+                                               FontWeight="SemiBold"
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" />
+                                </Border>
+                            </ui:Button>
+                        </DockPanel>
+                    </Border>
+                </ui:NavigationView.Header>
+            </ui:NavigationView>
+
+            <!-- Content Frame -->
+            <Frame x:Name="RootFrame"
+                   Grid.Column="1"
+                   Margin="0"
+                   NavigationUIVisibility="Hidden"
+                   ui:NavigationView.FrameContentId="RootFrame" />
+        </Grid>
+
+        <!-- Bottom Chat Input Area -->
+        <Border x:Name="ChatInputArea"
+                Grid.Row="2"
+                Height="Auto"
+                Padding="16,8,16,16"
+                Background="{DynamicResource ControlBackgroundColor}"
+                Visibility="{Binding IsChatInputVisible, Converter={StaticResource BoolToVisibilityConverter}, FallbackValue=Collapsed}">
+            <Border CornerRadius="12"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource ControlElevationBorderBrush}"
+                    Background="{DynamicResource ControlBackgroundColor}">
+                <Grid Margin="8,4,8,4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Attach File Button -->
+                    <ui:Button Grid.Column="0"
+                               Width="32" Height="32"
+                               Margin="4,0,4,0"
+                               ToolTip="Attach File"
+                               Appearance="Transparent">
+                        <ui:SymbolIcon Symbol="Attach16" FontSize="16" />
+                    </ui:Button>
+
+                    <!-- Message Input -->
+                    <TextBox x:Name="MessageTextBox"
+                             Grid.Column="1"
+                             MinHeight="32"
+                             MaxHeight="120"
+                             Margin="4,0"
+                             Padding="8,6"
+                             TextWrapping="Wrap"
+                             AcceptsReturn="True"
+                             PlaceholderText="Type a message..."
+                             VerticalScrollBarVisibility="Auto"
+                             VerticalContentAlignment="Center" />
+
+                    <!-- Voice Input Button -->
+                    <ui:Button Grid.Column="2"
+                               Width="32" Height="32"
+                               Margin="4,0,4,0"
+                               ToolTip="Voice Input"
+                               Appearance="Transparent">
+                        <ui:SymbolIcon Symbol="Mic16" FontSize="16" />
+                    </ui:Button>
+
+                    <!-- Send Button -->
+                    <ui:Button Grid.Column="3"
+                               Width="32" Height="32"
+                               Margin="4,0,4,0"
+                               ToolTip="Send Message"
+                               Appearance="Transparent">
+                        <ui:SymbolIcon Symbol="Send16" FontSize="16" />
+                    </ui:Button>
+                </Grid>
+            </Border>
+        </Border>
+    </Grid>
+</ui:UiWindow>

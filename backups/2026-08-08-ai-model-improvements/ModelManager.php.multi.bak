@@ -1,0 +1,70 @@
+<?php
+
+namespace Atom\PersonalModel;
+
+class ModelManager
+{
+    /** @var ModelInterface[] */
+    private array $models = [];
+    
+    /** @var array Role mappings, e.g. ['primary' => 'llama3.1', 'teacher' => 'gemini-1.5-flash', 'fallback' => 'gemini-1.5-flash'] */
+    private array $roles = [];
+
+    public function registerModel(string $alias, ModelInterface $model): void
+    {
+        $this->models[$alias] = $model;
+    }
+
+    public function setRole(string $role, string $alias): void
+    {
+        $this->roles[strtolower($role)] = $alias;
+    }
+
+    public function getModelForRole(string $role): ?ModelInterface
+    {
+        $role = strtolower($role);
+        $alias = $this->roles[$role] ?? null;
+        if ($alias !== null && isset($this->models[$alias])) {
+            return $this->models[$alias];
+        }
+        return null;
+    }
+
+    /**
+     * Executes generation for a role with fallback routing.
+     */
+    public function generateForRole(string $role, array $messages): ModelResponse
+    {
+        $model = $this->getModelForRole($role);
+        if ($model === null) {
+            if ($role === 'primary') {
+                $model = $this->getModelForRole('fallback');
+            }
+            if ($model === null) {
+                return new ModelResponse(false, '', "No model configured for role '{$role}'");
+            }
+        }
+
+        $response = $model->generate($messages);
+        
+        // If generation failed and we were using primary, try fallback
+        if (!$response->isSuccess() && $role === 'primary') {
+            $fallbackModel = $this->getModelForRole('fallback');
+            if ($fallbackModel !== null && $fallbackModel !== $model) {
+                $response = $fallbackModel->generate($messages);
+            }
+        }
+
+        return $response;
+    }
+
+    public function getModels(): array
+    {
+        return $this->models;
+    }
+
+    public function getRoles(): array
+    {
+        return $this->roles;
+    }
+}
