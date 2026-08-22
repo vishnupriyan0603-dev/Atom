@@ -23,3 +23,5 @@
 - Do not modify layouts without permission.
 - Run tests before considering a change complete.
 - Document changes in `.antigravity/changelog.md`.
+- Strictly adhere to `docs/svgAtom_strict_rules.md` for all workflow, branch, verification, and safety policies.
+
