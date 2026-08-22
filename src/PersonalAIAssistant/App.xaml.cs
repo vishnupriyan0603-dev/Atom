@@ -62,6 +62,7 @@ public partial class App : Application
         services.AddSingleton<IFileAnalysisService, FileAnalysisService>();
         services.AddSingleton<IPluginRegistry, PluginRegistry>();
         services.AddSingleton<INavigationService, NavigationService>();
+        services.AddSingleton<ISelfImprovementService, SelfImprovementService>();
 
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<DashboardViewModel>();
@@ -71,7 +72,9 @@ public partial class App : Application
         services.AddSingleton<FilesViewModel>();
         services.AddSingleton<PluginsViewModel>();
         services.AddSingleton<SettingsViewModel>();
+        services.AddSingleton<SelfImprovementViewModel>();
 
+        services.AddSingleton<SelfImprovementView>();
         services.AddSingleton<MainWindow>();
     }
 }

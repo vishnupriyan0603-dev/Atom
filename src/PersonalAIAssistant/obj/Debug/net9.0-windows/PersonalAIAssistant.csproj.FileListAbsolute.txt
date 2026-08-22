@@ -281,3 +281,6 @@ E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Pe
 E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Personal.EE43E84F.Up2Date
 E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.genruntimeconfig.cache
 E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\ref\PersonalAIAssistant.dll
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\PersonalAIAssistant.sourcelink.json
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\SelfImprovementView.baml
+E:\xampp\htdocs\my work\Atom\src\PersonalAIAssistant\obj\Debug\net9.0-windows\Views\SelfImprovementView.g.cs
