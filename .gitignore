@@ -14,6 +14,12 @@ __pycache__/
 dist/
 build/
 coverage/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
 
 # Runtime storage
 storage/uploads/*

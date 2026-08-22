@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATOM Personal AI — Comprehensive User Manual & Presentation Guide</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+    <style>
+        :root {
+            --bg-color: #0b111e;
+            --card-bg: #111928;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #00f2fe;
+            --accent: #7f00ff;
+            --green: #00e676;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        @media print {
+            body { background: #fff !important; color: #000 !important; }
+            .no-print { display: none !important; }
+            .card { border: 1px solid #ccc !important; background: #fff !important; color: #000 !important; box-shadow: none !important; }
+            a { color: #0066cc !important; text-decoration: underline !important; }
+            pre, code { background: #f4f4f4 !important; color: #000 !important; border: 1px solid #ddd !important; }
+            th, td { border-bottom: 1px solid #ddd !important; color: #000 !important; }
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.65;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 940px;
+            margin: 0 auto;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(17, 25, 40, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            position: sticky;
+            top: 20px;
+            z-index: 100;
+        }
+
+        .btn-print {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: #0b111e;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.3);
+        }
+
+        .btn-print:hover { opacity: 0.9; }
+
+        h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; color: #fff; }
+        h1 { font-size: 2.2rem; margin-bottom: 8px; background: linear-gradient(135deg, #00f2fe, #7f00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { font-size: 1.45rem; border-bottom: 2px solid var(--primary); padding-bottom: 6px; margin-top: 32px; color: var(--primary); }
+
+        blockquote {
+            background: rgba(0, 242, 254, 0.08);
+            border-left: 4px solid var(--primary);
+            margin: 16px 0;
+            padding: 14px 20px;
+            border-radius: 0 8px 8px 0;
+            color: #e2e8f0;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 26px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        pre {
+            background: #060911;
+            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.88rem;
+            color: #38bdf8;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255,255,255,0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #00f2fe;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th { background: rgba(255,255,255,0.04); color: var(--primary); }
+
+        .badge {
+            background: rgba(127, 0, 255, 0.2);
+            border: 1px solid rgba(127, 0, 255, 0.4);
+            color: #d8b4fe;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="action-bar no-print">
+            <div>
+                <strong style="color: var(--primary); font-size: 1.1rem;">ATOM User Manual & Guide</strong>
+                <div style="font-size: 0.82rem; color: var(--text-muted);">Comprehensive Operational Manual & Slide Deck</div>
+            </div>
+            <button class="btn-print" onclick="window.print()">
+                <i class="fa-solid fa-print"></i> Save / Print as PDF
+            </button>
+        </div>
+
+        <!-- Section 1 -->
+        <div class="card">
+            <h1>ATOM Personal AI — User Manual & Presentation Guide 📖</h1>
+            <blockquote>
+                <strong>Advanced AI Knowledge, Memory, Self-Learning, and Human-Guarded Self-Improvement Engine for ATOM</strong>
+            </blockquote>
+
+            <hr style="border: 0; border-top: 1px solid var(--border); margin: 24px 0;">
+
+            <h2 style="margin-top: 0;">Table of Contents</h2>
+            <ol style="margin-left: 20px; color: var(--primary);">
+                <li>1. Overview & Architecture</li>
+                <li>2. Quick Start & Application Launch</li>
+                <li>3. AI Provider Configuration (OpenAI, Gemini, Groq & Local Ollama)</li>
+                <li>4. PDF Ingestion & Document RAG Training</li>
+                <li>5. Core Capabilities & Knowledge System</li>
+                <li>6. Self-Learning & Self-Improvement Engine</li>
+                <li>7. Desktop WPF Assistant Application</li>
+                <li>8. CLI Spark Commands Reference</li>
+                <li>9. REST API Endpoints Guide</li>
+                <li>10. Presentation Deck Slides (PPT Outline)</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h2>1. Overview & Architecture</h2>
+            <p>ATOM is a state-of-the-art hybrid Personal AI Assistant built on PHP CodeIgniter 4 backend services, MySQL/SQLite database persistence, and a modern C# .NET 9 WPF desktop client.</p>
+            <pre>
+       +-------------------------------------------------------------+
+       |                  USER INTERACTION LAYERS                   |
+       |  Desktop WPF App (C#)  |  Web Admin Dashboard  |  CLI Spark  |
+       +-------------------------------------------------------------+
+                                      |
+                                      v
+       +-------------------------------------------------------------+
+       |                     REST API CONTROLLERS                    |
+       |  /api/knowledge/search | /api/improvement/* | /api/ai/chat  |
+       +-------------------------------------------------------------+
+                                      |
+                                      v
+       +-------------------------------------------------------------+
+       |                     ATOM BRAIN ENGINES                      |
+       |  Knowledge Graph | Self-Improvement Engine | Human Safety  |
+       +-------------------------------------------------------------+
+                                      |
+                                      v
+       +-------------------------------------------------------------+
+       |                  STORAGE & MODEL PROVIDERS                  |
+       |  MySQL / SQLite DB | Groq / Gemini / OpenAI / Ollama Local LLM|
+       +-------------------------------------------------------------+
+            </pre>
+        </div>
+
+        <div class="card">
+            <h2>2. Quick Start & Application Launch</h2>
+            <h3>All-in-One Quick Launcher</h3>
+            <p>Launch all ATOM services (Backend API, CLI Evaluation, and Desktop WPF Client) in a single command:</p>
+
+            <p><strong>Option 1: Run <code>start-all.bat</code></strong></p>
+            <pre>.\start-all.bat</pre>
+
+            <p><strong>Option 2: Run <code>atom.bat</code> Menu</strong></p>
+            <pre>.\atom.bat</pre>
+            <p>Select option <strong><code>[A]</code></strong> — <em>Start All Services (Backend + CLI + Desktop UI)</em>.</p>
+
+            <h3>Manual Service Launch</h3>
+            <p><strong>A. Start Backend API Server:</strong></p>
+            <pre>cd backend
+php spark serve --host 0.0.0.0</pre>
+            <p><em>(Backend HTTP API will run at <code>http://localhost:8080</code>)</em></p>
+
+            <p><strong>B. Launch Desktop WPF Assistant:</strong></p>
+            <pre>dotnet run --project src/PersonalAIAssistant/PersonalAIAssistant.csproj</pre>
+
+            <p><strong>C. Run Self-Learning Evaluation via CLI:</strong></p>
+            <pre>cd backend
+php spark atom:self-improve</pre>
+        </div>
+
+        <div class="card">
+            <h2>3. AI Provider Configuration (OpenAI, Gemini, Groq & Local Ollama)</h2>
+            <p>ATOM supports 4 primary LLM providers. Credentials and model selections are configured in the <strong><code>.env</code></strong> file located in the workspace root.</p>
+
+            <h3>Setting up OpenAI</h3>
+            <p>1. Obtain an API key from <a href="https://platform.openai.com/" target="_blank" style="color: #00f2fe;">platform.openai.com</a>.<br>
+            2. Edit <code>.env</code>:</p>
+            <pre>LLM_PROVIDER=openai
+LLM_MODEL=gpt-4o-mini
+LLM_API_KEY=sk-your-openai-api-key-here
+LLM_API_URL=https://api.openai.com/v1</pre>
+
+            <h3>Setting up Gemini</h3>
+            <p>1. Obtain an API key from <a href="https://aistudio.google.com/" target="_blank" style="color: #00f2fe;">Google AI Studio</a>.<br>
+            2. Edit <code>.env</code>:</p>
+            <pre>LLM_PROVIDER=gemini
+LLM_MODEL=gemini-3.6-flash
+LLM_API_KEY=your-gemini-api-key-here
+LLM_API_URL=https://generativelanguage.googleapis.com/v1beta</pre>
+
+            <h3>Setting up Groq</h3>
+            <p>1. Obtain a key from <a href="https://console.groq.com/" target="_blank" style="color: #00f2fe;">console.groq.com</a>.<br>
+            2. Edit <code>.env</code>:</p>
+            <pre>LLM_PROVIDER=groq
+LLM_MODEL=openai/gpt-oss-120b
+LLM_API_KEY=gsk_your-groq-key-here
+LLM_API_URL=https://api.groq.com/openai/v1</pre>
+
+            <h3>Setting up Local Ollama / LM Studio</h3>
+            <p>1. Install Ollama locally and pull a model: <code>ollama pull llama3.1</code><br>
+            2. Edit <code>.env</code>:</p>
+            <pre>LLM_PROVIDER=local
+LLM_MODEL=llama3.1
+LLM_API_KEY=
+LLM_API_URL=http://localhost:11434/v1</pre>
+
+            <h3>Resolving cURL SSL Certificate Errors</h3>
+            <p>On Windows XAMPP environments without <code>cacert.pem</code>, cURL may report <code>unable to get local issuer certificate (20)</code>. Add this line to <code>.env</code> to disable SSL verification for local dev:</p>
+            <pre>ATOM_DISABLE_SSL_VERIFY=true</pre>
+        </div>
+
+        <div class="card">
+            <h2>4. PDF Ingestion & Document RAG Training</h2>
+            <p>ATOM converts PDF manuals and text documentation into indexed vector embeddings and Knowledge Graph triples.</p>
+
+            <h3>Method A: Desktop WPF Assistant Upload</h3>
+            <ol>
+                <li>Launch Desktop App via <code>start-all.bat</code> or <code>dotnet run</code>.</li>
+                <li>Navigate to <strong>Knowledge Base Page</strong>.</li>
+                <li>Click <strong>Upload Document</strong> and select your <code>.pdf</code> file.</li>
+            </ol>
+
+            <h3>Method B: Advanced Web UI Uploader</h3>
+            <ol>
+                <li>Open <code>advanced-ui/index.html</code> in your browser.</li>
+                <li>Navigate to the <strong>Document RAG Training</strong> tab.</li>
+                <li>Drag & drop your PDF file onto the dropzone.</li>
+            </ol>
+
+            <h3>Method C: REST API Upload via cURL</h3>
+            <pre>curl -X POST http://localhost:8080/api/knowledge/upload \
+  -F "document=@/path/to/manual.pdf" \
+  -H "Authorization: Bearer your-jwt-token"</pre>
+
+            <h3>PDF Extraction Pipeline Architecture</h3>
+            <pre>
+[Uploaded PDF] ---> [PdfExtractor.php] ---> [Semantic Chunker (512 tokens)]
+                                                  |
+                                                  v
+[Knowledge Graph Triples] <--- [Embedding Engine] <--- [SQLite Vector DB]
+            </pre>
+        </div>
+
+        <div class="card">
+            <h2>5. Core Capabilities & Knowledge System</h2>
+            <h3>Knowledge Graph (Subject-Predicate-Object Triples)</h3>
+            <p>ATOM automatically extracts structured facts into <code>atom_knowledge_triples</code>:</p>
+            <ul>
+                <li><code>ATOM -> DEPENDS_ON -> SQLITE_DATABASE</code></li>
+                <li><code>USER_PREFERENCE -> PREFERS -> DARK_MODE</code></li>
+            </ul>
+
+            <h3>Hybrid RAG Search</h3>
+            <p>ATOM queries both Document Chunks AND Knowledge Graph Triples simultaneously via <code>GET /api/knowledge/search?q=query</code> to eliminate hallucinations.</p>
+        </div>
+
+        <div class="card">
+            <h2>6. Self-Learning & Self-Improvement Engine</h2>
+            <pre>
+[User Interactions] ---> [Log Metrics] ---> [Flaw Detector]
+                                                 |
+                                                 v
+[Human Approval] <--- [Candidate Benchmarking] <--- [A/B Sandbox]
+            </pre>
+            <ol>
+                <li><strong>Metric Logging:</strong> Interaction metrics logged in <code>atom_evaluations</code>.</li>
+                <li><strong>Flaw Detection:</strong> Flags performance flaws if accuracy drops.</li>
+                <li><strong>Sandbox A/B Experiments:</strong> Runs candidate experiments requiring a <strong>+5% improvement</strong>.</li>
+                <li><strong>Human Authorization Gate:</strong> Promoted configs require human sign-off in <code>atom_human_approvals</code>.</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <h2>7. Desktop WPF Assistant Application</h2>
+            <p>The WPF app (<code>src/PersonalAIAssistant</code>) features:</p>
+            <ul>
+                <li><strong>Chat View:</strong> Multi-turn conversation with LLMs.</li>
+                <li><strong>Knowledge Base Page:</strong> Document management and hybrid search.</li>
+                <li><strong>ATOM Safety Gate Page:</strong> Approve/Reject pending requests and monitor sandbox scores.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>8. CLI Spark Commands Reference</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Command</th>
+                        <th>Purpose</th>
+                        <th>Example Usage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>php spark serve --host 0.0.0.0</code></td>
+                        <td>Start CodeIgniter 4 backend HTTP server</td>
+                        <td><code>php spark serve</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>php spark atom:self-improve</code></td>
+                        <td>Trigger evaluation cycle & A/B sandbox benchmarking</td>
+                        <td><code>php spark atom:self-improve</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>php spark atom:approve &lt;id&gt;</code></td>
+                        <td>Authorize candidate experiment promotion</td>
+                        <td><code>php spark atom:approve 1</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>php spark migrate</code></td>
+                        <td>Run database schema migrations</td>
+                        <td><code>php spark migrate</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>9. REST API Endpoints Guide</h2>
+            <h3>Knowledge & Search</h3>
+            <ul>
+                <li><code>GET /api/knowledge/search?q={query}&limit=5</code></li>
+                <li><code>GET /api/knowledge/documents</code></li>
+                <li><code>POST /api/knowledge/upload</code></li>
+            </ul>
+            <h3>Self-Improvement & Safety Gate</h3>
+            <ul>
+                <li><code>GET /api/improvement/flaws</code></li>
+                <li><code>GET /api/improvement/experiments</code></li>
+                <li><code>GET /api/improvement/approvals</code></li>
+                <li><code>POST /api/improvement/approvals/{id}/approve</code></li>
+                <li><code>POST /api/improvement/approvals/{id}/reject</code></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>10. Presentation Deck Slides (PPT Outline)</h2>
+            <ul>
+                <li><strong>Slide 1: Title Slide</strong> — ATOM Personal AI Assistant (Presenter: VISHNUPRIYAN)</li>
+                <li><strong>Slide 2: Problem & Vision</strong> — Self-improving assistant with persistent Memory & Knowledge Graph.</li>
+                <li><strong>Slide 3: System Architecture</strong> — C# WPF + PHP CodeIgniter 4 + Multi-LLM Providers.</li>
+                <li><strong>Slide 4: Dual RAG Search</strong> — Combining Vector Chunks with SPO Triple Triples.</li>
+                <li><strong>Slide 5: Autonomous Self-Improvement</strong> — Metric logging & A/B sandbox benchmarking (+5% threshold).</li>
+                <li><strong>Slide 6: Human Safety Gate</strong> — Mandatory human sign-off for candidate model promotions.</li>
+                <li><strong>Slide 7: Desktop WPF Experience</strong> — Dedicated UI tabs for Chat, Knowledge Base, and Safety Gate.</li>
+                <li><strong>Slide 8: Verification & QA</strong> — 100% PHPUnit test pass rate & clean .NET solution build.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>11. System Prompt & Identity Rules Specification</h2>
+            <p>ATOM's system prompt is configured in <code>config/rules/system.md</code>. It establishes 28 core operational directives:</p>
+            <ul>
+                <li><strong>User Identity:</strong> Preferred name <strong>Vichu</strong>, profession <strong>PHP / PHP Full-Stack Developer</strong>.</li>
+                <li><strong>Context Isolation:</strong> Topics remain isolated unless explicitly linked by the user.</li>
+                <li><strong>Memory Rules:</strong> Temporary variables and test code are never auto-stored. Permanent memory requires explicit confirmation.</li>
+                <li><strong>Technical Best Practices:</strong> Modern PHP, prepared SQL statements, type declarations, and framework-native solutions.</li>
+                <li><strong>Security & Privacy:</strong> Zero hard-coded credentials, prompt injection defense, and hidden context protection.</li>
+                <li><strong>Core Principle:</strong> <em>Accuracy over confidence, evidence over assumptions, and clean user-facing errors over raw API tracebacks.</em></li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>12. AI Website Builder & Coding Agent Specification</h2>
+            <p>ATOM's software development agent directives are configured in <code>config/rules/agent.md</code>. It establishes 35 core coding rules:</p>
+            <ul>
+                <li><strong>Project Root Isolation:</strong> Operations are strictly scoped inside <code>PROJECT_ROOT</code> with path-traversal prevention.</li>
+                <li><strong>Targeted Modifications:</strong> Modifies only necessary files to preserve existing working functionality.</li>
+                <li><strong>UI & Code Standards:</strong> Responsive semantic HTML5, clean CSS in <code>assets/css/</code>, modular JS, and modern strict-type PHP.</li>
+                <li><strong>Database Security:</strong> Mandatory parameterized queries and environment-based secret management.</li>
+                <li><strong>Verification Workflow:</strong> Executes syntax verification and builds before declaring task success.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>13. Coding Agent Control Prompt & Provider Architecture Specification</h2>
+            <p>ATOM's control prompt and AI provider rules are configured in <code>config/rules/control_prompt.md</code>. It establishes 30 operational directives:</p>
+            <ul>
+                <li><strong>Provider Consistency:</strong> All AI generation routes through <code>AIProviderManager</code>. The UI-reported provider strictly matches actual AI execution.</li>
+                <li><strong>Raw Exception Interception:</strong> Intercepts HTTP 429 rate limits and quota errors, displaying clean user warnings while logging traces privately.</li>
+                <li><strong>Command Intent Routing:</strong> Separates natural chat from filesystem tool calls and multi-step project generation.</li>
+                <li><strong>Real Tool Action:</strong> Performs real filesystem operations (<code>write_file</code>, <code>create_file</code>) instead of merely printing code blocks in chat.</li>
+                <li><strong>Core Principle:</strong> <em>ATOM thinks with the AI, acts with controlled tools, and verifies the result before claiming success.</em></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
