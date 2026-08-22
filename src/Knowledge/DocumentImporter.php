@@ -66,7 +66,23 @@ class DocumentImporter
             $filename = basename($sourcePath);
             $targetPath = $this->storagePath . '/' . $filename;
 
-            // Copy file to storage originals
+            // 1. Calculate file hash BEFORE copying to storage
+            $fileHash = hash_file('sha256', $sourcePath);
+            $pdo = $this->connection->getPdo();
+
+            // Check if document with identical hash or path already exists in database
+            $stmt = $pdo->prepare("SELECT id, path, file_hash FROM atom_documents WHERE path = ? OR file_hash = ?");
+            $stmt->execute([$targetPath, $fileHash]);
+            $row = $stmt->fetch();
+
+            if ($row && $row['file_hash'] === $fileHash && $row['path'] !== $targetPath) {
+                return [
+                    'success' => false,
+                    'error' => 'Duplicate document content detected (already indexed at path: ' . $row['path'] . ').'
+                ];
+            }
+
+            // 2. Copy file to storage originals
             if (!copy($sourcePath, $targetPath)) {
                 return [
                     'success' => false,
@@ -74,7 +90,7 @@ class DocumentImporter
                 ];
             }
 
-            // Parse pages
+            // 3. Parse pages
             $pages = [];
             if ($ext === 'pdf') {
                 $pages = $this->extractor->extract($targetPath);
@@ -87,32 +103,20 @@ class DocumentImporter
             }
 
             if (empty($pages)) {
+                if (file_exists($targetPath) && $targetPath !== $sourcePath) {
+                    @unlink($targetPath);
+                }
                 return [
                     'success' => false,
                     'error' => 'No text could be extracted from the document.'
                 ];
             }
 
-            $pdo = $this->connection->getPdo();
-            $fileHash = hash_file('sha256', $sourcePath);
-
-            // Check if document already exists by path or hash
-            $stmt = $pdo->prepare("SELECT id, path, file_hash FROM atom_documents WHERE path = ? OR file_hash = ?");
-            $stmt->execute([$targetPath, $fileHash]);
-            $row = $stmt->fetch();
-
             $pdo->beginTransaction();
 
             $title = pathinfo($filename, PATHINFO_FILENAME);
             
             if ($row) {
-                if ($row['file_hash'] === $fileHash && $row['path'] !== $targetPath) {
-                    $pdo->rollBack();
-                    return [
-                        'success' => false,
-                        'error' => 'Duplicate document content detected (already indexed at path: ' . $row['path'] . ').'
-                    ];
-                }
                 $documentId = (int)$row['id'];
                 // Delete existing chunks
                 $stmt = $pdo->prepare("DELETE FROM atom_document_chunks WHERE document_id = ?");
