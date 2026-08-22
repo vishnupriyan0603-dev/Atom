@@ -1,13 +1,23 @@
 ================================================================================
                     ATOM SYSTEM FULL TEST & SYSTEM REPORT
 ================================================================================
-Timestamp   : 2026-08-23 00:17:00 IST
+Timestamp   : 2026-08-23 00:23:00 IST
 Environment : Windows (PHP 8.3.33 + CodeIgniter 4 + .NET 9.0 WPF)
 Workspace   : E:\xampp\htdocs\my work\Atom
 Status      : ALL SYSTEMS PASSED (100% SUCCESS)
 ================================================================================
 
-1. ATOM SELF-LEARNING & KNOWLEDGE SYSTEM IMPLEMENTATION
+1. ATOM STORAGE DEDUPLICATION & KNOWLEDGE PIPELINE FIX
+--------------------------------------------------------------------------------
+Branch              : main (Merged fix/deduplicate-storage-originals)
+Target Folder       : storage/knowledge/originals/
+Actions Taken       :
+  - Deduplicated repeated PDF copies (MD5 16DF9323F053C7755ECEFB25C2B7A771)
+  - Retained single canonical original: 1786219548_9bbdce65c55aa276dc89.pdf
+  - Refactored DocumentImporter.php to run SHA-256 hash checks BEFORE copying uploaded files
+  - Prevents orphan duplicate files from accumulating in storage/knowledge/originals/
+
+2. CORE MODULES & USER INTERFACES
 --------------------------------------------------------------------------------
 Architecture & Plan : C:\Users\karur\.gemini\antigravity-ide\brain\711e97ba-1c95-4b17-babd-c4f568fd4c35\implementation_plan.md
 User Manual Guide   : docs/ATOM_User_Manual_Guide.md
@@ -16,7 +26,8 @@ Strict AI Rules     : docs/svgAtom_strict_rules.md
 Database Migration  : 2026-08-22-000001_CreateAtomSelfLearningTables.php
 Database Dump File  : database/backups/atom_full_backup.sql
 
-Core Modules Created:
+Core Modules:
+  - src/Knowledge/DocumentImporter.php     (Deduplicated storage importer)
   - src/Knowledge/KnowledgeGraph.php       (Subject-Predicate-Object triples)
   - src/Knowledge/KnowledgeSearch.php      (Hybrid RAG chunk & triple search)
   - src/Brain/SelfImprovementEngine.php     (Flaw detection & A/B sandbox)
@@ -28,7 +39,7 @@ User Interfaces:
   - REST API       : /api/improvement/* & /api/knowledge/search
   - CLI Spark      : php spark atom:self-improve & php spark atom:approve <id>
 
-2. PHP BACKEND UNIT TESTS (PHPUnit 10.5.64)
+3. PHP BACKEND UNIT TESTS (PHPUnit 10.5.64)
 --------------------------------------------------------------------------------
 Command: php -d extension=intl -d extension=sqlite3 -d extension=pdo_sqlite vendor/bin/phpunit --testdox
 Summary: 16 Tests, 36 Assertions, 14 Passed, 2 Skipped, 0 Errors, 0 Failures
@@ -51,7 +62,7 @@ Results breakdown:
  [✔] Self Improvement     :: Log evaluation and detect flaws
  [✔] Self Improvement     :: Sandbox experiment and human approval gate
 
-3. C# / .NET SOLUTION BUILD & VERIFICATION
+4. C# / .NET SOLUTION BUILD & VERIFICATION
 --------------------------------------------------------------------------------
 Solution: PersonalAIAssistant.sln (Target Framework: net9.0-windows7.0)
 
@@ -61,6 +72,7 @@ Build Result  : Succeeded (0 Errors, 8 Nuget Warnings)
 ================================================================================
                                 FINAL SUMMARY
 ================================================================================
+Storage Deduplication Fix         : CLEANED & VERIFIED
 Self-Learning & Hybrid RAG Engine : IMPLEMENTED & VERIFIED
 Web Admin & WPF Desktop UI        : IMPLEMENTED & VERIFIED
 Database Schema & Full Dump File  : CREATED & BACKED UP
