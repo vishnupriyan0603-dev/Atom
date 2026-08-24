@@ -671,7 +671,76 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 34 — Real-Time Voice Duplex API Methods ─────────────────────────
+
+  /// POST /api/v1/voice/duplex/start — Initialize streaming session.
+  Future<Map<String, dynamic>> startVoiceDuplexSession() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/voice/duplex/start'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/voice/duplex/chunk — Stream audio chunk with VAD.
+  Future<Map<String, dynamic>> sendVoiceChunk(int sequence, String base64Payload, {String? text, bool vadActive = true}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/voice/duplex/chunk'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'type': 'CHUNK',
+          'sequence': sequence,
+          'payload': base64Payload,
+          'text': text ?? '',
+          'vad_active': vadActive,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/voice/duplex/interrupt — Trigger barge-in speech cut-off.
+  Future<Map<String, dynamic>> interruptVoiceSpeech() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/voice/duplex/interrupt'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/voice/duplex/emotion — Classify speaker emotional tone.
+  Future<Map<String, dynamic>> analyzeVoiceEmotion(Map<String, dynamic> acousticFeatures) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/voice/duplex/emotion'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(acousticFeatures),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
+
 
 
 

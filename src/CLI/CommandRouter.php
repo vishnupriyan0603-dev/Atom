@@ -359,6 +359,16 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 34 — Real-Time Voice Duplex & Continuous Audio ──────
+                case '/voice:duplex':
+                case '/voice:wake':
+                case '/voice:chunk':
+                case '/voice:interrupt':
+                case '/voice:emotion':
+                    $this->handleVoiceDuplex($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -2055,6 +2065,57 @@ class CommandRouter
             $this->ui->writeLine("    /vault:get <key>             Retrieve & decrypt secret record");
             $this->ui->writeLine("    /vault:merkle                Inspect cryptographic Merkle audit tree");
             $this->ui->writeLine("    /vault:sync                  Trigger differential peer sync");
+        }
+        $this->ui->writeLine();
+    }
+
+    // ── Phase 34 — Real-Time Voice Duplex CLI Handlers ────────────────────────
+
+    private function handleVoiceDuplex(string $command, string $args = ''): void
+    {
+        $wake = new \Atom\Voice\WakeWordDetector();
+        $turn = new \Atom\Voice\ConversationalTurnTakingManager();
+        $emotion = new \Atom\Voice\AudioEmotionAnalyzer();
+
+        if ($command === '/voice:wake') {
+            $phrase = trim($args) ?: 'Hey Atom, run diagnostic check';
+            $res = $wake->detect($phrase);
+            $this->ui->highlight("🎙️ Wake Word Detection: \"{$phrase}\"");
+            $this->ui->writeLine("  Detected   : " . ($res['detected'] ? 'YES' : 'NO'));
+            $this->ui->writeLine("  Wake Phrase: " . ($res['phrase'] ?? 'None'));
+            $this->ui->writeLine("  Confidence : " . $res['confidence']);
+        } elseif ($command === '/voice:chunk') {
+            $text = trim($args) ?: 'Hello Atom';
+            $turn->onUserSpeechDetected();
+            $this->ui->highlight("🌊 Audio Chunk Streamed");
+            $this->ui->writeLine("  Input Text : \"{$text}\"");
+            $this->ui->writeLine("  State      : " . $turn->getState());
+            $this->ui->writeLine("  Turn Count : " . $turn->getTurnCount());
+        } elseif ($command === '/voice:interrupt') {
+            $res = $turn->interrupt();
+            $this->ui->highlight("🛑 Barge-in Interruption Dispatched");
+            $this->ui->writeLine("  Interrupted: " . ($res['interrupted'] ? 'YES' : 'NO'));
+            $this->ui->writeLine("  State      : " . $turn->getState());
+        } elseif ($command === '/voice:emotion') {
+            $res = $emotion->analyze([
+                'pitch_hz'        => 230.0,
+                'energy_db'       => -8.0,
+                'speech_rate_wpm' => 180.0,
+                'pitch_variance'  => 30.0,
+            ]);
+            $this->ui->highlight("🎭 Prosodic Audio Emotion Analysis");
+            $this->ui->writeLine("  Emotion          : " . strtoupper($res['emotion']));
+            $this->ui->writeLine("  Confidence       : " . ($res['confidence'] * 100) . "%");
+            $this->ui->writeLine("  Recommended Tone : " . $res['adaptation']['recommended_tone']);
+            $this->ui->writeLine("  Rate Modulation  : " . $res['adaptation']['speech_rate_mod'] . "x");
+        } else {
+            $this->ui->highlight("🎙️ Real-Time Voice Duplex & Streaming Audio Brain");
+            $this->ui->writeLine("  Protocol : PCM 16kHz 16-bit Mono (Full-Duplex)");
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /voice:wake <phrase>         Test acoustic wake-word detection");
+            $this->ui->writeLine("    /voice:chunk <text>          Simulate streaming voice audio chunk");
+            $this->ui->writeLine("    /voice:interrupt             Trigger immediate barge-in interruption");
+            $this->ui->writeLine("    /voice:emotion               Analyze acoustic emotional prosody");
         }
         $this->ui->writeLine();
     }

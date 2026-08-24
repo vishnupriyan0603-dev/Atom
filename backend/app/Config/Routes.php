@@ -337,6 +337,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('vault/retrieve', 'Api\Vault::retrieve');
     $routes->get('vault/merkle-root', 'Api\Vault::merkleRoot');
     $routes->post('vault/sync-deltas', 'Api\Vault::syncDeltas');
+
+    // Phase 34 — Real-Time Voice Duplex & Continuous Audio Routes
+    $routes->post('voice/duplex/start', 'Api\VoiceDuplex::start');
+    $routes->post('voice/duplex/chunk', 'Api\VoiceDuplex::chunk');
+    $routes->post('voice/duplex/interrupt', 'Api\VoiceDuplex::interrupt');
+    $routes->post('voice/duplex/emotion', 'Api\VoiceDuplex::emotion');
+    $routes->get('voice/duplex/state', 'Api\VoiceDuplex::state');
 });
 
 

@@ -659,6 +659,42 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 34 — Real-Time Voice Duplex Commands ────────────────────────
+
+        /// <summary>Starts an autonomous real-time voice duplex streaming session.</summary>
+        [RelayCommand]
+        private async Task StartVoiceDuplex()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/voice/duplex/start", reqContent);
+                _logger.LogInformation("Voice duplex session started: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not start voice duplex session");
+            }
+        }
+
+        /// <summary>Triggers immediate barge-in interruption of assistant voice playback.</summary>
+        [RelayCommand]
+        private async Task InterruptVoiceSpeech()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/voice/duplex/interrupt", reqContent);
+                _logger.LogInformation("Voice barge-in triggered: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not trigger voice interruption");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]
