@@ -91,6 +91,10 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
     $routes->get('skills/history', 'Api\Skills::history');
     $routes->get('skills/(:segment)/history', 'Api\Skills::history/$1');
 
+    // Unified Telemetry & Observability API
+    $routes->get('telemetry/metrics', 'Api\Telemetry::metrics');
+    $routes->get('telemetry/spans', 'Api\Telemetry::spans');
+
     // Chats
     $routes->get('chats', 'Api\Chats::index');
     $routes->post('chats', 'Api\Chats::create');
