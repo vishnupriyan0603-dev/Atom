@@ -844,6 +844,25 @@ class CommandRouter
                 $this->ui->writeLine("  " . $priority . "  " . $g['topic'] . " (Score: " . $g['score'] . "/100)");
             }
             $this->ui->writeLine();
+        } elseif ($sub === 'correct') {
+            $parts2 = explode(' ', $val, 2);
+            $topic = trim($parts2[0] ?? '');
+            $note = trim($parts2[1] ?? '');
+
+            if (empty($topic) || empty($note)) {
+                $this->ui->error("Usage: /learning correct <topic_name> <correction_note>");
+                return;
+            }
+
+            if ($engine->recordUserCorrection($topic, $note)) {
+                $this->ui->success("✅ Learning feedback recorded for topic '{$topic}'!");
+                $this->ui->writeLine("  • Action: User Correction Recorded");
+                $this->ui->writeLine("  • Note: {$note}");
+                $this->ui->writeLine("  • Topic score and confidence metrics updated.");
+            } else {
+                $this->ui->error("Failed to record learning feedback for '{$topic}'. Check database connection.");
+            }
+            $this->ui->writeLine();
         } elseif ($sub === 'topic') {
             if (empty($val)) {
                 $this->ui->error("Usage: /learning topic <topic_name>");

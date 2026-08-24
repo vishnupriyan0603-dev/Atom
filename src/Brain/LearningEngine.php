@@ -254,4 +254,22 @@ class LearningEngine
             return 0;
         }
     }
+
+    /**
+     * Records interactive teaching input / user correction for a topic and updates metrics.
+     */
+    public function recordUserCorrection(string $topic, string $correctionText): bool
+    {
+        if ($this->connection === null || !$this->connection->isConnected()) {
+            return false;
+        }
+
+        try {
+            $this->logHistory($topic, "User Correction: " . $correctionText, 'USER_FEEDBACK', 'HIGH');
+            $this->updateTopicMetrics($topic, true, false);
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
 }
