@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'services/api_service.dart';
 
 void main() {
   runApp(const AtomApp());
@@ -10,7 +11,7 @@ class AtomApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ATOM AI Core',
+      title: 'ATOM AI Core Platform',
       debugShowCheckedModeBanner: false,
       theme: ThemeData.dark().copyWith(
         primaryColor: const Color(0xFF00F2FE),
@@ -46,7 +47,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const MobileDashboardScreen(),
     const MobileChatScreen(),
     const MobileMemoryScreen(),
-    const MobileLearningScreen(),
+    const MobileApprovalsScreen(),
   ];
 
   @override
@@ -67,8 +68,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_rounded), label: 'Chat'),
-          BottomNavigationBarItem(icon: Icon(Icons.psychology_rounded), label: 'Memory'),
-          BottomNavigationBarItem(icon: Icon(Icons.school_rounded), label: 'Learning'),
+          BottomNavigationBarItem(icon: Icon(Icons.psychology_rounded), label: 'Memory 2.0'),
+          BottomNavigationBarItem(icon: Icon(Icons.verified_user_rounded), label: 'Approvals'),
         ],
       ),
     );
@@ -82,7 +83,7 @@ class MobileDashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ATOM NEURAL CORE', style: TextStyle(fontSize: 16, fontWeight: FontWeight.black, letterSpacing: 1.2)),
+        title: const Text('ATOM NEURAL CORE v1.0', style: TextStyle(fontSize: 16, fontWeight: FontWeight.black, letterSpacing: 1.2)),
         backgroundColor: const Color(0xFF0C0F14),
         elevation: 0,
       ),
@@ -91,9 +92,9 @@ class MobileDashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Greetings, Vichu', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+            const Text('Greetings, Vishnupriyan', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
             const SizedBox(height: 4),
-            const Text('ATOM Personal AI Core is online and active.', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
+            const Text('ATOM Personal AI Platform is online and operational.', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
             const SizedBox(height: 20),
             GridView.count(
               shrinkWrap: true,
@@ -104,9 +105,9 @@ class MobileDashboardScreen extends StatelessWidget {
               childAspectRatio: 1.3,
               children: [
                 _buildCard('CORE STATUS', 'ONLINE', const Color(0xFF00E676)),
-                _buildCard('ACTIVE AI', 'GEMINI 3.6', const Color(0xFF00F2FE)),
+                _buildCard('MODEL GATEWAY', 'AUTO ROUTE', const Color(0xFF00F2FE)),
                 _buildCard('RAG VECTORS', '14,290', const Color(0xFFA855F7)),
-                _buildCard('SAFETY GATE', 'ENFORCED', const Color(0xFFFF9100)),
+                _buildCard('APPROVAL GATE', 'ENFORCED', const Color(0xFFFF9100)),
               ],
             ),
           ],
@@ -150,7 +151,8 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
   final List<Map<String, dynamic>> _messages = [
     {
       "sender": "ai",
-      "text": "Greetings Vichu! I am ATOM, your Personal AI Assistant with integrated Hybrid RAG and Knowledge Graph capabilities."
+      "text": "Greetings Vishnupriyan! I am ATOM, your Personal AI Assistant with integrated Model Gateway, Advanced RAG, and Tool Calling Framework.",
+      "citation": "[CodeIgniter 4 Manual | Page 12 | Score: 0.94]"
     }
   ];
   final TextEditingController _controller = TextEditingController();
@@ -173,7 +175,8 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
         _isThinking = false;
         _messages.add({
           "sender": "ai",
-          "text": "ATOM AI Core ($_selectedModel): Received your query: '$text'. CodeIgniter 4 API & Vector DB operational."
+          "text": "ATOM AI Gateway ($_selectedModel): Processed query: '$text'. API v1.0 response verified.",
+          "citation": "[ATOM Knowledge Graph | Hybrid Score: 0.88]"
         });
       });
     });
@@ -183,7 +186,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Assistant Console', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        title: const Text('AI Gateway Console', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF0C0F14),
         elevation: 0,
         actions: [
@@ -194,7 +197,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
               dropdownColor: const Color(0xFF11151C),
               underline: const SizedBox(),
               style: const TextStyle(color: Color(0xFF00F2FE), fontSize: 12, fontWeight: FontWeight.bold),
-              items: <String>['Gemini 3.6 Flash', 'Groq (OSS-120B)', 'OpenAI GPT-4o', 'Ollama (Local)']
+              items: <String>['Gemini 3.6 Flash', 'Groq (OSS-120B)', 'OpenAI GPT-4o', 'Ollama (Local)', 'Llama.cpp (Local)']
                   .map((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -226,7 +229,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
                   child: Container(
                     margin: const EdgeInsets.symmetric(vertical: 6),
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.82),
                     decoration: BoxDecoration(
                       color: isUser ? const Color(0xFF00F2FE).withOpacity(0.15) : const Color(0xFF11151C),
                       border: Border.all(
@@ -234,13 +237,25 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
                       ),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: Text(
-                      msg["text"],
-                      style: TextStyle(
-                        color: isUser ? const Color(0xFF00F2FE) : const Color(0xFFF8FAFC),
-                        fontSize: 14,
-                        height: 1.4,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          msg["text"],
+                          style: TextStyle(
+                            color: isUser ? const Color(0xFF00F2FE) : const Color(0xFFF8FAFC),
+                            fontSize: 14,
+                            height: 1.4,
+                          ),
+                        ),
+                        if (msg["citation"] != null) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            msg["citation"],
+                            style: const TextStyle(color: Color(0xFFA855F7), fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 );
@@ -254,7 +269,7 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
                 children: [
                   SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF00F2FE))),
                   SizedBox(width: 8),
-                  Text("ATOM is thinking...", style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12, fontStyle: FontStyle.italic)),
+                  Text("ATOM Model Gateway is thinking...", style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12, fontStyle: FontStyle.italic)),
                 ],
               ),
             ),
@@ -297,15 +312,15 @@ class MobileMemoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final memories = [
-      {"title": "Owner Identity", "desc": "Vishnupriyan R (Vichu) • Software Developer from Karur, Tamil Nadu"},
-      {"title": "Tech Stack", "desc": "PHP, CodeIgniter 4, Laravel, MySQL, Flutter, C# WPF, JavaScript"},
-      {"title": "Response Style", "desc": "Concise, actionable, technically accurate markdown responses"},
-      {"title": "Self-Learning Gate", "desc": "Human Authorization Gatekeeper active for prompt & code patches"},
+      {"type": "PREFERENCE", "content": "I prefer dark mode glassmorphism UI themes", "importance": 8},
+      {"type": "INSTRUCTION", "content": "Always use CodeIgniter 4 query builder with prefixTable() for database operations", "importance": 9},
+      {"type": "FACT", "content": "Vishnupriyan R (Vichu) is a Senior Full-Stack Software Developer from Karur", "importance": 10},
+      {"type": "PROJECT", "content": "ATOM Platform uses CodeIgniter 4 backend with MySQL Vector RAG and Flutter client", "importance": 9},
     ];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ATOM Memory & Profile', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        title: const Text('Memory 2.0 Subsystem', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF0C0F14),
         elevation: 0,
       ),
@@ -322,12 +337,25 @@ class MobileMemoryScreen extends StatelessWidget {
               side: const BorderSide(color: Color(0xFF1E2838)),
             ),
             child: ListTile(
-              title: Text(item["title"]!, style: const TextStyle(color: Color(0xFF00F2FE), fontWeight: FontWeight.bold, fontSize: 14)),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Text(item["desc"]!, style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+              title: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF00F2FE).withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: const Color(0xFF00F2FE).withOpacity(0.3)),
+                    ),
+                    child: Text(item["type"] as String, style: const TextStyle(color: Color(0xFF00F2FE), fontSize: 10, fontWeight: FontWeight.bold)),
+                  ),
+                  const Spacer(),
+                  Text('Importance: ${item["importance"]}/10', style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10)),
+                ],
               ),
-              leading: const Icon(Icons.psychology, color: Color(0xFFA855F7)),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(item["content"] as String, style: const TextStyle(color: Color(0xFFF8FAFC), fontSize: 13, height: 1.3)),
+              ),
             ),
           );
         },
@@ -336,77 +364,111 @@ class MobileMemoryScreen extends StatelessWidget {
   }
 }
 
-class MobileLearningScreen extends StatelessWidget {
-  const MobileLearningScreen({Key? key}) : super(key: key);
+class MobileApprovalsScreen extends StatefulWidget {
+  const MobileApprovalsScreen({Key? key}) : super(key: key);
+
+  @override
+  State<MobileApprovalsScreen> createState() => _MobileApprovalsScreenState();
+}
+
+class _MobileApprovalsScreenState extends State<MobileApprovalsScreen> {
+  final ApiService _api = ApiService();
+  List<dynamic> _requests = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _loading = true);
+    final data = await _api.fetchPendingApprovals();
+    setState(() {
+      _requests = data;
+      _loading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    final topics = [
-      {"topic": "PHP 8.3 & CodeIgniter 4 REST API", "progress": 0.95, "level": "Level 5 (Expert)"},
-      {"topic": "Laravel Framework & Architecture", "progress": 0.78, "level": "Level 4 (Advanced)"},
-      {"topic": "MySQL & Vector Embeddings Indexing", "progress": 0.88, "level": "Level 4 (Advanced)"},
-      {"topic": "Flutter Mobile & Cross-Platform UI", "progress": 0.72, "level": "Level 3 (Intermediate)"},
-    ];
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Learning Topics & Progress', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        title: const Text('Human Approval Gate', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF0C0F14),
         elevation: 0,
+        actions: [
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadData),
+        ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: topics.length,
-        itemBuilder: (context, index) {
-          final t = topics[index];
-          final double progress = t["progress"] as double;
-
-          return Card(
-            margin: const EdgeInsets.only(bottom: 14),
-            color: const Color(0xFF11151C),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-              side: const BorderSide(color: Color(0xFF1E2838)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.between,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          t["topic"] as String,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF00F2FE)))
+          : _requests.isEmpty
+              ? const Center(child: Text("No pending approval requests", style: TextStyle(color: Colors.grey, fontSize: 13)))
+              : ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _requests.length,
+                  itemBuilder: (context, index) {
+                    final item = _requests[index];
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      color: const Color(0xFF11151C),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        side: const BorderSide(color: Color(0xFF1E2838)),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.between,
+                              children: [
+                                Text(item['tool_name'] ?? 'System Action', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(color: Colors.red.withOpacity(0.4)),
+                                  ),
+                                  child: const Text('HIGH RISK', style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(item['reason'] ?? '', style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.withOpacity(0.2)),
+                                  onPressed: () async {
+                                    await _api.rejectRequest(item['id']);
+                                    _loadData();
+                                  },
+                                  child: const Text('Reject', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                                ),
+                                const SizedBox(width: 8),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00E676).withOpacity(0.2)),
+                                  onPressed: () async {
+                                    await _api.approveRequest(item['id']);
+                                    _loadData();
+                                  },
+                                  child: const Text('Approve', style: TextStyle(color: Color(0xFF00E676), fontSize: 12)),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        t["level"] as String,
-                        style: const TextStyle(color: Color(0xFF00E676), fontSize: 11, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  LinearProgressIndicator(
-                    value: progress,
-                    backgroundColor: const Color(0xFF1E2838),
-                    color: const Color(0xFF00F2FE),
-                    minHeight: 6,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${(progress * 100).toInt()}% Proficiency Mastery',
-                    style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+                    );
+                  },
+                ),
     );
   }
 }

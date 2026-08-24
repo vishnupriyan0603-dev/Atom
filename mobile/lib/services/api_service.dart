@@ -1,0 +1,56 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
+class ApiService {
+  static const String baseUrl = "http://localhost:8080/api/v1";
+
+  Future<Map<String, dynamic>> fetchTelemetryMetrics() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/telemetry/metrics'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  Future<List<dynamic>> fetchMemories() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/memory'));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        return body['data'] ?? [];
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<List<dynamic>> fetchPendingApprovals() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/approvals?status=pending'));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        return body['data'] ?? [];
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<bool> approveRequest(int id) async {
+    try {
+      final response = await http.post(Uri.parse('$baseUrl/approvals/$id/approve'));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> rejectRequest(int id) async {
+    try {
+      final response = await http.post(Uri.parse('$baseUrl/approvals/$id/reject'));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+}
