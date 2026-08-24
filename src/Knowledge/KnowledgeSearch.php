@@ -212,4 +212,13 @@ class KnowledgeSearch
 
         return $dotProduct / (sqrt($normA) * sqrt($normB));
     }
+
+    /**
+     * Executes Advanced RAG hybrid search returning ranked chunks with citations.
+     */
+    public function searchAdvancedRag(string $query, int $topK = 5, float $similarityThreshold = 0.20): array
+    {
+        $rag = new AdvancedHybridRag($this);
+        return $rag->searchAdvanced($query, $topK, $similarityThreshold);
+    }
 }
