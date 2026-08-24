@@ -348,6 +348,17 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 33 — Federated Zero-Knowledge Vault ─────────────────
+                case '/vault':
+                case '/vault:unlock':
+                case '/vault:store':
+                case '/vault:get':
+                case '/vault:merkle':
+                case '/vault:sync':
+                    $this->handleVault($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -1976,6 +1987,74 @@ class CommandRouter
             $this->ui->writeLine("    /plugin:uninstall <id>      Uninstall plugin package");
             $this->ui->writeLine("    /plugin:toggle <id>         Enable or disable plugin");
             $this->ui->writeLine("    /plugin:exec <method>       Execute capability method in sandbox");
+        }
+        $this->ui->writeLine();
+    }
+
+    // ── Phase 33 — Federated Zero-Knowledge Vault CLI Handlers ────────────────
+
+    private function handleVault(string $command, string $args = ''): void
+    {
+        $vault = new \Atom\Vault\ZeroKnowledgeVaultEngine();
+        $merkle = new \Atom\Vault\MerkleAuditTree();
+        $sync = new \Atom\Vault\DifferentialSyncEngine($merkle);
+        $gate = new \Atom\Vault\PassphraseAuthGate();
+
+        if ($command === '/vault:unlock') {
+            $pass = trim($args) ?: 'atom_master_vault_pass_2026';
+            try {
+                $res = $gate->unlock($pass);
+                $this->ui->highlight("🔓 Zero-Knowledge Vault Unlocked");
+                $this->ui->writeLine("  Session Token: " . substr($res['token'], 0, 16) . '...');
+                $this->ui->writeLine("  Expires in   : {$res['expires_in']}s");
+            } catch (\Exception $e) {
+                $this->ui->error("Unlock failed: " . $e->getMessage());
+            }
+        } elseif ($command === '/vault:store') {
+            $parts = preg_split('/\s+/', trim($args), 2);
+            $key = $parts[0] ?? 'secret_note';
+            $val = $parts[1] ?? 'Confidential data payload';
+            $enc = $vault->encrypt($val, 'atom_master_vault_pass_2026');
+            $entry = $sync->set($key, $enc, 'cli_user');
+            $this->ui->highlight("🔒 Record Encrypted & Stored (AES-256-GCM)");
+            $this->ui->writeLine("  Key         : {$key}");
+            $this->ui->writeLine("  Clock       : {$entry['clock']}");
+            $this->ui->writeLine("  Ciphertext  : " . substr($enc['ciphertext'], 0, 24) . '...');
+            $this->ui->writeLine("  Merkle Root : " . substr($merkle->getRootHash() ?? '', 0, 24) . '...');
+        } elseif ($command === '/vault:get') {
+            $key = trim($args) ?: 'secret_note';
+            $entry = $sync->get($key);
+            if ($entry) {
+                $dec = $vault->decrypt($entry['record'], 'atom_master_vault_pass_2026');
+                $this->ui->highlight("🔓 Vault Record Decrypted");
+                $this->ui->writeLine("  Key       : {$key}");
+                $this->ui->writeLine("  Plaintext : {$dec}");
+                $this->ui->writeLine("  Clock     : {$entry['clock']}");
+            } else {
+                $this->ui->error("Record '{$key}' not found in vault.");
+            }
+        } elseif ($command === '/vault:merkle') {
+            $root = $merkle->getRootHash();
+            $leaves = $merkle->getLeaves();
+            $this->ui->highlight("🌳 Merkle Audit Tree Status");
+            $this->ui->writeLine("  Root Hash    : " . ($root ?? 'None (Empty)'));
+            $this->ui->writeLine("  Total Leaves : " . count($leaves));
+            foreach (array_slice($leaves, -5) as $i => $l) {
+                $this->ui->writeLine("  • Leaf [{$i}]: " . substr($l, 0, 32) . '...');
+            }
+        } elseif ($command === '/vault:sync') {
+            $res = $sync->generateDeltas(0);
+            $this->ui->highlight("🔄 Peer Differential Sync");
+            $this->ui->writeLine("  Outgoing Deltas : " . count($res));
+            $this->ui->writeLine("  Merkle Root     : " . ($merkle->getRootHash() ?? 'Clean'));
+        } else {
+            $this->ui->highlight("🔐 Zero-Knowledge Vault & Differential Sync Engine");
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /vault:unlock [pass]         Unlock vault with passphrase");
+            $this->ui->writeLine("    /vault:store <key> <value>   Encrypt & store secret record");
+            $this->ui->writeLine("    /vault:get <key>             Retrieve & decrypt secret record");
+            $this->ui->writeLine("    /vault:merkle                Inspect cryptographic Merkle audit tree");
+            $this->ui->writeLine("    /vault:sync                  Trigger differential peer sync");
         }
         $this->ui->writeLine();
     }

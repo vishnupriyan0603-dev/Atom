@@ -330,6 +330,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('marketplace/uninstall', 'Api\Marketplace::uninstall');
     $routes->post('marketplace/toggle', 'Api\Marketplace::toggle');
     $routes->post('marketplace/execute', 'Api\Marketplace::execute');
+
+    // Phase 33 — Federated Zero-Knowledge Vault & Sync Routes
+    $routes->post('vault/unlock', 'Api\Vault::unlock');
+    $routes->post('vault/store', 'Api\Vault::store');
+    $routes->post('vault/retrieve', 'Api\Vault::retrieve');
+    $routes->get('vault/merkle-root', 'Api\Vault::merkleRoot');
+    $routes->post('vault/sync-deltas', 'Api\Vault::syncDeltas');
 });
 
 

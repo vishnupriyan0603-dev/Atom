@@ -613,6 +613,52 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 33 — Federated Zero-Knowledge Vault Commands ────────────────
+
+        /// <summary>Unlocks the Zero-Knowledge encrypted vault with a passphrase.</summary>
+        [RelayCommand]
+        private async Task UnlockVault(string passphrase)
+        {
+            if (string.IsNullOrWhiteSpace(passphrase)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { passphrase }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/vault/unlock", reqContent);
+                _logger.LogInformation("Vault unlocked: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not unlock vault");
+            }
+        }
+
+        /// <summary>Encrypts and stores a confidential secret into the Zero-Knowledge Vault.</summary>
+        [RelayCommand]
+        private async Task StoreVaultRecord(string key, string value)
+        {
+            if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { key, value }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/vault/store", reqContent);
+                _logger.LogInformation("Vault record stored: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not store vault record");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

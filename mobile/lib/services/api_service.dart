@@ -603,7 +603,76 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 33 — Federated Zero-Knowledge Vault API Methods ──────────────────
+
+  /// POST /api/v1/vault/unlock — Authenticate passphrase and get session token.
+  Future<Map<String, dynamic>> unlockVault(String passphrase) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/vault/unlock'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'passphrase': passphrase}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/vault/store — Encrypt and store record with Merkle tree logging.
+  Future<Map<String, dynamic>> storeVaultRecord(String key, String value, {String? passphrase, String? token}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/vault/store'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'X-Vault-Token': token,
+        },
+        body: jsonEncode({'key': key, 'value': value, 'passphrase': passphrase}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/vault/retrieve — Decrypt and retrieve vault record.
+  Future<Map<String, dynamic>> retrieveVaultRecord(String key, {String? passphrase, String? token}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/vault/retrieve'),
+        headers: {
+          'Content-Type': 'application/json',
+          if (token != null) 'X-Vault-Token': token,
+        },
+        body: jsonEncode({'key': key, 'passphrase': passphrase}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/vault/sync-deltas — Push/pull encrypted differential sync deltas.
+  Future<Map<String, dynamic>> syncVaultDeltas({int sinceClock = 0, List<Map<String, dynamic>>? deltas}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/vault/sync-deltas'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'since_clock': sinceClock, 'deltas': deltas ?? []}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
+
 
 
 
