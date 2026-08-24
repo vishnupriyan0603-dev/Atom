@@ -167,6 +167,11 @@ class CommandRouter
                     $this->handleCollaboration();
                     return true;
 
+                case '/backup':
+                case '/export':
+                    $this->handleBackup();
+                    return true;
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -1151,6 +1156,39 @@ class CommandRouter
         $this->ui->success("\n✅ Project '{$cleanName}' created successfully!");
         $this->ui->writeLine("  • Path: " . $targetDir);
         $this->ui->writeLine("  • Created files: index.php / index.html, .env, config/db.php, database/schema.sql, assets/css/style.css, assets/js/app.js");
+        $this->ui->writeLine();
+    }
+
+    private function handleBackup(): void
+    {
+        $this->ui->info("Starting ATOM database & system data export...");
+        
+        $backupDir = rtrim($this->workspaceRoot, '/') . '/backups';
+        if (!is_dir($backupDir)) {
+            mkdir($backupDir, 0755, true);
+        }
+
+        $pm = $this->brain->getProfileManager();
+        if ($pm === null) {
+            $this->ui->error("Owner Profile Manager unavailable for export.");
+            return;
+        }
+
+        $data = $pm->exportUserData();
+        $timestamp = date('Y-m-d_His');
+        $filename = "atom_backup_{$timestamp}.json";
+        $filepath = "{$backupDir}/{$filename}";
+
+        $jsonStr = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        if (file_put_contents($filepath, $jsonStr) !== false) {
+            $size = round(strlen($jsonStr) / 1024, 2);
+            $this->ui->success("✅ Database backup created successfully!");
+            $this->ui->writeLine("  • File: backups/{$filename}");
+            $this->ui->writeLine("  • Size: {$size} KB");
+            $this->ui->writeLine("  • Exported: Owner Profile, Memories, Solutions, Training Data, Documents, Chat History");
+        } else {
+            $this->ui->error("Failed to write backup file: {$filepath}");
+        }
         $this->ui->writeLine();
     }
 }
