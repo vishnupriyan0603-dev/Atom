@@ -219,5 +219,14 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('workspace', 'Api\Files::index');
     $routes->get('provider/status', 'Api\AiModels::index');
     $routes->get('system/status', 'Api\Health::index');
+
+    // Controlled Agent Orchestration Engine Routes
+    $routes->post('agents/tasks', 'Api\Agents::createTask');
+    $routes->get('agents/tasks', 'Api\Agents::getTasks');
+    $routes->get('agents/tasks/(:num)', 'Api\Agents::getTask/$1');
+    $routes->post('agents/tasks/(:num)/cancel', 'Api\Agents::cancelTask/$1');
+    $routes->get('agents/tasks/(:num)/steps', 'Api\Agents::getTaskSteps/$1');
+    $routes->get('agents/tasks/(:num)/stream', 'Api\Agents::streamTaskEvents/$1');
 });
+
 

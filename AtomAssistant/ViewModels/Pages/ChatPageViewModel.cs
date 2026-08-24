@@ -63,7 +63,28 @@ namespace AtomAssistant.ViewModels.Pages
         }
 
         [RelayCommand]
+        private async Task LaunchAgentTask(string objective)
+        {
+            if (string.IsNullOrWhiteSpace(objective)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var content = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { objective }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                await client.PostAsync("http://localhost:8080/api/v1/agents/tasks", content);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not launch agent task");
+            }
+        }
+
+        [RelayCommand]
         private async Task CheckPendingApprovals()
+
         {
             try
             {

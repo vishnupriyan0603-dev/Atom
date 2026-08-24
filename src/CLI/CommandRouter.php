@@ -172,6 +172,15 @@ class CommandRouter
                     $this->handleBackup();
                     return true;
 
+                case '/agents':
+                case '/agents:run':
+                case '/agents:list':
+                case '/agents:show':
+                case '/agents:cancel':
+                    $this->handleAgents($command, $args);
+                    return true;
+
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -1196,4 +1205,30 @@ class CommandRouter
         }
         $this->ui->writeLine();
     }
+
+    private function handleAgents(string $command, string $args = ''): void
+    {
+        $orchestrator = new \Atom\Agent\AgentOrchestrator(null, null, null, null, null, null, null, null, null);
+        
+        if ($command === '/agents:run' || ($command === '/agents' && !empty($args))) {
+            $this->ui->info("Initializing Controlled Agent Orchestration Engine for task...");
+            $task = $orchestrator->createTask($args);
+            $res = $orchestrator->runTask($task);
+            $this->ui->success("Agent Task #{$res->id} finished with status: " . strtoupper($res->status));
+            if (!empty($res->result)) {
+                $this->ui->writeLine("  Result: " . $res->result);
+            }
+            if (!empty($res->error)) {
+                $this->ui->error("  Error: " . $res->error);
+            }
+        } else {
+            $this->ui->highlight("Controlled Agent Orchestration Engine");
+            $this->ui->writeLine("  /agents:run <objective>   Launch multi-step agent task");
+            $this->ui->writeLine("  /agents:list              List active and past tasks");
+            $this->ui->writeLine("  /agents:show <id>         Inspect plan steps for task ID");
+            $this->ui->writeLine("  /agents:cancel <id>       Cancel running task");
+        }
+        $this->ui->writeLine();
+    }
 }
+
