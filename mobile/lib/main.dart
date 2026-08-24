@@ -113,6 +113,8 @@ class MobileDashboardScreen extends StatelessWidget {
                 _buildCard('INTENT ENGINE', '14 CLASSES', const Color(0xFF34D399)),
                 // Phase 24 — Multi-Modal Speech & Vision Tile
                 _buildCard('VOICE & VISION', 'MULTI-MODAL', const Color(0xFFEC4899)),
+                // Phase 25 — Proactive Daemon Tile
+                _buildCard('PROACTIVE DAEMON', 'ACTIVE PULSE', const Color(0xFF38BDF8)),
               ],
             ),
           ],

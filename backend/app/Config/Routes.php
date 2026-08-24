@@ -274,6 +274,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('voice/voices', 'Api\Voice::getVoices');
     $routes->post('vision/analyze', 'Api\Vision::analyze');
     $routes->post('vision/screenshot-debug', 'Api\Vision::debugScreenshot');
+
+    // Phase 25 — Proactive Daemon & Autonomous Life-Cycle Routes
+    $routes->get('daemon/status', 'Api\Daemon::status');
+    $routes->post('daemon/pulse', 'Api\Daemon::pulse');
+    $routes->get('daemon/briefing', 'Api\Daemon::briefing');
+    $routes->post('daemon/briefing/generate', 'Api\Daemon::generateBriefing');
+    $routes->get('daemon/healing-log', 'Api\Daemon::healingLog');
 });
 
 

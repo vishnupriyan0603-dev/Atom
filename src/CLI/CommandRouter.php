@@ -266,6 +266,16 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 25 — Proactive Daemon & Life-Cycle Commands ─────────
+                case '/daemon':
+                case '/daemon:status':
+                case '/daemon:pulse':
+                case '/daemon:briefing':
+                case '/daemon:heal':
+                    $this->handleDaemon($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -1551,10 +1561,40 @@ class CommandRouter
             } catch (\Throwable $e) {
                 $this->ui->error("Vision analysis failed: " . $e->getMessage());
             }
+    // ── Phase 25 — Proactive Daemon CLI Handlers ─────────────────────────────
+
+    private function handleDaemon(string $command, string $args = ''): void
+    {
+        $daemon = new \Atom\Daemon\ProactiveDaemon();
+        if ($command === '/daemon:pulse') {
+            $this->ui->info("Executing Autonomous Proactive Daemon Life-Cycle Pulse...");
+            $pulse = $daemon->pulse();
+            $this->ui->highlight("⚡ Daemon Pulse Executed");
+            $this->ui->writeLine("  Pulse ID     : " . $pulse['pulse_id']);
+            $this->ui->writeLine("  Health Score : " . $pulse['health']['health_score'] . "/100 (" . strtoupper($pulse['status']) . ")");
+            $this->ui->writeLine("  Memory Usage : " . $pulse['memory_mb'] . " MB");
+            $this->ui->writeLine("  Duration     : " . $pulse['duration_ms'] . "ms");
+            $this->ui->success("All life-cycle background checks completed cleanly.");
+        } elseif ($command === '/daemon:briefing') {
+            $type = in_array(strtolower(trim($args)), ['evening', 'morning'], true) ? strtolower(trim($args)) : 'morning';
+            $briefing = $daemon->getBriefingEngine()->generateBriefing($type);
+            $this->ui->highlight("📰 {$briefing['title']}");
+            $this->ui->writeLine($briefing['content']);
+        } elseif ($command === '/daemon:heal') {
+            $this->ui->info("Running Auto-Healing Remediation Pass under Policy Control Plane...");
+            $healing = $daemon->getHealingEngine()->runHealingPass();
+            $this->ui->success("Auto-healing pass complete: " . count($healing['actions']) . " safe actions verified.");
         } else {
-            $this->ui->highlight("👁️ Multi-Modal Vision Engine");
-            $this->ui->writeLine("  /vision:analyze <path>    Analyze an image, mockup, or diagram");
-            $this->ui->writeLine("  /vision:debug <path>      Extract errors and diagnose from screenshot");
+            $this->ui->highlight("⚡ Proactive Daemon & Autonomous Background Life-Cycle");
+            $status = $daemon->getStatus();
+            $this->ui->writeLine("  State            : " . strtoupper($status['state']));
+            $this->ui->writeLine("  Uptime           : " . $status['uptime_seconds'] . "s");
+            $this->ui->writeLine("  Memory           : " . $status['memory_mb'] . " MB");
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /daemon:status          Inspect live daemon health & uptime");
+            $this->ui->writeLine("    /daemon:pulse           Trigger an immediate life-cycle pulse");
+            $this->ui->writeLine("    /daemon:briefing        Display contextual morning/evening briefing");
+            $this->ui->writeLine("    /daemon:heal            Run safe auto-healing remediation");
         }
         $this->ui->writeLine();
     }

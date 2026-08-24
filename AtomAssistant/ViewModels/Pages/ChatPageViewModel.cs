@@ -254,6 +254,45 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 25 — Proactive Daemon & Briefing Commands ───────────────────
+
+        /// <summary>Inspect proactive daemon status, pulse counts, and workspace health.</summary>
+        [RelayCommand]
+        private async Task InspectDaemonStatus()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var response = await client.GetAsync("http://localhost:8080/api/v1/daemon/status");
+                _logger.LogInformation("Daemon status retrieved: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not retrieve daemon status");
+            }
+        }
+
+        /// <summary>Generate a fresh daily morning/evening briefing.</summary>
+        [RelayCommand]
+        private async Task GenerateBriefing()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var content = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { type = "morning" }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/daemon/briefing/generate", content);
+                _logger.LogInformation("Briefing generated: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not generate briefing");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

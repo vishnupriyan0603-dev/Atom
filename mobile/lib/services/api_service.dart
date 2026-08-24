@@ -246,5 +246,39 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 25 — Proactive Daemon API Methods ───────────────────────────────
+
+  /// GET /api/v1/daemon/status — Live daemon state and pulse metrics.
+  Future<Map<String, dynamic>> fetchDaemonStatus() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/daemon/status'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// GET /api/v1/daemon/briefing — Retrieve latest morning/evening briefing.
+  Future<Map<String, dynamic>> fetchLatestBriefing({String type = 'morning'}) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/daemon/briefing?type=$type'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/daemon/pulse — Trigger immediate life-cycle pulse.
+  Future<bool> triggerDaemonPulse() async {
+    try {
+      final response = await http.post(Uri.parse('$baseUrl/daemon/pulse'));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
 }
 
