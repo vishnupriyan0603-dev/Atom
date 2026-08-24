@@ -121,7 +121,27 @@ namespace AtomAssistant.ViewModels.Pages
         }
 
         [RelayCommand]
+        private async Task LaunchEvaluationRun(string targetType)
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var content = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { dataset_id = 1, target_type = targetType, target_id = "1" }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                await client.PostAsync("http://localhost:8080/api/v1/evaluations/runs", content);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not launch evaluation run for target {TargetType}", targetType);
+            }
+        }
+
+        [RelayCommand]
         private async Task CheckPendingApprovals()
+
 
 
 

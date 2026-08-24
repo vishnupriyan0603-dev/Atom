@@ -197,6 +197,16 @@ class CommandRouter
                     $this->handleSwarms($command, $args);
                     return true;
 
+                case '/eval':
+                case '/eval:datasets':
+                case '/eval:run':
+                case '/eval:status':
+                case '/eval:compare':
+                case '/eval:promote':
+                    $this->handleEvaluations($command, $args);
+                    return true;
+
+
 
 
 
@@ -1283,7 +1293,26 @@ class CommandRouter
         }
         $this->ui->writeLine();
     }
+
+    private function handleEvaluations(string $command, string $args = ''): void
+    {
+        $runner = new \Atom\Evaluation\EvaluationRunner();
+        if ($command === '/eval:run' || ($command === '/eval' && !empty($args))) {
+            $this->ui->info("Executing Agent Evaluation Run...");
+            $run = $runner->runEvaluation(1, $args ?: 'agent', '1');
+            $this->ui->success("Evaluation Run #{$run->id} completed with score: " . number_format($run->aggregateScore * 100, 1) . "%");
+        } else {
+            $this->ui->highlight("Agent Evaluation & Continuous Improvement");
+            $this->ui->writeLine("  /eval:datasets            List immutable evaluation datasets");
+            $this->ui->writeLine("  /eval:run <target>        Launch sandbox evaluation run");
+            $this->ui->writeLine("  /eval:status <id>         Inspect evaluation run status");
+            $this->ui->writeLine("  /eval:compare             Compare baseline vs candidate metrics");
+            $this->ui->writeLine("  /eval:promote <id>        Authorize promotion of candidate");
+        }
+        $this->ui->writeLine();
+    }
 }
+
 
 
 

@@ -108,7 +108,19 @@ class ApiService {
     }
   }
 
+  Future<List<dynamic>> fetchEvaluationRuns() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/evaluations/runs'));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        return body['data'] ?? [];
+      }
+    } catch (_) {}
+    return [];
+  }
+
   Future<bool> approveRequest(int id) async {
+
 
 
 

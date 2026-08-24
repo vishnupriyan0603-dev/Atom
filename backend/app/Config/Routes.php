@@ -242,7 +242,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('swarms', 'Api\Swarms::createSwarm');
     $routes->get('swarms/(:num)', 'Api\Swarms::getSwarm/$1');
     $routes->get('swarms/(:num)/stream', 'Api\Swarms::streamSwarmEvents/$1');
+
+    // Agent Evaluation, Simulation & Continuous Improvement Platform Routes
+    $routes->get('evaluations/datasets', 'Api\Evaluations::getDatasets');
+    $routes->post('evaluations/datasets', 'Api\Evaluations::createDataset');
+    $routes->get('evaluations/runs', 'Api\Evaluations::getRuns');
+    $routes->post('evaluations/runs', 'Api\Evaluations::createRun');
+    $routes->post('evaluations/compare', 'Api\Evaluations::compareCandidate');
 });
+
 
 
 
