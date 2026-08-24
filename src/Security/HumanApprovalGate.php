@@ -110,7 +110,7 @@ class HumanApprovalGate
     }
 
     /**
-     * Fetch pending approval requests.
+     * Fetch pending approval requests for experiments.
      */
     public function getPendingApprovals(): array
     {
@@ -121,5 +121,99 @@ class HumanApprovalGate
                   ->where('a.status', 'pending')
                   ->orderBy('a.created_at', 'DESC')
                   ->get()->getResultArray();
+    }
+
+    /**
+     * Create a general tool action approval request.
+     */
+    public function createToolApprovalRequest(
+        int $userId,
+        string $toolName,
+        string $action,
+        array $parameters = [],
+        string $riskLevel = 'high',
+        string $reason = 'High-risk action execution request',
+        int $expiresInMinutes = 60
+    ): int {
+        $db = $this->getDb();
+        $now = time();
+        $data = [
+            'user_id'     => $userId,
+            'tool_name'   => $toolName,
+            'action'      => $action,
+            'parameters'  => json_encode($parameters),
+            'risk_level'  => strtolower($riskLevel),
+            'reason'      => $reason,
+            'status'      => 'pending',
+            'created_at'  => date('Y-m-d H:i:s', $now),
+            'expires_at'  => date('Y-m-d H:i:s', $now + ($expiresInMinutes * 60)),
+        ];
+
+        if ($db->table($db->prefixTable('atom_approval_requests'), true)->insert($data)) {
+            return (int)$db->insertID();
+        }
+        return 0;
+    }
+
+    /**
+     * Grant approval for a pending tool request.
+     */
+    public function approveToolRequest(int $requestId, string $approvedBy = 'HUMAN_OPERATOR'): bool
+    {
+        $db = $this->getDb();
+        $row = $db->table($db->prefixTable('atom_approval_requests'), true)
+                  ->where('id', $requestId)
+                  ->where('status', 'pending')
+                  ->get()->getRowArray();
+
+        if (!$row) {
+            return false;
+        }
+
+        return $db->table($db->prefixTable('atom_approval_requests'), true)
+                  ->where('id', $requestId)
+                  ->update([
+                      'status'      => 'approved',
+                      'approved_by' => $approvedBy,
+                      'approved_at' => date('Y-m-d H:i:s'),
+                  ]);
+    }
+
+    /**
+     * Reject a pending tool request.
+     */
+    public function rejectToolRequest(int $requestId, string $rejectedBy = 'HUMAN_OPERATOR', string $reason = 'Rejected by administrator'): bool
+    {
+        $db = $this->getDb();
+        $row = $db->table($db->prefixTable('atom_approval_requests'), true)
+                  ->where('id', $requestId)
+                  ->where('status', 'pending')
+                  ->get()->getRowArray();
+
+        if (!$row) {
+            return false;
+        }
+
+        return $db->table($db->prefixTable('atom_approval_requests'), true)
+                  ->where('id', $requestId)
+                  ->update([
+                      'status'      => 'rejected',
+                      'approved_by' => $rejectedBy,
+                      'reason'      => $reason,
+                      'approved_at' => date('Y-m-d H:i:s'),
+                  ]);
+    }
+
+    /**
+     * Retrieve all approval requests with optional status filter.
+     */
+    public function getApprovalRequests(?string $status = null): array
+    {
+        $db = $this->getDb();
+        $builder = $db->table($db->prefixTable('atom_approval_requests'), true);
+        if ($status !== null && $status !== '') {
+            $builder->where('status', strtolower($status));
+        }
+        return $builder->orderBy('id', 'DESC')->get()->getResultArray();
     }
 }

@@ -64,6 +64,12 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
     $routes->post('improvement/approvals/(:num)/reject', 'Api\SelfImprovement::reject/$1');
     $routes->get('improvement/triples', 'Api\SelfImprovement::triples');
 
+    // General Human Approval System API
+    $routes->get('approvals', 'Api\Approval::list');
+    $routes->post('approvals/create', 'Api\Approval::create');
+    $routes->post('approvals/(:num)/approve', 'Api\Approval::approve/$1');
+    $routes->post('approvals/(:num)/reject', 'Api\Approval::reject/$1');
+
     // Chats
     $routes->get('chats', 'Api\Chats::index');
     $routes->post('chats', 'Api\Chats::create');
