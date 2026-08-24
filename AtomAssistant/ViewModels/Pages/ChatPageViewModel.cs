@@ -155,7 +155,23 @@ namespace AtomAssistant.ViewModels.Pages
         }
 
         [RelayCommand]
+        private async Task InspectGovernancePolicies()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var response = await client.GetAsync("http://localhost:8080/api/v1/governance/policies");
+                _logger.LogInformation("Governance policies retrieved: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not inspect governance policies");
+            }
+        }
+
+        [RelayCommand]
         private async Task CheckPendingApprovals()
+
 
 
 

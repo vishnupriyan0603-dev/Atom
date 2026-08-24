@@ -255,7 +255,14 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('routing/candidates', 'Api\Routing::getCandidates');
     $routes->post('routing/select', 'Api\Routing::selectCandidate');
     $routes->get('routing/decisions', 'Api\Routing::getDecisions');
+
+    // Unified Policy, Governance, Trust & Compliance Control Plane Routes
+    $routes->get('governance/policies', 'Api\Governance::getPolicies');
+    $routes->post('governance/policies/simulate', 'Api\Governance::simulatePolicy');
+    $routes->get('governance/decisions', 'Api\Governance::getDecisions');
+    $routes->post('governance/kill-switch', 'Api\Governance::toggleKillSwitch');
 });
+
 
 
 

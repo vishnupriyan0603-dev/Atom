@@ -217,6 +217,19 @@ class CommandRouter
                     $this->handleRouting($command, $args);
                     return true;
 
+                case '/policy':
+                case '/policy:list':
+                case '/policy:show':
+                case '/policy:simulate':
+                case '/governance':
+                case '/governance:status':
+                case '/governance:decisions':
+                case '/governance:audit':
+                case '/governance:kill':
+                    $this->handleGovernance($command, $args);
+                    return true;
+
+
 
 
 
@@ -1340,7 +1353,26 @@ class CommandRouter
         }
         $this->ui->writeLine();
     }
+
+    private function handleGovernance(string $command, string $args = ''): void
+    {
+        $engine = new \Atom\Governance\PolicyEngine();
+        if ($command === '/policy:simulate' || ($command === '/policy' && !empty($args))) {
+            $this->ui->info("Executing Policy Evaluation Simulation...");
+            $res = $engine->evaluate(1, 'tool.execute', $args ?: 'workspace');
+            $this->ui->success("Simulation Outcome: " . strtoupper($res->decision) . " (Reasons: " . implode(', ', $res->reasonCodes) . ")");
+        } else {
+            $this->ui->highlight("Unified Policy, Governance, Trust & Compliance");
+            $this->ui->writeLine("  /policy:list              List active authoritative policies");
+            $this->ui->writeLine("  /policy:simulate <res>    Dry-run policy evaluation on resource");
+            $this->ui->writeLine("  /governance:status        Inspect trust levels & kill switch state");
+            $this->ui->writeLine("  /governance:decisions     Inspect policy evaluation audit logs");
+            $this->ui->writeLine("  /governance:kill <target> Trigger emergency kill switch");
+        }
+        $this->ui->writeLine();
+    }
 }
+
 
 
 
