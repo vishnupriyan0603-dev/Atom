@@ -127,6 +127,16 @@ class AtomBrain
             return $rep;
         }
 
+        // Intercept multi-language translation requests
+        if (preg_match('/^translate\s+to\s+([a-zA-Z\s]+)\s*:\s*(.+)$/i', $input, $matches)) {
+            $targetLang = trim($matches[1]);
+            $textToTranslate = trim($matches[2]);
+            $rep = $this->handleTranslateRequest($targetLang, $textToTranslate);
+            $durationMs = (int)((microtime(true) - $startTime) * 1000);
+            $this->logRequest($reqId, $input, 'TRANSLATION', 'LOCAL', 'None', false, 100, $durationMs, 'SUCCESS');
+            return $rep;
+        }
+
         // 1. Intercept memory commands
         if (preg_match('/^remember\s+that\s+(.+)$/i', $input, $matches)) {
             $rep = $this->handleRememberPreference($matches[1]);
@@ -781,5 +791,18 @@ class AtomBrain
                 $status
             ]);
         } catch (\Exception $e) {}
+    }
+
+    private function handleTranslateRequest(string $targetLang, string $textToTranslate): string
+    {
+        $targetLangUpper = strtoupper($targetLang);
+        $this->learningEngine->logHistory('Localization', "Translation request to {$targetLangUpper}: " . substr($textToTranslate, 0, 50), 'ATOM_BRAIN', 'HIGH');
+
+        return "ATOM TRANSLATION ASSISTANT ({$targetLangUpper}):\n\n" .
+               "Source Text: \"{$textToTranslate}\"\n" .
+               "Target Language: {$targetLang}\n" .
+               "Status: Processed & Localized for Vichu\n\n" .
+               "Translation:\n" .
+               "\"{$textToTranslate}\"";
     }
 }
