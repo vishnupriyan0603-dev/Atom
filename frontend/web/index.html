@@ -188,6 +188,7 @@
                     </div>
 
                     <div>
+                        <div id="attachmentPreviewArea"></div>
                         <div class="prompt-suggestions">
                             <button class="chip-btn" id="chipBtnRag"><i class="fa-solid fa-magnifying-glass"></i> Search Document RAG</button>
                             <button class="chip-btn" id="chipBtnGraph"><i class="fa-solid fa-network-wired"></i> Query Knowledge Graph</button>
@@ -195,6 +196,10 @@
                             <button class="chip-btn" id="chipBtnMetrics"><i class="fa-solid fa-bolt"></i> Check System Health</button>
                         </div>
                         <div class="chat-input-box">
+                            <button class="btn-attach" id="attachBtn" title="Attach Document / Code File">
+                                <i class="fa-solid fa-paperclip"></i>
+                            </button>
+                            <input type="file" id="chatFileInput" hidden accept=".txt,.md,.pdf,.json,.php,.cs,.js,.py,.html,.css">
                             <input type="text" class="chat-input" id="chatInput" placeholder="Ask ATOM anything or type a command...">
                             <button class="btn-send" id="sendBtn" title="Send Message">
                                 <i class="fa-solid fa-paper-plane"></i>

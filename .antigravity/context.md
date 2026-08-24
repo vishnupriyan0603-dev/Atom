@@ -4,7 +4,7 @@ Used to store AI session state and ongoing context.
 
 ## Current Session
 
-- **Task**: Fix provider adapters placeholder, build default general chats, connect DB/backend, create Atom AI base details
+- **Task**: Web UI & Desktop Client enhancements (file attachments, live API preview completion, typing indicator, RAG upload API integration)
 - **Status**: Completed
 
 ### Changes Made

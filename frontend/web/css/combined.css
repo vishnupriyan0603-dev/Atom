@@ -409,6 +409,49 @@ body {
     transition: transform 0.2s ease;
 }
 
+.btn-send:hover { transform: scale(1.06); }
+
+.btn-attach {
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
+}
+
+.btn-attach:hover {
+    background: rgba(0, 242, 254, 0.15);
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.attachment-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 242, 254, 0.12);
+    border: 1px solid rgba(0, 242, 254, 0.3);
+    color: #00f2fe;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+}
+
+.attachment-badge .remove-att {
+    cursor: pointer;
+    color: #ff5252;
+    font-weight: bold;
+    margin-left: 4px;
+}
+
 .btn-send:hover { transform: scale(1.08); }
 
 /* RAG / Documents View */
