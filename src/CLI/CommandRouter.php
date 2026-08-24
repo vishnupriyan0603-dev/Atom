@@ -180,6 +180,15 @@ class CommandRouter
                     $this->handleAgents($command, $args);
                     return true;
 
+                case '/workflows':
+                case '/workflows:list':
+                case '/workflows:execute':
+                case '/workflows:show':
+                case '/workflows:cancel':
+                    $this->handleWorkflows($command, $args);
+                    return true;
+
+
 
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
@@ -1230,5 +1239,23 @@ class CommandRouter
         }
         $this->ui->writeLine();
     }
+
+    private function handleWorkflows(string $command, string $args = ''): void
+    {
+        $executor = new \Atom\Workflow\WorkflowExecutor();
+        if ($command === '/workflows:execute' || ($command === '/workflows' && !empty($args))) {
+            $this->ui->info("Executing Autonomous Workflow Engine...");
+            $execution = $executor->executeWorkflow((int)($args ?: 1), ['objective' => 'CLI workflow dispatch']);
+            $this->ui->success("Workflow Execution #{$execution->id} status: " . strtoupper($execution->status));
+        } else {
+            $this->ui->highlight("Autonomous Workflow Engine");
+            $this->ui->writeLine("  /workflows:execute <id>   Execute published workflow ID");
+            $this->ui->writeLine("  /workflows:list           List published workflows");
+            $this->ui->writeLine("  /workflows:show <id>      Inspect graph definition");
+            $this->ui->writeLine("  /workflows:cancel <id>    Cancel active execution");
+        }
+        $this->ui->writeLine();
+    }
 }
+
 

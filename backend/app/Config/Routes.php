@@ -227,6 +227,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('agents/tasks/(:num)/cancel', 'Api\Agents::cancelTask/$1');
     $routes->get('agents/tasks/(:num)/steps', 'Api\Agents::getTaskSteps/$1');
     $routes->get('agents/tasks/(:num)/stream', 'Api\Agents::streamTaskEvents/$1');
+
+    // Autonomous Workflow Engine Routes
+    $routes->get('workflows', 'Api\Workflows::getWorkflows');
+    $routes->post('workflows', 'Api\Workflows::createWorkflow');
+    $routes->post('workflows/(:num)/execute', 'Api\Workflows::executeWorkflow/$1');
+    $routes->get('workflows/executions', 'Api\Workflows::getExecutions');
+    $routes->get('workflows/executions/(:num)', 'Api\Workflows::getExecution/$1');
+    $routes->get('workflows/executions/(:num)/stream', 'Api\Workflows::streamExecutionEvents/$1');
 });
+
 
 

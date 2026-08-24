@@ -60,7 +60,32 @@ class ApiService {
     }
   }
 
+  Future<List<dynamic>> fetchWorkflows() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/workflows'));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        return body['data'] ?? [];
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<bool> executeWorkflow(int id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/workflows/$id/execute'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'input': {'objective': 'Mobile workflow dispatch'}}),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> approveRequest(int id) async {
+
 
     try {
       final response = await http.post(Uri.parse('$baseUrl/approvals/$id/approve'));

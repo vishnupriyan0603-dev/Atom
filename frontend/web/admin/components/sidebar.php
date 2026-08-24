@@ -57,6 +57,12 @@
         <span class="sidebar-label">Agent Orchestration</span>
       </a>
 
+      <a href="/admin/workflows" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-[#1e2735] text-gray-400 hover:text-white">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        <span class="sidebar-label">Autonomous Workflows</span>
+      </a>
+
+
 
       <div class="pt-4 pb-1">
         <span class="px-4 text-[10px] font-bold text-gray-500 tracking-wider uppercase sidebar-label">System & Security</span>

@@ -83,7 +83,27 @@ namespace AtomAssistant.ViewModels.Pages
         }
 
         [RelayCommand]
+        private async Task ExecuteWorkflow(int workflowId)
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var content = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { input = new { objective = "Desktop workflow dispatch" } }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                await client.PostAsync($"http://localhost:8080/api/v1/workflows/{workflowId}/execute", content);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not execute workflow {WorkflowId}", workflowId);
+            }
+        }
+
+        [RelayCommand]
         private async Task CheckPendingApprovals()
+
 
         {
             try
