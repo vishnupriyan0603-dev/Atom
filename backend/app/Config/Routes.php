@@ -70,6 +70,13 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
     $routes->post('approvals/(:num)/approve', 'Api\Approval::approve/$1');
     $routes->post('approvals/(:num)/reject', 'Api\Approval::reject/$1');
 
+    // Memory 2.0 Subsystem API
+    $routes->get('memory', 'Api\Memory::list');
+    $routes->post('memory', 'Api\Memory::create');
+    $routes->put('memory/(:num)', 'Api\Memory::update/$1');
+    $routes->delete('memory/(:num)', 'Api\Memory::delete/$1');
+    $routes->post('memory/clear', 'Api\Memory::clear');
+
     // Chats
     $routes->get('chats', 'Api\Chats::index');
     $routes->post('chats', 'Api\Chats::create');
