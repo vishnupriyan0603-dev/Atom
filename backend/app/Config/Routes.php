@@ -261,6 +261,12 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('governance/policies/simulate', 'Api\Governance::simulatePolicy');
     $routes->get('governance/decisions', 'Api\Governance::getDecisions');
     $routes->post('governance/kill-switch', 'Api\Governance::toggleKillSwitch');
+
+    // Phase 23 — Personal AI Brain Routes
+    $routes->get('brain/status', 'Api\Brain::status');
+    $routes->get('brain/context', 'Api\Brain::context');
+    $routes->post('brain/reset-context', 'Api\Brain::resetContext');
+    $routes->get('brain/intent', 'Api\Brain::classifyIntent');
 });
 
 

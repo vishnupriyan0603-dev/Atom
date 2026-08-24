@@ -12,6 +12,7 @@ use Atom\PersonalModel\AtomPersonalModel;
 use Atom\PersonalModel\ModelManager;
 use Atom\PersonalModel\OwnerProfileManager;
 use Atom\PersonalModel\TrainingExampleRepository;
+use Atom\Brain\Device\DeviceAbstraction;
 
 class AtomBrain
 {
@@ -29,6 +30,14 @@ class AtomBrain
     private LearningEngine $learningEngine;
     private ?int $conversationId = null;
 
+    // ── Phase 23 Brain Engines ────────────────────────────────────────────────
+    private IntentEngine $intentEngine;
+    private PersonalityEngine $personalityEngine;
+    private ContextEngine $contextEngine;
+    private AwarenessEngine $awarenessEngine;
+    private Voice\VoiceEngine $voiceEngine;
+    // ─────────────────────────────────────────────────────────────────────────
+
     public function __construct(
         ?ModelManager $modelManager,
         IntentDetector $detector,
@@ -41,28 +50,44 @@ class AtomBrain
         ?AtomPersonalModel $personalModel = null,
         ?OwnerProfileManager $profileManager = null
     ) {
-        $this->modelManager = $modelManager;
-        $this->detector = $detector;
-        $this->contextBuilder = $contextBuilder;
-        $this->scanner = $scanner;
-        $this->redactor = $redactor;
-        $this->memory = $memory;
-        $this->kSearch = $kSearch;
-        $this->toolManager = $toolManager;
-        $this->personalModel = $personalModel;
-        $this->profileManager = $profileManager;
-        $this->parser = new ResponseParser();
+        $this->modelManager    = $modelManager;
+        $this->detector        = $detector;
+        $this->contextBuilder  = $contextBuilder;
+        $this->scanner         = $scanner;
+        $this->redactor        = $redactor;
+        $this->memory          = $memory;
+        $this->kSearch         = $kSearch;
+        $this->toolManager     = $toolManager;
+        $this->personalModel   = $personalModel;
+        $this->profileManager  = $profileManager;
+        $this->parser          = new ResponseParser();
 
         $refRoot = new \ReflectionProperty($this->memory, 'workspaceRoot');
         $refRoot->setAccessible(true);
         $root = $refRoot->getValue($this->memory);
-        
+
         $refConn = null;
         $ref = new \ReflectionProperty($this->memory, 'connection');
         $ref->setAccessible(true);
         $refConn = $ref->getValue($this->memory);
-        
+
         $this->learningEngine = new LearningEngine($refConn, $root);
+
+        // ── Phase 23 Brain Engine initialisation ──────────────────────────────
+        $this->intentEngine    = new IntentEngine();
+        $this->voiceEngine     = new Voice\VoiceEngine();
+        $device                = new DeviceAbstraction();
+        $this->awarenessEngine = new AwarenessEngine($root, $device);
+        $this->contextEngine   = new ContextEngine();
+
+        // Build personality from owner profile if available
+        if ($this->profileManager !== null) {
+            $profile = $this->profileManager->getProfile();
+            $this->personalityEngine = PersonalityEngine::fromOwnerProfile($profile);
+        } else {
+            $this->personalityEngine = new PersonalityEngine();
+        }
+        // ─────────────────────────────────────────────────────────────────────
     }
 
     public function getLearningEngine(): LearningEngine
@@ -74,6 +99,46 @@ class AtomBrain
     {
         return $this->profileManager;
     }
+
+    // ── Phase 23 Brain Engine Accessors ───────────────────────────────────────
+
+    public function getIntentEngine(): IntentEngine
+    {
+        return $this->intentEngine;
+    }
+
+    public function getPersonalityEngine(): PersonalityEngine
+    {
+        return $this->personalityEngine;
+    }
+
+    public function getContextEngine(): ContextEngine
+    {
+        return $this->contextEngine;
+    }
+
+    public function getAwarenessEngine(): AwarenessEngine
+    {
+        return $this->awarenessEngine;
+    }
+
+    public function getVoiceEngine(): Voice\VoiceEngine
+    {
+        return $this->voiceEngine;
+    }
+
+    public function getBrainState(): array
+    {
+        return [
+            'context_summary'   => $this->contextEngine->getSummary(),
+            'environment'       => $this->awarenessEngine->getEnvironmentData(),
+            'personality_style' => $this->personalityEngine->getStyle(),
+            'voice_mode'        => $this->voiceEngine->isVoiceModeActive(),
+            'device'            => $this->awarenessEngine->getDeviceContext()->getDeviceType(),
+        ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
 
     /**
      * Returns cached workspace scan stats, rescanned at most once per TTL (60s).
@@ -170,8 +235,14 @@ class AtomBrain
             return "ATOM:\nI haven't resolved any specific knowledge query in this active turn context.";
         }
 
-        // 2. Normal intent routing
-        $intent = $this->detector->detect($input);
+        // 2. Intent classification — Phase 23 IntentEngine (richer routing)
+        $intentResult    = $this->intentEngine->classify($input);
+        $intent          = $intentResult->intent;
+        $routingHint     = $intentResult->routingHint;
+
+        // Legacy detector kept for backward compatibility with CLI/API callers
+        // that may read the old intent string directly.
+        $legacyIntent = $this->detector->detect($input);
 
         // Fetch matching RAG knowledge base chunks
         $knowledgeChunks = $this->kSearch->search($input);
@@ -259,7 +330,7 @@ class AtomBrain
 
         // Get project stats for context builder (cached for 60s to avoid rescanning on every request)
         $stats = $this->getCachedWorkspaceStats();
-        
+
         $stats['memories'] = $dbMemories;
         $stats['knowledge'] = $knowledgeChunks;
 
@@ -272,8 +343,15 @@ class AtomBrain
             $stats['owner_preferred_name'] = $profile['preferred_name'] ?? $profile['full_name'] ?? 'Vishnupriyan';
         }
 
-        $stats['personal_profile'] = $this->memory->getPersonalProfile();
-        $stats['session_memory'] = $this->memory->getSessionMemory();
+        $stats['personal_profile']  = $this->memory->getPersonalProfile();
+        $stats['session_memory']    = $this->memory->getSessionMemory();
+
+        // ── Phase 23: inject Awareness + Context + Personality blocks ─────────
+        $ownerProfileArr                = $stats['personal_profile'] ?? [];
+        $stats['awareness_block']       = $this->awarenessEngine->getEnvironmentBlock();
+        $stats['context_block']         = $this->contextEngine->buildContextBlock();
+        $stats['personality_block']     = $this->personalityEngine->buildPersonalityBlock($ownerProfileArr);
+        // ─────────────────────────────────────────────────────────────────────
 
         // Format user query message
         $userMsg = ['role' => 'user', 'content' => $input];
@@ -352,6 +430,15 @@ class AtomBrain
         // The better response is saved as a training example.
         // ----------------------------------------------------------------
         $finalReply = $this->runSelfLearning($input, $messages, $finalReply, $providerName);
+
+        // ── Phase 23: apply PersonalityEngine post-processor ─────────────────
+        $finalReply = $this->personalityEngine->applyPersonality($finalReply, $intent);
+        if ($this->voiceEngine->isVoiceModeActive()) {
+            $finalReply = $this->voiceEngine->formatForVoice($finalReply);
+        }
+        // ── Phase 23: update ContextEngine with this turn ────────────────────
+        $this->contextEngine->update($input, $finalReply, $intent);
+        // ─────────────────────────────────────────────────────────────────────
 
         // Save conversation history to local array and persistent DB
         $history[] = $userMsg;

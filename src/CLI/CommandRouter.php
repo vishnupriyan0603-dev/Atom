@@ -229,11 +229,28 @@ class CommandRouter
                     $this->handleGovernance($command, $args);
                     return true;
 
+                // ── Phase 23 — Personal AI Brain Commands ─────────────────────
+                case '/brain':
+                case '/brain:status':
+                    $this->handleBrain('status', $args);
+                    return true;
 
+                case '/brain:context':
+                    $this->handleBrain('context', $args);
+                    return true;
 
+                case '/brain:reset':
+                    $this->handleBrain('reset', $args);
+                    return true;
 
+                case '/brain:intent':
+                    $this->handleBrain('intent', $args);
+                    return true;
 
-
+                case '/brain:voice':
+                    $this->handleBrain('voice', $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
 
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
@@ -1371,6 +1388,102 @@ class CommandRouter
         }
         $this->ui->writeLine();
     }
+
+    // ── Phase 23 — Personal AI Brain CLI Handler ──────────────────────────────
+
+    private function handleBrain(string $subCommand, string $args = ''): void
+    {
+        switch ($subCommand) {
+            case 'status':
+                $this->ui->highlight("🧠 ATOM Personal Brain — Status");
+                $state    = $this->brain->getBrainState();
+                $envData  = $state['environment'];
+                $ctx      = $state['context_summary'];
+
+                $this->ui->writeLine("  Brain State      : " . strtoupper($state['brain_state'] ?? 'IDLE'));
+                $this->ui->writeLine("  Personality      : " . strtoupper($state['personality_style'] ?? 'technical'));
+                $this->ui->writeLine("  Voice Mode       : " . ($state['voice_mode'] ? 'ON' : 'OFF'));
+                $this->ui->writeLine("  Device Context   : " . strtoupper($state['device'] ?? 'cli'));
+                $this->ui->writeLine("  Time (IST)       : " . ($envData['time_ist']     ?? '—'));
+                $this->ui->writeLine("  Time of Day      : " . ($envData['time_of_day']  ?? '—'));
+                $this->ui->writeLine("  PHP Version      : " . ($envData['php_version']  ?? '—'));
+                $this->ui->writeLine("  Workspace Files  : " . ($envData['file_count']   ?? '—'));
+                $this->ui->writeLine("  Active Topic     : " . ($ctx['active_topic']     ?? 'None'));
+                $this->ui->writeLine("  Inferred Goal    : " . ($ctx['inferred_goal']    ?? 'None'));
+                $this->ui->writeLine("  Turn Count       : " . ($ctx['turn_count']       ?? 0));
+                break;
+
+            case 'context':
+                $this->ui->highlight("🧠 Active Context Thread");
+                $ctx = $this->brain->getContextEngine()->getSummary();
+                $this->ui->writeLine("  Active Topic   : " . ($ctx['active_topic']  ?: 'None'));
+                $this->ui->writeLine("  Inferred Goal  : " . ($ctx['inferred_goal'] ?: 'None'));
+                $this->ui->writeLine("  Turn Count     : " . $ctx['turn_count']);
+                $entities = $ctx['referenced_entities'] ?? [];
+                if (!empty($entities)) {
+                    $this->ui->writeLine("  Referenced Items:");
+                    foreach (array_slice($entities, -10) as $entity) {
+                        $this->ui->writeLine("    - " . $entity);
+                    }
+                } else {
+                    $this->ui->writeLine("  Referenced Items: None");
+                }
+                break;
+
+            case 'reset':
+                $this->brain->getContextEngine()->reset();
+                $this->ui->success("Brain context thread reset. Starting fresh conversation context.");
+                break;
+
+            case 'intent':
+                if (empty($args)) {
+                    $this->ui->error("Usage: /brain:intent <text to classify>");
+                    break;
+                }
+                $result = $this->brain->getIntentEngine()->classify($args);
+                $this->ui->highlight("🧠 Intent Classification Result");
+                $this->ui->writeLine("  Input         : " . $args);
+                $this->ui->writeLine("  Intent        : " . $result->intent);
+                $this->ui->writeLine("  Confidence    : " . $result->confidence . "%");
+                $this->ui->writeLine("  Routing Hint  : " . $result->routingHint);
+                $entities = $result->entities;
+                if (!empty($entities)) {
+                    $this->ui->writeLine("  Entities:");
+                    foreach ($entities as $key => $val) {
+                        $this->ui->writeLine("    {$key}: {$val}");
+                    }
+                }
+                break;
+
+            case 'voice':
+                $mode = strtolower(trim($args));
+                if ($mode === 'on') {
+                    $this->brain->getVoiceEngine()->setVoiceMode(true);
+                    $this->brain->getPersonalityEngine()->setVoiceMode(true);
+                    $this->ui->success("Voice mode ENABLED — responses will strip markdown for audio output.");
+                } elseif ($mode === 'off') {
+                    $this->brain->getVoiceEngine()->setVoiceMode(false);
+                    $this->brain->getPersonalityEngine()->setVoiceMode(false);
+                    $this->ui->success("Voice mode DISABLED — markdown formatting restored.");
+                } else {
+                    $active = $this->brain->getVoiceEngine()->isVoiceModeActive();
+                    $this->ui->writeLine("Voice Mode: " . ($active ? 'ON' : 'OFF'));
+                    $this->ui->writeLine("Usage: /brain:voice on   or   /brain:voice off");
+                }
+                break;
+
+            default:
+                $this->ui->highlight("🧠 Personal AI Brain — JARVIS-Style Orchestration Core");
+                $this->ui->writeLine("  /brain:status            Show brain state, environment & context");
+                $this->ui->writeLine("  /brain:context           View active conversation context thread");
+                $this->ui->writeLine("  /brain:reset             Reset context (fresh conversation)");
+                $this->ui->writeLine("  /brain:intent <text>     Dry-run intent classification");
+                $this->ui->writeLine("  /brain:voice <on|off>    Toggle voice-friendly response mode");
+        }
+        $this->ui->writeLine();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
 }
 
 

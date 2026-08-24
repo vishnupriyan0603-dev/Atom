@@ -89,7 +89,20 @@ class ContextBuilder
         $parts[] = "Current Active Workspace: " . $this->workspaceRoot;
         $parts[] = "PHP Version: " . PHP_VERSION;
 
-        // 4a. ATOM Personal Communication Preferences
+        // 3a. Phase 23 — Awareness block (time, device, workspace delta)
+        if (!empty($workspaceStats['awareness_block'])) {
+            $parts[] = "\n" . $workspaceStats['awareness_block'];
+        }
+
+        // 3b. Phase 23 — Active conversation context block
+        if (!empty($workspaceStats['context_block'])) {
+            $parts[] = $workspaceStats['context_block'];
+        }
+
+        // 3c. Phase 23 — Personality & communication style block
+        if (!empty($workspaceStats['personality_block'])) {
+            $parts[] = "\n" . $workspaceStats['personality_block'];
+        }
         if (!empty($workspaceStats['personalization_prompt'])) {
             $parts[] = $workspaceStats['personalization_prompt'];
         }

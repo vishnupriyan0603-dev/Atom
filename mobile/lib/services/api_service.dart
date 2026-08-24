@@ -164,4 +164,51 @@ class ApiService {
       return false;
     }
   }
+
+  // ── Phase 23 — Personal AI Brain API Methods ──────────────────────────────
+
+  /// GET /api/v1/brain/status — Brain state, environment awareness, personality.
+  Future<Map<String, dynamic>> fetchBrainStatus() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/brain/status'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// GET /api/v1/brain/context — Active context window summary.
+  Future<Map<String, dynamic>> fetchBrainContext() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/brain/context'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/brain/reset-context — Reset the active conversation context.
+  Future<bool> resetBrainContext() async {
+    try {
+      final response = await http.post(Uri.parse('$baseUrl/brain/reset-context'));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// GET /api/v1/brain/intent?q=<text> — Dry-run intent classification.
+  Future<Map<String, dynamic>> classifyIntent(String text) async {
+    try {
+      final uri = Uri.parse('$baseUrl/brain/intent').replace(queryParameters: {'q': text});
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
+

@@ -169,6 +169,47 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 23 — Personal AI Brain Commands ─────────────────────────────
+
+        /// <summary>Inspect the Brain's current state: environment, context, personality, voice mode.</summary>
+        [RelayCommand]
+        private async Task InspectBrainStatus()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var response = await client.GetAsync("http://localhost:8080/api/v1/brain/status");
+                _logger.LogInformation("Brain status retrieved: {StatusCode}", response.StatusCode);
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    _logger.LogDebug("Brain status payload: {Json}", json);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not retrieve Brain status");
+            }
+        }
+
+        /// <summary>Reset the Brain's active context thread for a fresh conversation.</summary>
+        [RelayCommand]
+        private async Task ResetContext()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var response = await client.PostAsync("http://localhost:8080/api/v1/brain/reset-context", null);
+                _logger.LogInformation("Brain context reset: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not reset Brain context");
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────────
+
         [RelayCommand]
         private async Task CheckPendingApprovals()
 

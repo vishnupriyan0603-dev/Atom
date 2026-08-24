@@ -94,7 +94,7 @@ class MobileDashboardScreen extends StatelessWidget {
           children: [
             const Text('Greetings, Vishnupriyan', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
             const SizedBox(height: 4),
-            const Text('ATOM Personal AI Platform is online and operational.', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
+            const Text('ATOM Personal AI Brain is online — JARVIS-style orchestration active.', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13)),
             const SizedBox(height: 20),
             GridView.count(
               shrinkWrap: true,
@@ -108,6 +108,9 @@ class MobileDashboardScreen extends StatelessWidget {
                 _buildCard('MODEL GATEWAY', 'AUTO ROUTE', const Color(0xFF00F2FE)),
                 _buildCard('RAG VECTORS', '14,290', const Color(0xFFA855F7)),
                 _buildCard('APPROVAL GATE', 'ENFORCED', const Color(0xFFFF9100)),
+                // Phase 23 — Brain Status Tile
+                _buildCard('BRAIN STATE', 'IDLE', const Color(0xFFA78BFA)),
+                _buildCard('INTENT ENGINE', '14 CLASSES', const Color(0xFF34D399)),
               ],
             ),
           ],
