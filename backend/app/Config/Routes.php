@@ -350,6 +350,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('refactor/transform', 'Api\Refactoring::transform');
     $routes->post('refactor/dependencies', 'Api\Refactoring::dependencies');
     $routes->post('refactor/verify', 'Api\Refactoring::verify');
+
+    // Phase 36 — Enterprise Multi-Tenant RBAC & ABAC Routes
+    $routes->post('rbac/tenant/create', 'Api\Rbac::createTenant');
+    $routes->post('rbac/check', 'Api\Rbac::check');
+    $routes->post('rbac/token/generate', 'Api\Rbac::generateToken');
+    $routes->post('rbac/token/revoke', 'Api\Rbac::revokeToken');
+    $routes->get('rbac/matrix', 'Api\Rbac::matrix');
 });
 
 

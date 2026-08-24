@@ -379,6 +379,16 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 36 — Enterprise Multi-Tenant RBAC & ABAC ────────────
+                case '/rbac':
+                case '/rbac:check':
+                case '/rbac:tenant':
+                case '/rbac:token':
+                case '/rbac:matrix':
+                    $this->handleRbac($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -2182,6 +2192,59 @@ class CommandRouter
             $this->ui->writeLine("    /refactor:transform [code]   Apply automated AST refactor transformation");
             $this->ui->writeLine("    /refactor:deps               Compute architectural coupling & circular cycles");
             $this->ui->writeLine("    /refactor:verify [code]      Verify syntactic and semantic safety");
+        }
+        $this->ui->writeLine();
+    }
+
+    // ── Phase 36 — Enterprise Multi-Tenant RBAC & ABAC Handlers ───────────────
+
+    private function handleRbac(string $command, string $args = ''): void
+    {
+        $tenants = new \Atom\Auth\TenantWorkspaceManager();
+        $matrix = new \Atom\Auth\RolePermissionMatrix();
+        $abac = new \Atom\Auth\AttributeAccessControlEngine();
+        $tokens = new \Atom\Auth\ScopedApiTokenManager();
+
+        if ($command === '/rbac:check') {
+            $parts = explode(' ', trim($args), 2);
+            $role = !empty($parts[0]) ? strtoupper($parts[0]) : 'MEMBER';
+            $perm = !empty($parts[1]) ? strtolower($parts[1]) : 'repo:read';
+
+            $hasRbac = $matrix->hasPermission($role, $perm);
+            $abacDecision = $abac->evaluate(['role' => $role, 'mfa_enabled' => true], $perm, ['classification' => 'INTERNAL']);
+            $allowed = $hasRbac && $abacDecision['allowed'];
+
+            $this->ui->highlight("🛡️ RBAC / ABAC Permission Evaluation");
+            $this->ui->writeLine("  Role       : {$role}");
+            $this->ui->writeLine("  Permission : {$perm}");
+            $this->ui->writeLine("  Decision   : " . ($allowed ? '✔ GRANTED' : '✘ DENIED'));
+            $this->ui->writeLine("  Reason     : " . $abacDecision['reason']);
+        } elseif ($command === '/rbac:tenant') {
+            $name = trim($args) ?: 'engineering';
+            $tenant = $tenants->createTenant($name, ucfirst($name) . ' Team Workspace', 'usr_admin');
+            $this->ui->highlight("🏢 Tenant Workspace Provisioned");
+            $this->ui->writeLine("  Tenant ID   : " . $tenant['id']);
+            $this->ui->writeLine("  Name        : " . $tenant['name']);
+            $this->ui->writeLine("  Storage Cap : " . $tenant['storage_cap_mb'] . " MB");
+        } elseif ($command === '/rbac:token') {
+            $scopes = !empty($args) ? explode(',', $args) : ['repo:read', 'swarm:dispatch'];
+            $token = $tokens->generateToken('usr_cli', 'default', array_map('trim', $scopes), 7200);
+            $this->ui->highlight("🔑 Scoped API Token Issued");
+            $this->ui->writeLine("  Token ID : " . $token['token_id']);
+            $this->ui->writeLine("  Scopes   : " . implode(', ', $token['scopes']));
+            $this->ui->writeLine("  Bearer   : " . $token['token_string']);
+        } elseif ($command === '/rbac:matrix') {
+            $this->ui->highlight("📋 Role-Permission Capability Matrix");
+            foreach ($matrix->getMatrix() as $role => $perms) {
+                $this->ui->writeLine("  [{$role}]: " . implode(', ', $perms));
+            }
+        } else {
+            $this->ui->highlight("🔐 Enterprise Multi-Tenant RBAC & ABAC Control Plane");
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /rbac:check <role> <perm>    Test authorization grant for role/permission");
+            $this->ui->writeLine("    /rbac:tenant <name>          Provision isolated tenant workspace");
+            $this->ui->writeLine("    /rbac:token <scopes>         Generate scoped HMAC-SHA256 API token");
+            $this->ui->writeLine("    /rbac:matrix                 Inspect full role permission capability table");
         }
         $this->ui->writeLine();
     }

@@ -731,6 +731,42 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 36 — Enterprise RBAC & ABAC Commands ────────────────────────
+
+        /// <summary>Checks whether a role/subject has permission under ABAC constraints.</summary>
+        [RelayCommand]
+        private async Task CheckPermission()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{\"role\":\"MEMBER\",\"permission\":\"repo:read\"}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/rbac/check", reqContent);
+                _logger.LogInformation("RBAC check evaluated: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not check RBAC permission");
+            }
+        }
+
+        /// <summary>Generates a cryptographic scoped API token for tenant access.</summary>
+        [RelayCommand]
+        private async Task GenerateScopedToken()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{\"user_id\":\"usr_desktop\",\"tenant_id\":\"default\",\"scopes\":[\"repo:read\"]}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/rbac/token/generate", reqContent);
+                _logger.LogInformation("Scoped token generated: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not generate scoped token");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

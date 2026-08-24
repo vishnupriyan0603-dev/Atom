@@ -801,7 +801,94 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 36 — Enterprise Multi-Tenant RBAC & ABAC API Methods ────────────
+
+  /// POST /api/v1/rbac/tenant/create — Provision tenant workspace.
+  Future<Map<String, dynamic>> createTenantWorkspace(String tenantId, String name, {Map<String, dynamic>? quotas}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/rbac/tenant/create'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'tenant_id': tenantId, 'name': name, 'quotas': quotas ?? {}}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/rbac/check — Check RBAC/ABAC authorization.
+  Future<Map<String, dynamic>> checkRbacPermission(String role, String permission, {Map<String, dynamic>? subject, Map<String, dynamic>? resource}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/rbac/check'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'role': role,
+          'permission': permission,
+          'subject': subject ?? {'role': role, 'mfa_enabled': true},
+          'resource': resource ?? {'classification': 'INTERNAL'},
+        }),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/rbac/token/generate — Issue scoped HMAC token.
+  Future<Map<String, dynamic>> generateScopedApiToken(String userId, String tenantId, List<String> scopes, {int ttl = 3600}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/rbac/token/generate'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'user_id': userId,
+          'tenant_id': tenantId,
+          'scopes': scopes,
+          'ttl': ttl,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/rbac/token/revoke — Revoke active token.
+  Future<Map<String, dynamic>> revokeScopedApiToken(String tokenId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/rbac/token/revoke'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'token_id': tokenId}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// GET /api/v1/rbac/matrix — Get full RBAC capability matrix.
+  Future<Map<String, dynamic>> getRbacMatrix() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/rbac/matrix'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
+
 
 
 
