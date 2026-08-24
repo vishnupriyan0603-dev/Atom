@@ -36,14 +36,14 @@ require_once __DIR__ . '/../bootstrap.php';
 
       <!-- Filters & search -->
       <div class="bg-[#11151c] border border-[#1e2838] p-4 rounded-2xl flex flex-col sm:flex-row gap-4 justify-between shadow-lg">
-        <div class="flex flex-wrap gap-2">
-          <button class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#1e2735] text-white">All</button>
-          <button class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1e2735]/55">PHP</button>
-          <button class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1e2735]/55">Laravel</button>
-          <button class="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1e2735]/55">Database</button>
+        <div class="flex flex-wrap gap-2" id="categoryButtons">
+          <button onclick="setCategory('All', this)" class="cat-btn px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#1e2735] text-white">All</button>
+          <button onclick="setCategory('PHP', this)" class="cat-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1e2735]/55">PHP</button>
+          <button onclick="setCategory('Laravel', this)" class="cat-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1e2735]/55">Laravel</button>
+          <button onclick="setCategory('Database', this)" class="cat-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1e2735]/55">Database</button>
         </div>
         <div class="relative">
-          <input type="text" id="recordSearch" placeholder="Filter records..." class="w-64 pl-4 pr-4 py-1.5 rounded-xl bg-[#080a0d] border border-[#1e2838] text-xs focus:outline-none focus:border-emerald-500/50 text-[#f0f4f8]">
+          <input type="text" id="recordSearch" oninput="renderRecords()" placeholder="Filter records..." class="w-64 pl-4 pr-4 py-1.5 rounded-xl bg-[#080a0d] border border-[#1e2838] text-xs focus:outline-none focus:border-emerald-500/50 text-[#f0f4f8]">
         </div>
       </div>
 
@@ -72,30 +72,61 @@ require_once __DIR__ . '/../bootstrap.php';
 
   <script src="/admin/js/shared.js"></script>
   <script>
+    let allRecords = [];
+    let selectedCat = 'All';
+
     async function loadKnowledge() {
       const tbody = document.getElementById('knowledgeList');
       try {
         const json = await apiFetch('/knowledge');
-        if (json.success && json.data && json.data.length > 0) {
-          tbody.innerHTML = json.data.map(item => `
-            <tr class="hover:bg-[#16202e]/30 transition-all">
-              <td class="p-4 text-gray-500 font-mono">#${item.id}</td>
-              <td class="p-4">
-                <div class="font-bold text-white mb-1 truncate max-w-lg">${escapeHtml(item.title || 'Untitled Chunk')}</div>
-                <p class="text-[11px] text-gray-500 max-w-2xl leading-relaxed">${escapeHtml(item.content || 'No description available')}</p>
-              </td>
-              <td class="p-4"><span class="px-2 py-0.5 rounded font-bold uppercase bg-emerald-500/10 text-emerald-400 text-[10px]">${escapeHtml(item.collection || 'General')}</span></td>
-              <td class="p-4 text-right">
-                <button onclick="deleteRecord(${item.id})" class="text-red-400 hover:text-red-300 font-bold ml-2">Delete</button>
-              </td>
-            </tr>
-          `).join('');
+        if (json.success && json.data) {
+          allRecords = json.data;
+          renderRecords();
         } else {
           tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-500">No knowledge chunks found.</td></tr>';
         }
       } catch (e) {
         tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-red-400">Failed to load knowledge records.</td></tr>';
       }
+    }
+
+    function setCategory(cat, btn) {
+      selectedCat = cat;
+      document.querySelectorAll('.cat-btn').forEach(b => {
+        b.className = 'cat-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold text-gray-400 hover:text-white hover:bg-[#1e2735]/55';
+      });
+      if (btn) btn.className = 'cat-btn px-3.5 py-1.5 rounded-xl text-xs font-bold bg-[#1e2735] text-white';
+      renderRecords();
+    }
+
+    function renderRecords() {
+      const tbody = document.getElementById('knowledgeList');
+      const search = (document.getElementById('recordSearch')?.value || '').toLowerCase();
+
+      const filtered = allRecords.filter(item => {
+        const catMatch = selectedCat === 'All' || (item.collection || '').toLowerCase().includes(selectedCat.toLowerCase());
+        const titleMatch = (item.title || '').toLowerCase().includes(search) || (item.content || '').toLowerCase().includes(search);
+        return catMatch && titleMatch;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="p-8 text-center text-gray-500">No matching knowledge records found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(item => `
+        <tr class="hover:bg-[#16202e]/30 transition-all">
+          <td class="p-4 text-gray-500 font-mono">#${item.id}</td>
+          <td class="p-4">
+            <div class="font-bold text-white mb-1 truncate max-w-lg">${escapeHtml(item.title || 'Untitled Chunk')}</div>
+            <p class="text-[11px] text-gray-500 max-w-2xl leading-relaxed">${escapeHtml(item.content || 'No description available')}</p>
+          </td>
+          <td class="p-4"><span class="px-2 py-0.5 rounded font-bold uppercase bg-emerald-500/10 text-emerald-400 text-[10px]">${escapeHtml(item.collection || 'General')}</span></td>
+          <td class="p-4 text-right">
+            <button onclick="deleteRecord(${item.id})" class="text-red-400 hover:text-red-300 font-bold ml-2">Delete</button>
+          </td>
+        </tr>
+      `).join('');
     }
 
     async function deleteRecord(id) {

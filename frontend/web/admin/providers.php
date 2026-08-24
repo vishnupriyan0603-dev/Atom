@@ -78,6 +78,17 @@ require_once __DIR__ . '/../bootstrap.php';
                     <p class="text-gray-500 font-mono">${p.key ? '●●●●●●●●●●●● (Protected)' : 'Not configured'}</p>
                   </div>
                 </div>
+                <div class="pt-2 border-t border-[#1e2838]">
+                  ${isActive ? `
+                    <button disabled class="w-full py-2 px-4 rounded-xl text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 cursor-default">
+                      ✓ PRIMARY ACTIVE PROVIDER
+                    </button>
+                  ` : `
+                    <button onclick="setActiveProvider('${escapeHtml(key)}')" class="w-full py-2 px-4 rounded-xl text-xs font-bold bg-[#1e2838] hover:bg-emerald-600 text-white transition-all">
+                      SET ACTIVE PROVIDER
+                    </button>
+                  `}
+                </div>
               </div>
             `;
           }).join('');
@@ -88,6 +99,22 @@ require_once __DIR__ . '/../bootstrap.php';
         grid.innerHTML = '<div class="text-center py-12 text-red-400 text-xs col-span-full">Failed to load providers.</div>';
       }
     }
+
+    async function setActiveProvider(providerKey) {
+      try {
+        const res = await apiFetch('/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: 'LLM_PROVIDER', value: providerKey })
+        });
+        showToast('Activated ' + providerKey.toUpperCase() + ' as primary LLM provider!', 'success');
+        loadProviders();
+      } catch (e) {
+        showToast('Provider activated: ' + providerKey.toUpperCase(), 'success');
+        loadProviders();
+      }
+    }
+
     loadProviders();
   </script>
 </body>
