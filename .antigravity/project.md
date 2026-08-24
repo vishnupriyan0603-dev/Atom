@@ -16,7 +16,7 @@
 - **Desktop v1**: .NET 9 WPF (`src/PersonalAIAssistant/`) with MVVM, DI, SQLite
 - **Desktop v2**: .NET 9 WPF (`AtomAssistant/`) with SQLite, sync, knowledge base
 - **Desktop Shell**: HTA (`frontend/desktop/Atom.hta`) lightweight browser-based UI
-- **Web Frontend**: Reserved for future browser client (`frontend/web/`)
+- **Web Frontend**: HTML5/CSS3/JS dark-themed web client (`frontend/web/`) connected to CodeIgniter REST API, featuring live completion with typing indicators, chat file attachments (`.txt`, `.md`, `.code`), Document RAG drag-and-drop ingestion, and Knowledge Graph SPO visualizer.
 
 ## AI Providers
 
