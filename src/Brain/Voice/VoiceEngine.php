@@ -24,12 +24,15 @@ class VoiceEngine
     public const BACKENDS = ['none', 'google_tts', 'browser_web_speech', 'local_tts'];
 
     /** Current backend — 'none' in Phase 23. */
-    private string $backend;
+    private SpeechSynthesizer $synthesizer;
+    private AudioTranscriber $transcriber;
 
-    public function __construct(bool $active = false, string $backend = 'none')
+    public function __construct(bool $active = false, string $backend = 'browser_web_speech')
     {
-        $this->active  = $active;
-        $this->backend = in_array($backend, self::BACKENDS, true) ? $backend : 'none';
+        $this->active      = $active;
+        $this->backend     = in_array($backend, self::BACKENDS, true) ? $backend : 'browser_web_speech';
+        $this->synthesizer = new SpeechSynthesizer();
+        $this->transcriber = new AudioTranscriber();
     }
 
     // ──────────────────────────────────────────────────────────────────────────
@@ -49,6 +52,32 @@ class VoiceEngine
     public function getBackend(): string
     {
         return $this->backend;
+    }
+
+    public function getSynthesizer(): SpeechSynthesizer
+    {
+        return $this->synthesizer;
+    }
+
+    public function getTranscriber(): AudioTranscriber
+    {
+        return $this->transcriber;
+    }
+
+    /**
+     * Synthesize text into speech instructions or synthetic audio.
+     */
+    public function synthesize(string $text, string $voice = SpeechSynthesizer::DEFAULT_VOICE): array
+    {
+        return $this->synthesizer->synthesize($text, $voice, $this->backend === 'local_tts' ? 'local_wav' : 'browser_speech');
+    }
+
+    /**
+     * Transcribe audio into text.
+     */
+    public function transcribe(string $audioDataOrBase64, string $language = 'en'): array
+    {
+        return $this->transcriber->transcribe($audioDataOrBase64, $language);
     }
 
     /**
@@ -98,24 +127,5 @@ class VoiceEngine
         $text = preg_replace('/\n{3,}/', "\n\n", $text);
 
         return trim($text);
-    }
-
-    /**
-     * Future: synthesize text to audio bytes (stub for Phase 24+).
-     *
-     * @throws \RuntimeException If called before a real backend is configured.
-     */
-    public function synthesize(string $text): string
-    {
-        if ($this->backend === 'none') {
-            throw new \RuntimeException(
-                'VoiceEngine: No TTS backend is configured. Set ATOM_TTS_BACKEND in your .env file.'
-            );
-        }
-
-        // Future: delegate to configured backend
-        throw new \RuntimeException(
-            "VoiceEngine: Backend '{$this->backend}' is not yet implemented in this phase."
-        );
     }
 }

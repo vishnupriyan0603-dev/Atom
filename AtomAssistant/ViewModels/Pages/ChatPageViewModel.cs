@@ -208,6 +208,52 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 24 — Multi-Modal Voice & Vision Commands ────────────────────
+
+        /// <summary>Synthesize speech audio for the given text message.</summary>
+        [RelayCommand]
+        private async Task SynthesizeVoice(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var content = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { text, voice = "en-IN-Standard-A" }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/voice/synthesize", content);
+                _logger.LogInformation("Voice synthesized: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not synthesize voice");
+            }
+        }
+
+        /// <summary>Analyze an image or screenshot with multi-modal vision.</summary>
+        [RelayCommand]
+        private async Task AnalyzeImage(string base64Image)
+        {
+            if (string.IsNullOrWhiteSpace(base64Image)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var content = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { image_base64 = base64Image, task_type = "screenshot_debug" }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/vision/analyze", content);
+                _logger.LogInformation("Image analyzed: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not analyze image");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

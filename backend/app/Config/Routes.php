@@ -267,6 +267,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('brain/context', 'Api\Brain::context');
     $routes->post('brain/reset-context', 'Api\Brain::resetContext');
     $routes->get('brain/intent', 'Api\Brain::classifyIntent');
+
+    // Phase 24 — Multi-Modal Speech, Voice & Vision Routes
+    $routes->post('voice/synthesize', 'Api\Voice::synthesize');
+    $routes->post('voice/transcribe', 'Api\Voice::transcribe');
+    $routes->get('voice/voices', 'Api\Voice::getVoices');
+    $routes->post('vision/analyze', 'Api\Vision::analyze');
+    $routes->post('vision/screenshot-debug', 'Api\Vision::debugScreenshot');
 });
 
 

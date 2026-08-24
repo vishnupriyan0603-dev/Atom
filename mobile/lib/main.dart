@@ -111,6 +111,8 @@ class MobileDashboardScreen extends StatelessWidget {
                 // Phase 23 — Brain Status Tile
                 _buildCard('BRAIN STATE', 'IDLE', const Color(0xFFA78BFA)),
                 _buildCard('INTENT ENGINE', '14 CLASSES', const Color(0xFF34D399)),
+                // Phase 24 — Multi-Modal Speech & Vision Tile
+                _buildCard('VOICE & VISION', 'MULTI-MODAL', const Color(0xFFEC4899)),
               ],
             ),
           ],

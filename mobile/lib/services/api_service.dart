@@ -210,5 +210,41 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 24 — Multi-Modal Voice & Vision API Methods ─────────────────────
+
+  /// POST /api/v1/voice/synthesize — Synthesize text into speech instructions/audio.
+  Future<Map<String, dynamic>> synthesizeVoice(String text, {String voice = 'en-IN-Standard-A'}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/voice/synthesize'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'text': text, 'voice': voice}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/vision/analyze — Analyze image or screenshot base64.
+  Future<Map<String, dynamic>> analyzeVision(String base64Image, {String taskType = 'general_analysis', String prompt = ''}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/vision/analyze'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'image_base64': base64Image,
+          'task_type': taskType,
+          'prompt': prompt,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
 

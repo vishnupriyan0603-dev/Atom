@@ -252,6 +252,20 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 24 — Multi-Modal Speech, Voice & Vision Commands ────
+                case '/voice':
+                case '/voice:speak':
+                case '/voice:voices':
+                    $this->handleVoice($command, $args);
+                    return true;
+
+                case '/vision':
+                case '/vision:analyze':
+                case '/vision:debug':
+                    $this->handleVision($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -1479,6 +1493,68 @@ class CommandRouter
                 $this->ui->writeLine("  /brain:reset             Reset context (fresh conversation)");
                 $this->ui->writeLine("  /brain:intent <text>     Dry-run intent classification");
                 $this->ui->writeLine("  /brain:voice <on|off>    Toggle voice-friendly response mode");
+        }
+        $this->ui->writeLine();
+    }
+
+    // ── Phase 24 — Multi-Modal Voice & Vision CLI Handlers ───────────────────
+
+    private function handleVoice(string $command, string $args = ''): void
+    {
+        $synthesizer = new \Atom\Brain\Voice\SpeechSynthesizer();
+        if ($command === '/voice:voices') {
+            $this->ui->highlight("🔊 ATOM Available Voice Profiles");
+            foreach ($synthesizer->getVoices() as $key => $meta) {
+                $this->ui->writeLine("  - {$key} : {$meta['name']} ({$meta['gender']}, {$meta['lang']})");
+            }
+        } elseif ($command === '/voice:speak' || ($command === '/voice' && !empty($args))) {
+            $text = $args ?: 'Atom speech synthesis engine is operational.';
+            $res = $synthesizer->synthesize($text);
+            $this->ui->highlight("🔊 Speech Synthesis Instruction Generated");
+            $this->ui->writeLine("  Text     : " . $res['text']);
+            $this->ui->writeLine("  Voice    : " . $res['voice']);
+            $this->ui->writeLine("  Duration : ~" . $res['estimated_duration_sec'] . "s");
+            $this->ui->success("SSML Payload ready for audio playback: " . $res['ssml']);
+        } else {
+            $this->ui->highlight("🔊 Multi-Modal Voice Engine");
+            $this->ui->writeLine("  /voice:speak <text>       Synthesize text into speech instruction");
+            $this->ui->writeLine("  /voice:voices             List available voice presets");
+        }
+        $this->ui->writeLine();
+    }
+
+    private function handleVision(string $command, string $args = ''): void
+    {
+        $engine = new \Atom\Vision\VisionEngine();
+        if ($command === '/vision:debug' || $command === '/vision:analyze' || ($command === '/vision' && !empty($args))) {
+            $filePath = trim($args);
+            if (empty($filePath)) {
+                $this->ui->error("Usage: /vision:analyze <image-path>  or  /vision:debug <screenshot-path>");
+                $this->ui->writeLine();
+                return;
+            }
+
+            $resolved = file_exists($filePath) ? $filePath : rtrim($this->workspaceRoot, '/') . '/' . ltrim($filePath, '/');
+            if (!file_exists($resolved)) {
+                $this->ui->error("File not found: " . $filePath);
+                $this->ui->writeLine();
+                return;
+            }
+
+            try {
+                $payload = \Atom\Vision\MultiModalPayload::fromFile($resolved);
+                $taskType = ($command === '/vision:debug') ? 'screenshot_debug' : 'general_analysis';
+                $this->ui->info("Analyzing image {$payload->fileName} ({$payload->sizeBytes} bytes)...");
+                $result = $engine->analyze($payload, '', $taskType);
+                $this->ui->highlight("👁️ Vision Analysis Result");
+                $this->ui->writeLine($result['data']['analysis'] ?? 'No analysis output.');
+            } catch (\Throwable $e) {
+                $this->ui->error("Vision analysis failed: " . $e->getMessage());
+            }
+        } else {
+            $this->ui->highlight("👁️ Multi-Modal Vision Engine");
+            $this->ui->writeLine("  /vision:analyze <path>    Analyze an image, mockup, or diagram");
+            $this->ui->writeLine("  /vision:debug <path>      Extract errors and diagnose from screenshot");
         }
         $this->ui->writeLine();
     }
