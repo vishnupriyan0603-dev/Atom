@@ -286,6 +286,16 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 27 — Desktop Automation & OS Sidecar Commands ───────
+                case '/desktop':
+                case '/desktop:status':
+                case '/desktop:clipboard':
+                case '/desktop:notify':
+                case '/desktop:action':
+                    $this->handleDesktop($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -1633,9 +1643,45 @@ class CommandRouter
             $this->ui->writeLine("  Triggers         : " . implode(', ', $caps['completionProvider']['triggerCharacters']));
             $this->ui->writeLine("  Commands:");
             $this->ui->writeLine("    /lsp:status             Inspect server capabilities and protocol version");
-            $this->ui->writeLine("    /lsp:complete <prefix>  Test AI code completion for snippet");
-            $this->ui->writeLine("    /lsp:hover <symbol>     Inspect symbol documentation & type hints");
-            $this->ui->writeLine("    /lsp:refactor <action>  Test AST code transformation");
+    // ── Phase 27 — Desktop Automation CLI Handlers ───────────────────────────
+
+    private function handleDesktop(string $command, string $args = ''): void
+    {
+        $engine = new \Atom\Desktop\DesktopAutomationEngine();
+        if ($command === '/desktop:clipboard') {
+            $content = $args ?: 'SELECT * FROM users WHERE active = 1 ORDER BY created_at DESC;';
+            $res = $engine->getClipboard()->analyzeClipboard($content);
+            $this->ui->highlight("📋 Clipboard Intelligence Analysis");
+            $this->ui->writeLine("  Type    : " . strtoupper($res['type']));
+            $this->ui->writeLine("  Summary : " . $res['summary']);
+            $this->ui->writeLine("  Suggested Actions:");
+            foreach ($res['suggested_actions'] as $act) {
+                $this->ui->writeLine("    - " . $act['label']);
+            }
+        } elseif ($command === '/desktop:notify') {
+            $msg = $args ?: 'Notification toast from ATOM Assistant.';
+            $res = $engine->dispatchNotification('ATOM Assistant', $msg);
+            $this->ui->success("Toast notification dispatched: '{$msg}'");
+        } elseif ($command === '/desktop:action') {
+            $action = $args ?: 'mute';
+            $res = $engine->executeSafeAction($action);
+            if ($res['success']) {
+                $this->ui->success("System action '{$action}' executed cleanly.");
+            } else {
+                $this->ui->error("Action failed: " . ($res['error'] ?? 'Unknown'));
+            }
+        } else {
+            $this->ui->highlight("🖥️ Desktop Automation & Native OS Sidecar");
+            $state = $engine->getDesktopState();
+            $this->ui->writeLine("  Sidecar Status   : " . strtoupper($state['sidecar_status']));
+            $this->ui->writeLine("  Active Window    : " . $state['active_window']['window_title']);
+            $this->ui->writeLine("  Application      : " . $state['active_window']['application_name']);
+            $this->ui->writeLine("  OS Platform      : " . $state['active_window']['platform']);
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /desktop:status         Inspect active window and OS telemetry");
+            $this->ui->writeLine("    /desktop:clipboard      Inspect and analyze clipboard buffer");
+            $this->ui->writeLine("    /desktop:notify <msg>   Dispatch native desktop notification");
+            $this->ui->writeLine("    /desktop:action <act>   Execute safe system action (mute/unmute)");
         }
         $this->ui->writeLine();
     }

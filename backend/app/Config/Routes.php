@@ -288,6 +288,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('lsp/hover', 'Api\Lsp::hover');
     $routes->post('lsp/refactor', 'Api\Lsp::refactor');
     $routes->get('lsp/capabilities', 'Api\Lsp::capabilities');
+
+    // Phase 27 — Desktop Automation & Native OS Sidecar Routes
+    $routes->get('desktop/status', 'Api\Desktop::status');
+    $routes->post('desktop/clipboard/analyze', 'Api\Desktop::analyzeClipboard');
+    $routes->post('desktop/window/focus', 'Api\Desktop::focusWindow');
+    $routes->post('desktop/notify', 'Api\Desktop::notify');
+    $routes->post('desktop/action', 'Api\Desktop::action');
 });
 
 

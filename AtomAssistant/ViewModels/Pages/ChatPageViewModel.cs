@@ -333,6 +333,46 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 27 — Desktop Automation & OS Sidecar Commands ───────────────
+
+        /// <summary>Inspect native OS sidecar telemetry, active window, and power.</summary>
+        [RelayCommand]
+        private async Task InspectDesktopStatus()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var response = await client.GetAsync("http://localhost:8080/api/v1/desktop/status");
+                _logger.LogInformation("Desktop status retrieved: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not retrieve desktop status");
+            }
+        }
+
+        /// <summary>Analyze clipboard buffer text for proactive AI actions.</summary>
+        [RelayCommand]
+        private async Task AnalyzeClipboard(string content)
+        {
+            if (string.IsNullOrWhiteSpace(content)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { content }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/desktop/clipboard/analyze", reqContent);
+                _logger.LogInformation("Clipboard analyzed: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not analyze clipboard");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

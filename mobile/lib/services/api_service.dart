@@ -308,5 +308,33 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 27 — Desktop Automation & OS Sidecar API Methods ────────────────
+
+  /// GET /api/v1/desktop/status — Retrieve live OS sidecar and active window state.
+  Future<Map<String, dynamic>> fetchDesktopStatus() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/desktop/status'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/desktop/clipboard/analyze — Analyze clipboard buffer text.
+  Future<Map<String, dynamic>> analyzeClipboardContent(String content) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/desktop/clipboard/analyze'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'content': content}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
 
