@@ -77,6 +77,13 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
     $routes->delete('memory/(:num)', 'Api\Memory::delete/$1');
     $routes->post('memory/clear', 'Api\Memory::clear');
 
+    // Background Job Queue System API
+    $routes->get('jobs', 'Api\Jobs::list');
+    $routes->post('jobs/dispatch', 'Api\Jobs::dispatch');
+    $routes->post('jobs/process-next', 'Api\Jobs::processNext');
+    $routes->post('jobs/(:num)/retry', 'Api\Jobs::retry/$1');
+    $routes->post('jobs/(:num)/cancel', 'Api\Jobs::cancel/$1');
+
     // Chats
     $routes->get('chats', 'Api\Chats::index');
     $routes->post('chats', 'Api\Chats::create');
