@@ -80,4 +80,40 @@ class AiChat extends BaseApiController
 
         return $this->respondSuccess($result['data'], 'Preview response');
     }
+
+    public function stream(int $chatId = null)
+    {
+        if (!$chatId) {
+            return $this->respondError('Chat ID is required', 400);
+        }
+
+        $data = $this->request->getJSON(true);
+        if (empty($data) || empty($data['message'])) {
+            return $this->respondError('Message is required', 400);
+        }
+
+        header('Content-Type: text/event-stream');
+        header('Cache-Control: no-cache');
+        header('Connection: keep-alive');
+        header('X-Accel-Buffering: no');
+
+        $result = $this->aiChatService->processPreview($chatId, $data['message'], $this->currentUserId());
+
+        if ($result['success'] && isset($result['data']['content'])) {
+            $content = $result['data']['content'];
+            $chunks = str_split($content, 12);
+            foreach ($chunks as $chunk) {
+                echo "data: " . json_encode(['token' => $chunk]) . "\n\n";
+                if (ob_get_level() > 0) ob_flush();
+                flush();
+                usleep(20000);
+            }
+            echo "data: [DONE]\n\n";
+            if (ob_get_level() > 0) ob_flush();
+            flush();
+        } else {
+            echo "data: " . json_encode(['error' => $result['message'] ?? 'Streaming error']) . "\n\n";
+        }
+        exit;
+    }
 }

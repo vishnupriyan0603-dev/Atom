@@ -129,6 +129,7 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
     // AI Chat
     $routes->post('chat/(:num)/send', 'Api\AiChat::send/$1');
     $routes->post('chat/(:num)/preview', 'Api\AiChat::preview/$1');
+    $routes->post('chat/(:num)/stream', 'Api\AiChat::stream/$1');
 
     // Sync
     $routes->get('sync', 'Api\Sync::pull');
