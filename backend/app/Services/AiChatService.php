@@ -127,6 +127,19 @@ class AiChatService
             }
         }
 
+        // --- Anthropic ---
+        $anthropicKey = \Atom\Config\Config::get('ANTHROPIC_API_KEY') ?: ($activeProvider === 'anthropic' ? $genericKey : '');
+        $anthropicUrl = \Atom\Config\Config::get('ANTHROPIC_API_URL') ?: ($activeProvider === 'anthropic' && !empty($genericUrl) ? $genericUrl : 'https://api.anthropic.com/v1');
+        $anthropicModel = \Atom\Config\Config::get('ANTHROPIC_MODEL') ?: ($activeProvider === 'anthropic' ? $genericModel : 'claude-3-5-sonnet-20241022');
+        if (!empty($anthropicKey)) {
+            $anthropicProvider = new \Atom\LLM\OpenAIProvider($anthropicKey, $anthropicUrl, $anthropicModel, $temperature, $maxTokens);
+            $modelManager->registerModel('anthropic', new \Atom\PersonalModel\GeminiModel($anthropicProvider, $anthropicModel, 'Anthropic'));
+            if ($activeProvider === 'anthropic') {
+                $modelManager->setRole('primary', 'anthropic');
+                $hasProvider = true;
+            }
+        }
+
         // Register local fallback model (Ollama) — used when primary provider fails or is unconfigured
         $localEndpoint = \Atom\Config\Config::get('LLM_LOCAL_ENDPOINT', 'http://localhost:11434/v1');
         $localModelName = \Atom\Config\Config::get('LLM_LOCAL_MODEL', 'llama3.1');
