@@ -420,5 +420,68 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 30 — Long-Horizon Planning & Graph-of-Thought API Methods ───────
+
+  /// POST /api/v1/planning/decompose — Decompose high-level goal into hierarchical DAG.
+  Future<Map<String, dynamic>> decomposeGoal(String goal, {int maxDepth = 3}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/planning/decompose'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'goal': goal, 'max_depth': maxDepth}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/planning/search — Multi-branch Graph-of-Thought search.
+  Future<Map<String, dynamic>> searchPlanTree(String goal, {int branchingFactor = 3, int maxDepth = 3}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/planning/search'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'goal': goal, 'branching_factor': branchingFactor, 'max_depth': maxDepth}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/planning/execute-step — Execute individual plan step with verification.
+  Future<Map<String, dynamic>> executePlanStep(String treeId, String nodeId, {dynamic output}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/planning/execute-step'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'tree_id': treeId, 'node_id': nodeId, 'output': output}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/planning/rollback — Backtrack failed node and select alternate branch.
+  Future<Map<String, dynamic>> rollbackPlan(String treeId, String nodeId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/planning/rollback'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'tree_id': treeId, 'node_id': nodeId}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
+
 

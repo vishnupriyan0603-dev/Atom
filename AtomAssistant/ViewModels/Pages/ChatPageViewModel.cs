@@ -471,6 +471,56 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 30 — Long-Horizon Planning & Graph-of-Thought Commands ──────
+
+        /// <summary>Decomposes a complex goal into a hierarchical DAG task structure.</summary>
+        [RelayCommand]
+        private async Task DecomposeGoal(string goal)
+        {
+            if (string.IsNullOrWhiteSpace(goal)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { goal, max_depth = 3 }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/planning/decompose", reqContent);
+                _logger.LogInformation("Goal decomposed: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not decompose goal");
+            }
+        }
+
+        /// <summary>Executes and verifies a specific plan step node.</summary>
+        [RelayCommand]
+        private async Task ExecutePlanStep(string parameters)
+        {
+            if (string.IsNullOrWhiteSpace(parameters)) return;
+            var parts = parameters.Split(' ', 2);
+            if (parts.Length < 2) return;
+            var treeId = parts[0];
+            var nodeId = parts[1];
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { tree_id = treeId, node_id = nodeId }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/planning/execute-step", reqContent);
+                _logger.LogInformation("Plan step executed: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not execute plan step");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

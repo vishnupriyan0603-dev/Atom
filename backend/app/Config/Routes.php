@@ -309,6 +309,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('cicd/repair', 'Api\Cicd::repair');
     $routes->get('cicd/pipelines', 'Api\Cicd::pipelines');
     $routes->post('cicd/pipeline/trigger', 'Api\Cicd::triggerPipeline');
+
+    // Phase 30 — Long-Horizon Planning & Graph-of-Thought (GoT) Routes
+    $routes->post('planning/decompose', 'Api\Planning::decompose');
+    $routes->post('planning/search', 'Api\Planning::search');
+    $routes->post('planning/execute-step', 'Api\Planning::executeStep');
+    $routes->get('planning/tree/(:any)', 'Api\Planning::showTree/$1');
+    $routes->post('planning/rollback', 'Api\Planning::rollback');
 });
 
 

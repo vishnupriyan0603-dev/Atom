@@ -38,6 +38,11 @@
         <span class="sidebar-label">Desktop Automation</span>
       </a>
 
+      <a href="/admin/planning" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-[#1e2735] text-gray-400 hover:text-white">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7zm4 0h8M8 11h8M8 15h4"></path></svg>
+        <span class="sidebar-label">GoT Planning</span>
+      </a>
+
       <div class="pt-4 pb-1">
         <span class="px-4 text-[10px] font-bold text-gray-500 tracking-wider uppercase sidebar-label">Brain Data</span>
       </div>
