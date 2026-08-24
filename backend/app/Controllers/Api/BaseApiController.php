@@ -32,22 +32,42 @@ abstract class BaseApiController extends ResourceController
         return $this->requestId;
     }
 
+    protected function getResponse(): \CodeIgniter\HTTP\ResponseInterface
+    {
+        if ($this->response === null) {
+            $this->response = \Config\Services::response();
+        }
+        return $this->response;
+    }
+
     protected function respondSuccess($data = null, string $message = 'Success', int $code = 200)
     {
+        $res = $this->getResponse();
+        $res->setHeader('X-API-Version', 'v1.0');
+
         return $this->respond([
             'success'    => true,
             'message'    => $message,
             'data'       => $data,
             'request_id' => $this->requestId(),
+            'meta'       => [
+                'api_version' => 'v1.0',
+            ],
         ], $code);
     }
 
     protected function respondError(string $message = 'Error', int $code = 400, $errors = null)
     {
+        $res = $this->getResponse();
+        $res->setHeader('X-API-Version', 'v1.0');
+
         $response = [
             'success'    => false,
             'message'    => $message,
             'request_id' => $this->requestId(),
+            'meta'       => [
+                'api_version' => 'v1.0',
+            ],
         ];
         if ($errors !== null) {
             $response['errors'] = $errors;

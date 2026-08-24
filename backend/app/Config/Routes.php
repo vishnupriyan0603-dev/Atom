@@ -95,6 +95,19 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
     $routes->get('telemetry/metrics', 'Api\Telemetry::metrics');
     $routes->get('telemetry/spans', 'Api\Telemetry::spans');
 
+    // API Version 1 (v1) Versioned Endpoint Group
+    $routes->group('v1', static function ($routes) {
+        $routes->get('chats', 'Api\Chats::index');
+        $routes->post('chats', 'Api\Chats::create');
+        $routes->get('chats/(:num)', 'Api\Chats::show/$1');
+        $routes->get('memory', 'Api\Memory::list');
+        $routes->post('memory', 'Api\Memory::create');
+        $routes->get('approvals', 'Api\Approval::list');
+        $routes->get('jobs', 'Api\Jobs::list');
+        $routes->get('skills', 'Api\Skills::list');
+        $routes->get('telemetry/metrics', 'Api\Telemetry::metrics');
+    });
+
     // Chats
     $routes->get('chats', 'Api\Chats::index');
     $routes->post('chats', 'Api\Chats::create');
