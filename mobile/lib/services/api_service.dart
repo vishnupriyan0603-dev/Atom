@@ -1010,7 +1010,54 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 39 — Semantic Code Search & Vector Embedding API Methods ─────────
+
+  /// POST /api/v1/search/query — Semantic natural language / code search.
+  Future<Map<String, dynamic>> querySemanticCode(String query, {int topK = 5}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/search/query'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'query': query, 'top_k': topK}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/search/index — Index a source code snippet into vector store.
+  Future<Map<String, dynamic>> indexSemanticCodeChunk(String code, {String file = 'src/Custom.php'}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/search/index'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'code': code, 'file': file}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// GET /api/v1/search/stats — Get vector index statistics.
+  Future<Map<String, dynamic>> getSemanticSearchStats() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/search/stats'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
+
 
 
 

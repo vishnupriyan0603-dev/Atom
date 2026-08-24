@@ -371,6 +371,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('predictive/anomalies', 'Api\PredictiveAnalytics::anomalies');
     $routes->post('predictive/saturation', 'Api\PredictiveAnalytics::saturation');
     $routes->post('predictive/decompose', 'Api\PredictiveAnalytics::decompose');
+
+    // Phase 39 — Autonomous Semantic Code Search & Vector Embedding Routes
+    $routes->post('search/query', 'Api\SemanticSearch::query');
+    $routes->post('search/index', 'Api\SemanticSearch::index');
+    $routes->post('search/embed', 'Api\SemanticSearch::embed');
+    $routes->post('search/hybrid', 'Api\SemanticSearch::hybrid');
+    $routes->get('search/stats', 'Api\SemanticSearch::stats');
 });
 
 
