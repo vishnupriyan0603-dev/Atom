@@ -146,4 +146,33 @@ class SelfImprovementEngine
             ];
         }
     }
+
+    /**
+     * Comprehensive evaluation pipeline using 7 metric dimensions.
+     */
+    public function evaluateExperimentWithMetrics(int $experimentId, EvaluationMetric $baseline, EvaluationMetric $candidate): array
+    {
+        $pipeline = new EvaluationPipeline();
+        $eval = $pipeline->evaluateCandidate($baseline, $candidate);
+
+        if ($eval['promoted']) {
+            return $this->evaluateExperiment($experimentId, $eval['baseline_score'], $eval['candidate_score']);
+        }
+
+        $db = $this->getDb();
+        $db->table($db->prefixTable('atom_experiments'), true)->where('id', $experimentId)->update([
+            'baseline_score'  => $eval['baseline_score'],
+            'candidate_score' => $eval['candidate_score'],
+            'improvement_pct' => $eval['improvement_pct'],
+            'status'          => 'failed',
+            'updated_at'      => date('Y-m-d H:i:s')
+        ]);
+
+        return [
+            'status'          => $eval['status'],
+            'experiment_id'   => $experimentId,
+            'improvement_pct' => $eval['improvement_pct'],
+            'message'         => $eval['reason'],
+        ];
+    }
 }
