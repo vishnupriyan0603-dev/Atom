@@ -334,4 +334,34 @@ class OwnerProfileManager
                $this->deleteTrainingData() &&
                $this->deleteFaceData();
     }
+
+    /**
+     * Formats owner identity and preferences into a system prompt instruction string.
+     */
+    public function getProfileSummaryPrompt(): string
+    {
+        $profile = $this->getProfile();
+        $name = $profile['full_name'] ?? 'Vishnupriyan R';
+        $nickname = $profile['preferred_name'] ?? 'Vichu';
+        $style = $profile['response_style'] ?? 'concise';
+        $level = $profile['explanation_level'] ?? 'intermediate';
+        $tech = $profile['main_technologies'] ?? 'PHP, Javascript, MySQL';
+        $lang = $profile['preferred_language'] ?? 'English';
+
+        return "Owner Identity: {$name} (Call owner: {$nickname})\n" .
+               "Preferred Language: {$lang}\n" .
+               "Response Style: {$style}\n" .
+               "Explanation Level: {$level}\n" .
+               "Primary Tech Stack: {$tech}";
+    }
+
+    /**
+     * Updates user preference fields (response_style, explanation_level, preferred_language, timezone).
+     */
+    public function updatePreferences(array $prefs): bool
+    {
+        $current = $this->getProfile();
+        $merged = array_merge($current, $prefs);
+        return $this->updateProfile($merged);
+    }
 }
