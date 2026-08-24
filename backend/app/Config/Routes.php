@@ -316,6 +316,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('planning/execute-step', 'Api\Planning::executeStep');
     $routes->get('planning/tree/(:any)', 'Api\Planning::showTree/$1');
     $routes->post('planning/rollback', 'Api\Planning::rollback');
+
+    // Phase 31 — Mathematical, Algorithmic & Symbolic Computation Routes
+    $routes->post('compute/solve', 'Api\Computation::solve');
+    $routes->post('compute/matrix', 'Api\Computation::matrix');
+    $routes->post('compute/statistics', 'Api\Computation::statistics');
+    $routes->post('compute/geometry', 'Api\Computation::geometry');
+    $routes->post('compute/complexity', 'Api\Computation::complexity');
 });
 
 

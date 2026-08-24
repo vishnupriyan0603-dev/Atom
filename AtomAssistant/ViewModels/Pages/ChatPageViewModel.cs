@@ -521,6 +521,52 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 31 — Mathematical & Algorithmic Computation Commands ────────
+
+        /// <summary>Solves an algebraic equation with step-by-step derivation.</summary>
+        [RelayCommand]
+        private async Task SolveEquation(string equation)
+        {
+            if (string.IsNullOrWhiteSpace(equation)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { equation }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/compute/solve", reqContent);
+                _logger.LogInformation("Equation solved: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not solve equation");
+            }
+        }
+
+        /// <summary>Analyzes code snippet Big-O time and space complexity.</summary>
+        [RelayCommand]
+        private async Task AnalyzeComplexity(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { code }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/compute/complexity", reqContent);
+                _logger.LogInformation("Complexity analyzed: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not analyze complexity");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

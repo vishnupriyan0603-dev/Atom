@@ -482,6 +482,69 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 31 — Mathematical & Algorithmic Computation API Methods ─────────
+
+  /// POST /api/v1/compute/solve — Solve algebraic equation with step-by-step derivation.
+  Future<Map<String, dynamic>> solveEquation(String equation) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/compute/solve'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'equation': equation}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/compute/matrix — Compute matrix operations (invert, determinant, multiply).
+  Future<Map<String, dynamic>> computeMatrix(String operation, dynamic matrixA, {dynamic matrixB}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/compute/matrix'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'operation': operation, 'matrix_a': matrixA, 'matrix_b': matrixB}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/compute/statistics — Compute descriptive statistics and linear regression.
+  Future<Map<String, dynamic>> computeStatistics(List<double> data, {String mode = 'describe', List<double>? dataY}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/compute/statistics'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'mode': mode, 'data': data, 'data_y': dataY}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/compute/complexity — Analyze source code Big-O time and space complexity.
+  Future<Map<String, dynamic>> analyzeComplexity(String code) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/compute/complexity'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'code': code}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
+
 
 

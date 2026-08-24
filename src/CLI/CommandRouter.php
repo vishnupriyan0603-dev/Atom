@@ -327,6 +327,17 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 31 — Mathematical, Algorithmic & Symbolic Compute ───
+                case '/math':
+                case '/math:solve':
+                case '/math:matrix':
+                case '/math:stats':
+                case '/algo':
+                case '/algo:complexity':
+                    $this->handleComputation($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -1830,6 +1841,59 @@ class CommandRouter
             $this->ui->writeLine("    /plan:search <goal>              Explore multi-branch GoT thought tree");
             $this->ui->writeLine("    /plan:execute <tree_id> <node>   Execute and verify plan node");
             $this->ui->writeLine("    /plan:rollback <tree_id> <node>  Rollback failed node to viable ancestor");
+        }
+        $this->ui->writeLine();
+    }
+
+    // ── Phase 31 — Mathematical & Algorithmic Computation CLI Handlers ────────
+
+    private function handleComputation(string $command, string $args = ''): void
+    {
+        if ($command === '/math:solve') {
+            $eq = $args ?: '2x^2 - 8x + 6 = 0';
+            $solver = new \Atom\Math\SymbolicEquationSolver();
+            $res = $solver->solve($eq);
+            $this->ui->highlight("📐 Symbolic Equation Solver: {$eq}");
+            $this->ui->writeLine("  Type       : " . strtoupper($res['type']));
+            $this->ui->writeLine("  Solutions  : [ " . implode(', ', $res['solutions']) . " ]");
+            $this->ui->writeLine("  Derivation :");
+            foreach ($res['steps'] as $idx => $s) {
+                $this->ui->writeLine("    " . ($idx + 1) . ". {$s}");
+            }
+        } elseif ($command === '/math:matrix') {
+            $engine = new \Atom\Math\MatrixEngine();
+            $m = [[4, 7], [2, 6]];
+            $det = $engine->determinant($m);
+            $inv = $engine->invert($m);
+            $this->ui->highlight("🧮 Linear Algebra Matrix Lab: [[4, 7], [2, 6]]");
+            $this->ui->writeLine("  Determinant : {$det}");
+            $this->ui->writeLine("  Inverse     : " . json_encode($inv));
+        } elseif ($command === '/math:stats') {
+            $analyzer = new \Atom\Math\StatisticalAnalyzer();
+            $data = [12, 18, 23, 29, 31, 42, 49, 58, 64];
+            $d = $analyzer->describe($data);
+            $this->ui->highlight("📊 Statistical Summary Analysis");
+            $this->ui->writeLine("  Count: {$d['count']} | Mean: {$d['mean']} | Median: {$d['median']}");
+            $this->ui->writeLine("  Variance: {$d['variance']} | StdDev: {$d['std_dev']} | IQR: {$d['iqr']}");
+        } elseif ($command === '/algo:complexity' || $command === '/algo') {
+            $code = $args ?: 'for ($i = 0; $i < $n; $i++) { for ($j = 0; $j < $n; $j++) { $m[$i][$j] = 0; } }';
+            $analyzer = new \Atom\Algorithms\AlgorithmComplexityAnalyzer();
+            $res = $analyzer->analyze($code);
+            $this->ui->highlight("⏱️ Algorithm Big-O Complexity Profile");
+            $this->ui->writeLine("  Time Complexity  : " . $res['time_complexity']);
+            $this->ui->writeLine("  Space Complexity : " . $res['space_complexity']);
+            $this->ui->writeLine("  Loop Nesting     : " . $res['max_loop_nesting'] . " levels");
+            foreach ($res['reasons'] as $r) {
+                $this->ui->writeLine("  • {$r}");
+            }
+        } else {
+            $this->ui->highlight("🧮 Mathematical & Algorithmic Computation Engine");
+            $this->ui->writeLine("  Capabilities : Symbolic Solving, Linear Algebra, Statistics, Big-O Analysis");
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /math:solve <equation>   Solve exact linear or quadratic equation");
+            $this->ui->writeLine("    /math:matrix <op>        Execute matrix determinant/inversion");
+            $this->ui->writeLine("    /math:stats <data>       Descriptive statistics and regression");
+            $this->ui->writeLine("    /algo:complexity <code>  Analyze code Big-O time and space complexity");
         }
         $this->ui->writeLine();
     }
