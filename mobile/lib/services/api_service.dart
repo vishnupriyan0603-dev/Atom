@@ -963,7 +963,55 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 38 — Time-Series Predictive Forecasting Brain API Methods ────────
+
+  /// POST /api/v1/predictive/forecast — Run Holt-Winters time-series forecast.
+  Future<Map<String, dynamic>> getPredictiveForecast(List<dynamic> series, {int horizon = 5}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/predictive/forecast'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'series': series, 'horizon': horizon}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/predictive/anomalies — Detect statistical Z-score anomalies.
+  Future<Map<String, dynamic>> detectPredictiveAnomalies(List<dynamic> series) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/predictive/anomalies'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'series': series}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/predictive/saturation — Estimate resource saturation & TTE.
+  Future<Map<String, dynamic>> predictResourceSaturation(List<dynamic> history, {double limit = 95.0}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/predictive/saturation'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'history': history, 'limit': limit}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
+
 
 
 

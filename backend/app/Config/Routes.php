@@ -365,6 +365,12 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('webrtc/ice/candidate', 'Api\WebRtcMesh::iceCandidate');
     $routes->post('webrtc/gossip/sync', 'Api\WebRtcMesh::gossipSync');
     $routes->get('webrtc/topology', 'Api\WebRtcMesh::topology');
+
+    // Phase 38 — Predictive Forecasting & Time-Series Anomaly Routes
+    $routes->post('predictive/forecast', 'Api\PredictiveAnalytics::forecast');
+    $routes->post('predictive/anomalies', 'Api\PredictiveAnalytics::anomalies');
+    $routes->post('predictive/saturation', 'Api\PredictiveAnalytics::saturation');
+    $routes->post('predictive/decompose', 'Api\PredictiveAnalytics::decompose');
 });
 
 

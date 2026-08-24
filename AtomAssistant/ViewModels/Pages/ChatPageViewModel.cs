@@ -803,6 +803,42 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 38 — Predictive Forecasting & Anomaly Brain Commands ───────
+
+        /// <summary>Computes time-series forecast using Holt-Winters exponential smoothing.</summary>
+        [RelayCommand]
+        private async Task ComputeForecast()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{\"series\":[10,12,15,14,18,22,25,24,28,32,35,36,40,45],\"horizon\":5}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/predictive/forecast", reqContent);
+                _logger.LogInformation("Predictive forecast computed: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not compute predictive forecast");
+            }
+        }
+
+        /// <summary>Detects statistical Z-score anomaly outliers in streaming metric data.</summary>
+        [RelayCommand]
+        private async Task DetectAnomalies()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{\"series\":[20,22,21,23,22,95,21,20,22,21,24,22]}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/predictive/anomalies", reqContent);
+                _logger.LogInformation("Predictive anomalies detected: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not detect predictive anomalies");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

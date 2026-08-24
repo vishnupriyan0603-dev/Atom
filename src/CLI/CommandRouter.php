@@ -399,6 +399,16 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 38 — Predictive Forecasting & Anomaly Brain ─────────
+                case '/predict':
+                case '/predict:forecast':
+                case '/predict:anomalies':
+                case '/predict:saturation':
+                case '/predict:decompose':
+                    $this->handlePredict($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -2304,6 +2314,64 @@ class CommandRouter
             $this->ui->writeLine("    /webrtc:offer [from] [to]    Broadcast SDP offer for direct data stream");
             $this->ui->writeLine("    /webrtc:gossip               Trigger anti-entropy gossip state sync");
             $this->ui->writeLine("    /webrtc:topology             Inspect active mesh topology & peer roster");
+        }
+        $this->ui->writeLine();
+    }
+
+    // ── Phase 38 — Predictive Forecasting & Anomaly Brain Handlers ────────────
+
+    private function handlePredict(string $command, string $args = ''): void
+    {
+        $forecaster = new \Atom\Analytics\HoltWintersForecaster();
+        $detector = new \Atom\Analytics\SlidingWindowAnomalyDetector();
+        $predictor = new \Atom\Analytics\SystemResourcePredictor();
+        $decomposer = new \Atom\Analytics\SeasonalityDecomposer();
+
+        $parseNums = function(string $input, array $fallback): array {
+            $parts = array_filter(array_map('trim', explode(',', $input)));
+            return !empty($parts) ? array_map('floatval', $parts) : $fallback;
+        };
+
+        if ($command === '/predict:forecast') {
+            $series = $parseNums($args, [10, 12, 15, 14, 18, 22, 25, 24, 28, 32, 35, 36, 40, 45]);
+            $res = $forecaster->forecast($series, 5);
+            $this->ui->highlight("📈 Holt-Winters Horizon Forecast");
+            $this->ui->writeLine("  Model : " . $res['model']);
+            $this->ui->writeLine("  RMSE  : " . $res['rmse']);
+            foreach ($res['predictions'] as $p) {
+                $this->ui->writeLine("  • Step +{$p['step']}: {$p['forecast']} (95% CI: [{$p['lower_bound']}, {$p['upper_bound']}])");
+            }
+        } elseif ($command === '/predict:anomalies') {
+            $series = $parseNums($args, [20, 22, 21, 23, 22, 95, 21, 20, 22, 21, 24, 22]);
+            $res = $detector->detect($series);
+            $this->ui->highlight("🚨 Statistical Z-Score Anomaly Scan");
+            $this->ui->writeLine("  Mean : " . $res['mean'] . " | StdDev: " . $res['std_dev']);
+            $this->ui->writeLine("  Anomalies Detected : " . $res['total_anomalies']);
+            foreach ($res['anomalies'] as $a) {
+                $this->ui->writeLine("  • Index {$a['index']} [{$a['severity']}]: Value {$a['value']} (|Z| = {$a['z_score']})");
+            }
+        } elseif ($command === '/predict:saturation') {
+            $history = $parseNums($args, [50.0, 55.0, 60.0, 68.0, 75.0, 82.0]);
+            $res = $predictor->predictSaturation($history, 95.0);
+            $this->ui->highlight("⏳ System Headroom & Saturation TTE");
+            $this->ui->writeLine("  Current Usage : " . $res['current_pct'] . "%");
+            $this->ui->writeLine("  Growth Slope  : +" . $res['growth_rate'] . "% / step");
+            $this->ui->writeLine("  Risk Level    : " . $res['risk_level']);
+            $this->ui->writeLine("  Steps to Limit: " . ($res['steps_to_limit'] !== null ? $res['steps_to_limit'] . " steps" : 'N/A'));
+        } elseif ($command === '/predict:decompose') {
+            $series = $parseNums($args, [10, 12, 15, 14, 18, 22, 25, 24, 28, 32, 35, 36, 40, 45]);
+            $res = $decomposer->decompose($series, 7);
+            $this->ui->highlight("🔬 Time-Series Additive Decomposition (Y = T + S + R)");
+            $this->ui->writeLine("  Period  : " . $res['period']);
+            $this->ui->writeLine("  Trend Points    : " . count($res['trend']));
+            $this->ui->writeLine("  Seasonal Points : " . count($res['seasonal']));
+        } else {
+            $this->ui->highlight("🧠 Autonomous Time-Series Predictive Forecasting Brain");
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /predict:forecast [csv]      Run Holt-Winters exponential smoothing forecast");
+            $this->ui->writeLine("    /predict:anomalies [csv]     Detect real-time Z-score statistical anomalies");
+            $this->ui->writeLine("    /predict:saturation [csv]    Predict system headroom & Time-To-Exhaustion");
+            $this->ui->writeLine("    /predict:decompose [csv]     Decompose series into Trend, Seasonality, Residual");
         }
         $this->ui->writeLine();
     }
