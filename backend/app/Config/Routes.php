@@ -53,6 +53,7 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
     $routes->get('analytics/duplicates', 'Api\Analytics::duplicates');
     $routes->post('analytics/optimize-training', 'Api\Analytics::optimizeTraining');
     $routes->get('analytics/global-search', 'Api\Analytics::globalSearch');
+    $routes->get('analytics/stream', 'Api\Analytics::streamTelemetry');
 
     // Self-Improvement & Knowledge Graph
     $routes->get('improvement/flaws', 'Api\SelfImprovement::flaws');
