@@ -115,6 +115,8 @@ class MobileDashboardScreen extends StatelessWidget {
                 _buildCard('VOICE & VISION', 'MULTI-MODAL', const Color(0xFFEC4899)),
                 // Phase 25 — Proactive Daemon Tile
                 _buildCard('PROACTIVE DAEMON', 'ACTIVE PULSE', const Color(0xFF38BDF8)),
+                // Phase 26 — Developer IDE Protocol (LSP) Tile
+                _buildCard('IDE PROTOCOL (LSP)', 'JSON-RPC 2.0', const Color(0xFF6366F1)),
               ],
             ),
           ],

@@ -293,6 +293,46 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 26 — Developer IDE Protocol (LSP) Commands ──────────────────
+
+        /// <summary>Inspect language server protocol capabilities and triggers.</summary>
+        [RelayCommand]
+        private async Task InspectLspCapabilities()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var response = await client.GetAsync("http://localhost:8080/api/v1/lsp/capabilities");
+                _logger.LogInformation("LSP capabilities retrieved: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not retrieve LSP capabilities");
+            }
+        }
+
+        /// <summary>Execute AST refactoring transformation on code snippet.</summary>
+        [RelayCommand]
+        private async Task RefactorCode(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var content = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { code, action = "format_syntax" }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/lsp/refactor", content);
+                _logger.LogInformation("Code refactored: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not refactor code");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

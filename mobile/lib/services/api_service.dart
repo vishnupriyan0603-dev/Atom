@@ -280,5 +280,33 @@ class ApiService {
       return false;
     }
   }
+
+  // ── Phase 26 — Developer IDE Protocol (LSP) API Methods ───────────────────
+
+  /// GET /api/v1/lsp/capabilities — Retrieve language server capabilities.
+  Future<Map<String, dynamic>> fetchLspCapabilities() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/lsp/capabilities'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/lsp/complete — Request code completions.
+  Future<Map<String, dynamic>> requestCodeCompletion(String prefix, {String fileName = 'code.php'}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/lsp/complete'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'prefix': prefix, 'file_name': fileName}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
 

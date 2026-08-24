@@ -281,6 +281,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('daemon/briefing', 'Api\Daemon::briefing');
     $routes->post('daemon/briefing/generate', 'Api\Daemon::generateBriefing');
     $routes->get('daemon/healing-log', 'Api\Daemon::healingLog');
+
+    // Phase 26 — Developer IDE Protocol & LSP Routes
+    $routes->post('lsp/rpc', 'Api\Lsp::rpc');
+    $routes->post('lsp/complete', 'Api\Lsp::complete');
+    $routes->post('lsp/hover', 'Api\Lsp::hover');
+    $routes->post('lsp/refactor', 'Api\Lsp::refactor');
+    $routes->get('lsp/capabilities', 'Api\Lsp::capabilities');
 });
 
 

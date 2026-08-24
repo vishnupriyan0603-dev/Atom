@@ -276,6 +276,16 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 26 — Developer IDE Protocol (LSP) Commands ──────────
+                case '/lsp':
+                case '/lsp:status':
+                case '/lsp:complete':
+                case '/lsp:hover':
+                case '/lsp:refactor':
+                    $this->handleLsp($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -1593,8 +1603,39 @@ class CommandRouter
             $this->ui->writeLine("  Commands:");
             $this->ui->writeLine("    /daemon:status          Inspect live daemon health & uptime");
             $this->ui->writeLine("    /daemon:pulse           Trigger an immediate life-cycle pulse");
-            $this->ui->writeLine("    /daemon:briefing        Display contextual morning/evening briefing");
-            $this->ui->writeLine("    /daemon:heal            Run safe auto-healing remediation");
+    // ── Phase 26 — Developer IDE Protocol (LSP) CLI Handlers ─────────────────
+
+    private function handleLsp(string $command, string $args = ''): void
+    {
+        $server = new \Atom\Lsp\LspServer();
+        if ($command === '/lsp:complete' || ($command === '/lsp' && !empty($args))) {
+            $prefix = $args ?: 'public function ';
+            $completions = $server->getHandler()->getCompletionEngine()->getCompletions($prefix, 'AppController.php');
+            $this->ui->highlight("💡 LSP Code Autocomplete Candidates for: '{$prefix}'");
+            foreach ($completions['items'] as $item) {
+                $this->ui->writeLine("  - " . $item['label'] . " (" . ($item['detail'] ?? 'Symbol') . ")");
+            }
+        } elseif ($command === '/lsp:hover') {
+            $symbol = $args ?: 'AtomBrain';
+            $hover = $server->getHandler()->dispatch('textDocument/hover', ['symbol' => $symbol]);
+            $this->ui->highlight("📖 Symbol Documentation: {$symbol}");
+            $this->ui->writeLine($hover['contents']['value'] ?? 'No hover info.');
+        } elseif ($command === '/lsp:refactor') {
+            $action = $args ?: 'format_syntax';
+            $sampleCode = "function test(\$name){\$res=\$name;return \$res;}";
+            $res = $server->getHandler()->getRefactoringEngine()->refactor($sampleCode, $action);
+            $this->ui->highlight("🔧 AST Refactoring Preview ({$action})");
+            $this->ui->writeLine($res['transformed_code']);
+        } else {
+            $this->ui->highlight("💻 Developer IDE Protocol & Language Server (LSP)");
+            $caps = $server->getServerCapabilities();
+            $this->ui->writeLine("  Protocol Spec    : JSON-RPC 2.0 (LSP v3.17)");
+            $this->ui->writeLine("  Triggers         : " . implode(', ', $caps['completionProvider']['triggerCharacters']));
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /lsp:status             Inspect server capabilities and protocol version");
+            $this->ui->writeLine("    /lsp:complete <prefix>  Test AI code completion for snippet");
+            $this->ui->writeLine("    /lsp:hover <symbol>     Inspect symbol documentation & type hints");
+            $this->ui->writeLine("    /lsp:refactor <action>  Test AST code transformation");
         }
         $this->ui->writeLine();
     }
