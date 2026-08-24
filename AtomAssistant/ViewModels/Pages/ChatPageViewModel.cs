@@ -159,7 +159,36 @@ namespace AtomAssistant.ViewModels.Pages
         }
 
         [RelayCommand]
-        private void Attach() { }
+        private void Attach()
+        {
+            try
+            {
+                var dialog = new Microsoft.Win32.OpenFileDialog
+                {
+                    Filter = "Supported Files (*.txt;*.md;*.json;*.cs;*.php;*.js;*.html;*.css)|*.txt;*.md;*.json;*.cs;*.php;*.js;*.html;*.css|All Files (*.*)|*.*",
+                    Title = "Attach Context File to ATOM Chat"
+                };
+
+                if (dialog.ShowDialog() == true)
+                {
+                    var fileContent = System.IO.File.ReadAllText(dialog.FileName);
+                    var fileName = System.IO.Path.GetFileName(dialog.FileName);
+                    InputText = $"[Attachment: {fileName}]\n{fileContent}\n\n{InputText}";
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to attach file");
+            }
+        }
+
+        [RelayCommand]
+        private void ClearChat()
+        {
+            Messages.Clear();
+            _activeChatId = 0;
+            AddWelcomeMessage();
+        }
 
         [RelayCommand]
         private void VoiceInput() { }
@@ -211,6 +240,19 @@ namespace AtomAssistant.ViewModels.Pages
         }
 
         [RelayCommand]
-        private void ExportMessage(MessageItem message) { }
+        private void ExportMessage(MessageItem message)
+        {
+            if (message != null)
+            {
+                try
+                {
+                    System.Windows.Clipboard.SetText(message.Content);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to export message");
+                }
+            }
+        }
     }
 }
