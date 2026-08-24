@@ -121,6 +121,8 @@ class MobileDashboardScreen extends StatelessWidget {
                 _buildCard('DESKTOP SIDECAR', 'ONLINE', const Color(0xFFF43F5E)),
                 // Phase 28 — Real-Time WebSocket & Sync Tile
                 _buildCard('REAL-TIME SYNC', 'REPLICATING', const Color(0xFF06B6D4)),
+                // Phase 29 — Autonomous Test Gen & CI/CD Tile
+                _buildCard('CI/CD & TESTING', 'PASSING (240)', const Color(0xFF10B981)),
               ],
             ),
           ],

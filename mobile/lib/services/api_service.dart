@@ -388,5 +388,37 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 29 — Autonomous Testing & CI/CD Pipeline API Methods ────────────
+
+  /// POST /api/v1/cicd/test/generate — Synthesize automated PHPUnit test suite.
+  Future<Map<String, dynamic>> generateUnitTests(String code, {String className = 'Component'}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/cicd/test/generate'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'code': code, 'class_name': className}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/cicd/pipeline/trigger — Trigger multi-stage CI/CD pipeline pass.
+  Future<Map<String, dynamic>> triggerCiPipeline() async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/cicd/pipeline/trigger'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'stages': ['lint', 'unit_tests', 'security_scan', 'coverage_check', 'build_check']}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
 

@@ -424,6 +424,53 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 29 — Autonomous Testing & CI/CD Commands ────────────────────
+
+        /// <summary>Trigger multi-stage CI/CD pipeline pass.</summary>
+        [RelayCommand]
+        private async Task TriggerCiPipeline()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new {
+                        stages = new[] { "lint", "unit_tests", "security_scan", "coverage_check", "build_check" }
+                    }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/cicd/pipeline/trigger", reqContent);
+                _logger.LogInformation("CI/CD pipeline triggered: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not trigger CI/CD pipeline");
+            }
+        }
+
+        /// <summary>Generate PHPUnit test suite for given source class.</summary>
+        [RelayCommand]
+        private async Task GenerateTests(string code)
+        {
+            if (string.IsNullOrWhiteSpace(code)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { code, class_name = "TargetComponent" }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/cicd/test/generate", reqContent);
+                _logger.LogInformation("Tests generated: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not generate tests");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

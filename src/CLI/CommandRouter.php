@@ -306,6 +306,16 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 29 — Autonomous Testing & CI/CD Commands ────────────
+                case '/cicd':
+                case '/cicd:status':
+                case '/cicd:generate':
+                case '/cicd:run':
+                case '/cicd:repair':
+                    $this->handleCicd($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -1722,10 +1732,41 @@ class CommandRouter
                 $this->ui->writeLine("    • " . $p['device_name'] . " (" . $p['client_type'] . " @ " . $p['ip_address'] . ") — " . strtoupper($p['status']));
             }
             $this->ui->writeLine("  Commands:");
-            $this->ui->writeLine("    /sync:peers             Inspect connected peer topology matrix");
-            $this->ui->writeLine("    /sync:push <key> <val>  Record & replicate a state mutation delta");
-            $this->ui->writeLine("    /sync:pull              Pull recent state deltas since clock");
-            $this->ui->writeLine("    /sync:broadcast <msg>   Broadcast real-time event to all peers");
+    // ── Phase 29 — Autonomous Testing & CI/CD CLI Handlers ───────────────────
+
+    private function handleCicd(string $command, string $args = ''): void
+    {
+        $runner = new \Atom\CiCd\PipelineRunner();
+        if ($command === '/cicd:generate') {
+            $class = $args ?: 'UserAuthenticationService';
+            $sampleCode = "class {$class} { public function authenticate(\$u, \$p) { return true; } public function logout() { return true; } }";
+            $synthesizer = new \Atom\Testing\TestSynthesizer();
+            $res = $synthesizer->synthesizeTest($sampleCode, $class);
+            $this->ui->highlight("🧪 Synthesized PHPUnit Test Suite for: {$class}");
+            $this->ui->writeLine($res['test_code']);
+        } elseif ($command === '/cicd:repair') {
+            $err = $args ?: 'TypeError: Expected string, null returned';
+            $engine = new \Atom\Testing\SelfCorrectionEngine();
+            $res = $engine->synthesizePatch('public function getUser() { return null; }', $err);
+            $this->ui->highlight("🔧 Self-Correction Patch Diagnosis ({$res['error_type']})");
+            $this->ui->writeLine("  Explanation : " . $res['explanation']);
+            $this->ui->writeLine("  Patched     : " . $res['patched_code']);
+        } elseif ($command === '/cicd:run') {
+            $this->ui->info("Executing full multi-stage CI/CD pipeline pass...");
+            $res = $runner->runPipeline();
+            $this->ui->success("Pipeline Run #{$res['run_id']} completed in {$res['total_duration_ms']}ms: " . strtoupper($res['status']));
+            foreach ($res['stages'] as $s) {
+                $this->ui->writeLine("  - [" . strtoupper($s['stage']) . "] " . $s['output'] . " (" . $s['duration_ms'] . "ms)");
+            }
+        } else {
+            $this->ui->highlight("🚀 Autonomous Test Generation & CI/CD Pipeline");
+            $this->ui->writeLine("  Engine Status    : READY");
+            $this->ui->writeLine("  Pipeline Stages  : LINT -> UNIT_TESTS -> SECURITY_SCAN -> COVERAGE -> BUILD");
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /cicd:status            Inspect CI/CD status and recent runs");
+            $this->ui->writeLine("    /cicd:generate <class>  Synthesize automated PHPUnit test suite");
+            $this->ui->writeLine("    /cicd:run               Execute full multi-stage pipeline run");
+            $this->ui->writeLine("    /cicd:repair <error>    Diagnose failure trace & synthesize patch");
         }
         $this->ui->writeLine();
     }

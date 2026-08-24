@@ -302,6 +302,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('sync/push', 'Api\Sync::push');
     $routes->post('sync/pull', 'Api\Sync::pull');
     $routes->post('sync/broadcast', 'Api\Sync::broadcast');
+
+    // Phase 29 — Autonomous Test Generation & CI/CD Pipeline Routes
+    $routes->post('cicd/test/generate', 'Api\Cicd::generateTest');
+    $routes->post('cicd/test/run', 'Api\Cicd::runTests');
+    $routes->post('cicd/repair', 'Api\Cicd::repair');
+    $routes->get('cicd/pipelines', 'Api\Cicd::pipelines');
+    $routes->post('cicd/pipeline/trigger', 'Api\Cicd::triggerPipeline');
 });
 
 
