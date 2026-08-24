@@ -1,18 +1,27 @@
 # API Reference
 
-- **Base URL**:
-- **Version**:
-- **Auth method**:
-- **Rate limit**:
+- **Base URL**: `http://localhost:8080/api` (v1: `/api/v1`)
+- **Version**: 1.0.0
+- **Auth method**: Bearer JWT token
+- **Rate limit**: 60 requests/min
 
 ## Endpoints
 
 | Method | Path | Description | Auth |
 |--------|------|-------------|------|
-| GET | /api/resource | List resources | Yes |
-| POST | /api/resource | Create resource | Yes |
-| PUT | /api/resource/{id} | Update resource | Yes |
-| DELETE | /api/resource/{id} | Delete resource | Yes |
+| POST | `/api/auth/register` | Auto-register anonymous / web user | No |
+| POST | `/api/auth/login` | Authenticate user & receive JWT token | No |
+| GET | `/api/auth/me` | Fetch authenticated user info | Yes |
+| GET | `/api/chats` | List user chat sessions | Yes |
+| POST | `/api/chats` | Create new chat session | Yes |
+| GET | `/api/chats/{id}` | Get chat messages & history | Yes |
+| POST | `/api/chat/{id}/send` | Send message & generate AI response | Yes |
+| POST | `/api/chat/{id}/preview` | Send prompt preview for chat | Yes |
+| GET | `/api/v1/knowledge` | List indexed PDF RAG documents | Yes |
+| POST | `/api/v1/knowledge/upload` | Upload & chunk PDF/text files | Yes |
+| GET | `/api/v1/knowledge/triples` | Query Subject-Predicate-Object triples | Yes |
+| GET | `/api/v1/memory` | List personal stored memory items | Yes |
+| GET | `/api/v1/system/status` | System health, telemetry, provider status | Yes |
 
 ## Response Format
 
