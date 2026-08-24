@@ -6,21 +6,22 @@ include_once __DIR__ . '/components/header.php';
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h2 class="fw-bold mb-1" style="color: #00F2FE;">Controlled Agent Orchestration Engine</h2>
-        <p class="text-muted small mb-0">Monitor multi-step tasks, plan validators, risk gates, and execution telemetry</p>
+        <h2 class="fw-bold mb-1" style="color: #00F2FE;">Controlled Agent & Swarm Orchestration Engine</h2>
+        <p class="text-muted small mb-0">Monitor multi-step tasks, specialized agent swarms, risk gates, and execution telemetry</p>
     </div>
     <div>
         <button class="btn btn-outline-info btn-sm me-2" onclick="location.reload();">
             <i class="bi bi-arrow-clockwise me-1"></i> Refresh
         </button>
         <button class="btn btn-primary btn-sm" style="background: linear-gradient(135deg, #00F2FE 0%, #4FACFE 100%); border: none;" data-bs-toggle="modal" data-bs-target="#newTaskModal">
-            <i class="bi bi-plus-circle me-1"></i> Launch New Agent Task
+            <i class="bi bi-plus-circle me-1"></i> Launch New Agent Task / Swarm
         </button>
     </div>
 </div>
 
 <!-- Key Performance Metrics -->
 <div class="row g-3 mb-4">
+
     <div class="col-md-3">
         <div class="card bg-dark border-secondary p-3 text-white">
             <div class="text-muted small fw-bold">TOTAL AGENT TASKS</div>

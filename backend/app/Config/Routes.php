@@ -235,7 +235,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('workflows/executions', 'Api\Workflows::getExecutions');
     $routes->get('workflows/executions/(:num)', 'Api\Workflows::getExecution/$1');
     $routes->get('workflows/executions/(:num)/stream', 'Api\Workflows::streamExecutionEvents/$1');
+
+    // Multi-Agent Collaboration & Controlled Agent Swarm Engine Routes
+    $routes->get('agents/definitions', 'Api\Swarms::getDefinitions');
+    $routes->get('swarms', 'Api\Swarms::getSwarms');
+    $routes->post('swarms', 'Api\Swarms::createSwarm');
+    $routes->get('swarms/(:num)', 'Api\Swarms::getSwarm/$1');
+    $routes->get('swarms/(:num)/stream', 'Api\Swarms::streamSwarmEvents/$1');
 });
+
 
 
 

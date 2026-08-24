@@ -188,6 +188,16 @@ class CommandRouter
                     $this->handleWorkflows($command, $args);
                     return true;
 
+                case '/swarm':
+                case '/swarm:run':
+                case '/swarm:list':
+                case '/swarm:show':
+                case '/swarm:cancel':
+                case '/agents:definitions':
+                    $this->handleSwarms($command, $args);
+                    return true;
+
+
 
 
                 default:
@@ -1256,6 +1266,24 @@ class CommandRouter
         }
         $this->ui->writeLine();
     }
+
+    private function handleSwarms(string $command, string $args = ''): void
+    {
+        $coordinator = new \Atom\Swarm\AgentCoordinator();
+        if ($command === '/swarm:run' || ($command === '/swarm' && !empty($args))) {
+            $this->ui->info("Executing Multi-Agent Swarm Engine...");
+            $swarm = $coordinator->runSwarm($args ?: 'CLI multi-agent objective');
+            $this->ui->success("Swarm Execution #{$swarm->id} status: " . strtoupper($swarm->status));
+        } else {
+            $this->ui->highlight("Multi-Agent Collaboration & Swarm Engine");
+            $this->ui->writeLine("  /swarm:run <objective>    Launch multi-agent swarm task");
+            $this->ui->writeLine("  /swarm:list               List active swarm executions");
+            $this->ui->writeLine("  /swarm:show <id>          Inspect swarm members & graph");
+            $this->ui->writeLine("  /agents:definitions       List registered agent definitions");
+        }
+        $this->ui->writeLine();
+    }
 }
+
 
 

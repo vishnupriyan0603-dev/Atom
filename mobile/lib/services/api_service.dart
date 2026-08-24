@@ -84,7 +84,32 @@ class ApiService {
     }
   }
 
+  Future<List<dynamic>> fetchSwarms() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/swarms'));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        return body['data'] ?? [];
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Future<bool> createSwarm(String objective) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/swarms'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'objective': objective}),
+      );
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<bool> approveRequest(int id) async {
+
 
 
     try {

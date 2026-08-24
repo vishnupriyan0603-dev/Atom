@@ -102,7 +102,27 @@ namespace AtomAssistant.ViewModels.Pages
         }
 
         [RelayCommand]
+        private async Task LaunchSwarm(string objective)
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var content = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { objective }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                await client.PostAsync("http://localhost:8080/api/v1/swarms", content);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not launch swarm for objective {Objective}", objective);
+            }
+        }
+
+        [RelayCommand]
         private async Task CheckPendingApprovals()
+
 
 
         {
