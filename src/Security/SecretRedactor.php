@@ -9,8 +9,8 @@ class SecretRedactor
         '/(db_password|db_pass|password|pass|passwd|secret|api_key|apikey|token|smtp_pass|smtp_password|auth_header|session_id|cookie)\s*(=|:|=>)\s*["\']([^"\']+)["\']/i',
         // Match .env type assignments
         '/(DB_PASSWORD|DB_PASS|PASSWORD|SECRET|API_KEY|TOKEN|SMTP_PASSWORD|SMTP_PASS)\s*=\s*([^\r\n]+)/i',
-        // Match OpenAI/Anthropic/Google keys in strings
-        '/(sk-[a-zA-Z0-9]{32,})/i',
+        // Match OpenAI/Anthropic/Google/Groq keys in strings
+        '/(sk-[a-zA-Z0-9\-_]{20,}|gsk_[a-zA-Z0-9\-_]{20,}|AIzaSy[a-zA-Z0-9\-_]{30,})/i',
         // Match generic authorization headers
         '/(Authorization:\s*Bearer\s*)([a-zA-Z0-9\._\-]+)/i'
     ];
