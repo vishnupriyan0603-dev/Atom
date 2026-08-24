@@ -277,8 +277,29 @@
             <!-- VIEW 3: KNOWLEDGE GRAPH TRIPLES -->
             <section class="view-panel" id="view-graph">
                 <div class="page-header">
-                    <h2 class="page-title">Knowledge Graph Visualizer</h2>
-                    <p class="page-subtitle">Subject-Predicate-Object (SPO) entity relationships extracted automatically.</p>
+                    <h2 class="page-title">Knowledge Graph & SPO Triples</h2>
+                    <p class="page-subtitle">Interactive Subject-Predicate-Object (SPO) entity query builder and relationship visualizer.</p>
+                </div>
+
+                <!-- SPO Toolbar & Query Builder -->
+                <div class="glass-card" style="margin-bottom: 20px; padding: 18px 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+                        <div style="display: flex; gap: 12px; flex: 1; max-width: 600px;">
+                            <div class="chat-input-box" style="flex: 1; padding: 6px 14px; background: rgba(15, 23, 42, 0.7);">
+                                <i class="fa-solid fa-magnifying-glass" style="color: #64748b;"></i>
+                                <input type="text" class="chat-input" id="tripleSearchInput" placeholder="Search Subject, Predicate, or Object triples...">
+                            </div>
+                            <select class="model-selector" id="tripleCategoryFilter" style="padding: 8px 14px;">
+                                <option value="all">All Categories</option>
+                                <option value="Architecture">Architecture</option>
+                                <option value="User Profile">User Profile</option>
+                                <option value="Self-Learning">Self-Learning</option>
+                            </select>
+                        </div>
+                        <button class="btn-action" id="openTripleModalBtn" style="background: var(--primary-gradient); color: #070a12; font-weight: 700; border-radius: 20px; padding: 10px 22px;">
+                            <i class="fa-solid fa-plus" style="margin-right: 6px;"></i> Add New SPO Triple
+                        </button>
+                    </div>
                 </div>
 
                 <div class="glass-card">
@@ -327,6 +348,29 @@
                     <div style="margin-top: 16px; padding: 14px; background: rgba(15, 23, 42, 0.7); border-radius: 8px;" id="tripleDetail">
                         <div style="font-size: 0.88rem; color: #94a3b8;">Click any node in the graph above to inspect entity details and Subject-Predicate-Object triples.</div>
                     </div>
+                </div>
+
+                <!-- SPO Triples Library Data Table -->
+                <div class="glass-card" style="margin-top: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-size: 1.1rem; color: #f8fafc;">Subject-Predicate-Object (SPO) Triples Library</h3>
+                        <span class="badge-tag" id="tripleCountBadge">5 Active Triples</span>
+                    </div>
+
+                    <table class="doc-table">
+                        <thead>
+                            <tr>
+                                <th>Subject (Entity)</th>
+                                <th>Predicate (Relation)</th>
+                                <th>Object (Target)</th>
+                                <th>Category</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tripleTableBody">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
@@ -425,6 +469,52 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Modal Dialog: Add Custom SPO Triple -->
+    <div class="modal-backdrop" id="tripleModal">
+        <div class="modal-content glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="font-family: var(--font-heading); font-size: 1.3rem; color: #00f2fe;">
+                    <i class="fa-solid fa-diagram-project" style="margin-right: 8px;"></i> Add New SPO Triple
+                </h3>
+                <span class="modal-close" id="closeTripleModalBtn">&times;</span>
+            </div>
+
+            <form id="tripleForm">
+                <div style="margin-bottom: 14px;">
+                    <label style="font-size: 0.85rem; color: #94a3b8; display: block; margin-bottom: 6px;">Subject (Entity / Source)</label>
+                    <input type="text" id="tripleSubjectInput" class="chat-input" style="width: 100%; background: rgba(15,23,42,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;" placeholder="e.g. ATOM Engine, Vichu, Laravel" required>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="font-size: 0.85rem; color: #94a3b8; display: block; margin-bottom: 6px;">Predicate (Relationship / Action)</label>
+                    <input type="text" id="triplePredicateInput" class="chat-input" style="width: 100%; background: rgba(15,23,42,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;" placeholder="e.g. uses, role, prefers, connects_to" required>
+                </div>
+
+                <div style="margin-bottom: 14px;">
+                    <label style="font-size: 0.85rem; color: #94a3b8; display: block; margin-bottom: 6px;">Object (Target / Concept)</label>
+                    <input type="text" id="tripleObjectInput" class="chat-input" style="width: 100%; background: rgba(15,23,42,0.8); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px;" placeholder="e.g. CodeIgniter 4, PHP Full-Stack Developer" required>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <label style="font-size: 0.85rem; color: #94a3b8; display: block; margin-bottom: 6px;">Category</label>
+                    <select id="tripleCategoryInput" class="model-selector" style="width: 100%; padding: 10px;">
+                        <option value="Architecture">Architecture</option>
+                        <option value="User Profile">User Profile</option>
+                        <option value="Self-Learning">Self-Learning</option>
+                        <option value="General">General</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px;">
+                    <button type="button" class="chip-btn" id="cancelTripleModalBtn">Cancel</button>
+                    <button type="submit" class="btn-action" style="background: var(--primary-gradient); color: #070a12; font-weight: 700; border-radius: 20px; padding: 10px 24px;">
+                        Save Triple
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Application Script -->

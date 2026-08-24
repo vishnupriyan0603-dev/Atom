@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initChatConsole();
     initRAGUploader();
     initKnowledgeGraph();
+    initTripleEditor();
     initTelemetryStream();
     initStatsCounter();
 });
@@ -286,13 +287,123 @@ function initKnowledgeGraph() {
             const rel = node.getAttribute('data-rel') || 'Connected to Neural Hub';
             if (detailPanel) {
                 detailPanel.innerHTML = `
-                    <div style="font-size: 0.95rem; font-weight: 600; color: #00f2fe;">Node Details: ${label}</div>
-                    <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 6px;">Relationship: <em>${rel}</em></div>
-                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">Triple Vector ID: #SPO-77492-X</div>
+                    <div style="font-size: 0.95rem; font-weight: 600; color: #00f2fe;">Entity Node: ${label}</div>
+                    <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 6px;">Active Relationship: <em class="spo-predicate">${rel}</em></div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 4px;">Vector Index Reference: #SPO-${Math.floor(10000 + Math.random() * 90000)}</div>
                 `;
             }
         });
     });
+}
+
+// SPO Triples Query Builder & Modal Editor Logic
+let triplesData = [
+    { id: 1, subject: 'ATOM Core Engine', predicate: 'uses', object: 'CodeIgniter 4 Backend', category: 'Architecture' },
+    { id: 2, subject: 'Vichu', predicate: 'role', object: 'PHP Full-Stack Developer', category: 'User Profile' },
+    { id: 3, subject: 'Self-Learning Engine', predicate: 'gate_type', object: 'Human Authorization', category: 'Self-Learning' },
+    { id: 4, subject: 'SQLite Vector DB', predicate: 'indexes', object: 'RAG 512-Token Chunks', category: 'Architecture' },
+    { id: 5, subject: 'AtomAssistant WPF', predicate: 'syncs_with', object: 'CodeIgniter 4 REST API', category: 'Architecture' }
+];
+
+function initTripleEditor() {
+    const tableBody = document.getElementById('tripleTableBody');
+    const searchInput = document.getElementById('tripleSearchInput');
+    const categoryFilter = document.getElementById('tripleCategoryFilter');
+    const countBadge = document.getElementById('tripleCountBadge');
+
+    const modal = document.getElementById('tripleModal');
+    const openBtn = document.getElementById('openTripleModalBtn');
+    const closeBtn = document.getElementById('closeTripleModalBtn');
+    const cancelBtn = document.getElementById('cancelTripleModalBtn');
+    const tripleForm = document.getElementById('tripleForm');
+
+    // Render Triples
+    function renderTable() {
+        if (!tableBody) return;
+
+        const query = (searchInput?.value || '').toLowerCase();
+        const category = categoryFilter?.value || 'all';
+
+        const filtered = triplesData.filter(t => {
+            const matchesQuery = t.subject.toLowerCase().includes(query) ||
+                                 t.predicate.toLowerCase().includes(query) ||
+                                 t.object.toLowerCase().includes(query);
+            const matchesCat = category === 'all' || t.category === category;
+            return matchesQuery && matchesCat;
+        });
+
+        tableBody.innerHTML = '';
+
+        if (filtered.length === 0) {
+            tableBody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #64748b; padding: 20px;">No matching SPO triples found.</td></tr>`;
+        } else {
+            filtered.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><span class="spo-subject">${t.subject}</span></td>
+                    <td><span class="spo-predicate">${t.predicate}</span></td>
+                    <td><span class="spo-object">${t.object}</span></td>
+                    <td><span class="badge-tag">${t.category}</span></td>
+                    <td>
+                        <button class="btn-icon-danger" title="Delete Triple" onclick="deleteTriple(${t.id})">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        if (countBadge) {
+            countBadge.innerText = `${filtered.length} Active Triple${filtered.length === 1 ? '' : 's'}`;
+        }
+    }
+
+    window.deleteTriple = function(id) {
+        triplesData = triplesData.filter(t => t.id !== id);
+        renderTable();
+    };
+
+    if (searchInput) searchInput.addEventListener('input', renderTable);
+    if (categoryFilter) categoryFilter.addEventListener('change', renderTable);
+
+    // Modal Events
+    if (openBtn && modal) {
+        openBtn.addEventListener('click', () => modal.classList.add('show'));
+    }
+
+    function closeModal() {
+        if (modal) modal.classList.remove('show');
+        if (tripleForm) tripleForm.reset();
+    }
+
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+    if (tripleForm) {
+        tripleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const subject = document.getElementById('tripleSubjectInput').value.trim();
+            const predicate = document.getElementById('triplePredicateInput').value.trim();
+            const object = document.getElementById('tripleObjectInput').value.trim();
+            const category = document.getElementById('tripleCategoryInput').value;
+
+            if (subject && predicate && object) {
+                const newTriple = {
+                    id: Date.now(),
+                    subject,
+                    predicate,
+                    object,
+                    category
+                };
+                triplesData.unshift(newTriple);
+                renderTable();
+                closeModal();
+            }
+        });
+    }
+
+    renderTable();
 }
 
 // Telemetry & Metrics Simulation
