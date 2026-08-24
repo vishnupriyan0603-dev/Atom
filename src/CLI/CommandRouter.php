@@ -419,6 +419,16 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 40 — Autonomous Self-Healing & Incident Response ────
+                case '/incident':
+                case '/incident:classify':
+                case '/incident:heal':
+                case '/incident:circuit':
+                case '/incident:postmortem':
+                    $this->handleIncident($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -2443,6 +2453,60 @@ class CommandRouter
             $this->ui->writeLine("    /search:index <code>         Segment and index source code into vector store");
             $this->ui->writeLine("    /search:embed <text>         Generate 64-D normalized vector embedding");
             $this->ui->writeLine("    /search:stats                Inspect vector store dimensions & index size");
+        }
+        $this->ui->writeLine();
+    }
+
+    // ── Phase 40 — Autonomous Self-Healing & Incident Handlers ────────────────
+
+    private function handleIncident(string $command, string $args = ''): void
+    {
+        $classifier = new \Atom\Infrastructure\IncidentEventClassifier();
+        $executor = new \Atom\Infrastructure\RunbookRemediationExecutor();
+        $cb = new \Atom\Infrastructure\CircuitBreakerOrchestrator('api_gateway', 3, 5.0);
+        $rca = new \Atom\Infrastructure\PostMortemGenerator();
+
+        if ($command === '/incident:classify') {
+            $msg = trim($args) ?: 'database connection pool timeout under load';
+            $res = $classifier->classify(['message' => $msg, 'error_rate' => 22.0, 'subsystem' => 'db_pool']);
+            $this->ui->highlight("🚨 Incident Telemetry Classification");
+            $this->ui->writeLine("  Incident ID : " . $res['incident_id']);
+            $this->ui->writeLine("  Severity    : " . $res['severity']);
+            $this->ui->writeLine("  Subsystem   : " . $res['subsystem']);
+            $this->ui->writeLine("  Playbook    : " . $res['recommended_action']);
+        } elseif ($command === '/incident:heal') {
+            $runbook = trim($args) ?: 'drain_connection_pool';
+            $res = $executor->executeRunbook($runbook, 'database_cluster');
+            $this->ui->highlight("🛠️ Self-Healing Remediation Executed");
+            $this->ui->writeLine("  Runbook  : " . $res['runbook']);
+            $this->ui->writeLine("  Status   : " . $res['status'] . " (Completed in {$res['duration_ms']} ms)");
+            foreach ($res['steps_taken'] as $step) {
+                $this->ui->writeLine("  ✔ {$step}");
+            }
+        } elseif ($command === '/incident:circuit') {
+            $this->ui->highlight("⚡ Circuit Breaker Health Monitor");
+            $this->ui->writeLine("  State         : " . $cb->getState());
+            $this->ui->writeLine("  Allow Traffic : " . ($cb->allowExecution() ? 'YES' : 'NO'));
+            $this->ui->writeLine("  Failure Count : " . $cb->getFailureCount());
+        } elseif ($command === '/incident:postmortem') {
+            $res = $rca->generate([
+                'incident_id'      => 'inc_cli_demo',
+                'severity'         => 'SEV2_MAJOR',
+                'subsystem'        => 'database_pool',
+                'root_cause'       => 'Connection exhaustion from unbounded query concurrency',
+                'downtime_minutes' => 3.2,
+            ]);
+            $this->ui->highlight("📋 Root Cause Analysis (RCA) Post-Mortem");
+            $this->ui->writeLine("  ID       : " . $res['incident_id']);
+            $this->ui->writeLine("  Downtime : " . $res['downtime_minutes'] . " minutes");
+            $this->ui->writeLine("  Cause    : " . $res['root_cause']);
+        } else {
+            $this->ui->highlight("🛡️ Autonomous Self-Healing Infrastructure & Incident Response");
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /incident:classify <msg>     Classify runtime alert severity level");
+            $this->ui->writeLine("    /incident:heal <runbook>     Execute self-healing remediation playbook");
+            $this->ui->writeLine("    /incident:circuit            Inspect active circuit breaker states");
+            $this->ui->writeLine("    /incident:postmortem         Generate automated RCA post-mortem report");
         }
         $this->ui->writeLine();
     }

@@ -378,6 +378,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('search/embed', 'Api\SemanticSearch::embed');
     $routes->post('search/hybrid', 'Api\SemanticSearch::hybrid');
     $routes->get('search/stats', 'Api\SemanticSearch::stats');
+
+    // Phase 40 — Autonomous Self-Healing Infrastructure & Incident Response Routes
+    $routes->post('incident/classify', 'Api\IncidentResponse::classify');
+    $routes->post('incident/remediate', 'Api\IncidentResponse::remediate');
+    $routes->post('incident/circuit/record', 'Api\IncidentResponse::recordCircuit');
+    $routes->post('incident/postmortem', 'Api\IncidentResponse::postMortem');
+    $routes->get('incident/status', 'Api\IncidentResponse::status');
 });
 
 

@@ -875,6 +875,42 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 40 — Autonomous Self-Healing & Incident Response Commands ───
+
+        /// <summary>Executes an automated self-healing runbook remediation playbook.</summary>
+        [RelayCommand]
+        private async Task TriggerSelfHealingRunbook()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{\"runbook\":\"drain_connection_pool\",\"subsystem\":\"database_pool\"}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/incident/remediate", reqContent);
+                _logger.LogInformation("Self-healing runbook triggered: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not trigger self-healing runbook");
+            }
+        }
+
+        /// <summary>Simulates circuit breaker execution health probe.</summary>
+        [RelayCommand]
+        private async Task SimulateCircuitBreaker()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{\"success\":true}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/incident/circuit/record", reqContent);
+                _logger.LogInformation("Circuit breaker recorded: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not simulate circuit breaker");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

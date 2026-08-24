@@ -1056,7 +1056,54 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 40 — Self-Healing Infrastructure & Incident Response Methods ─────
+
+  /// POST /api/v1/incident/classify — Classify runtime error / outage.
+  Future<Map<String, dynamic>> classifyIncidentEvent(String message, {double errorRate = 0.0, double latencyMs = 0.0, String subsystem = 'core'}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/incident/classify'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'message': message, 'error_rate': errorRate, 'latency_ms': latencyMs, 'subsystem': subsystem}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/incident/remediate — Execute self-healing runbook.
+  Future<Map<String, dynamic>> executeRemediationRunbook(String runbook, {String subsystem = 'core'}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/incident/remediate'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'runbook': runbook, 'subsystem': subsystem}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// GET /api/v1/incident/status — Get incident response status overview.
+  Future<Map<String, dynamic>> getIncidentResponseStatus() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/incident/status'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
+
 
 
 
