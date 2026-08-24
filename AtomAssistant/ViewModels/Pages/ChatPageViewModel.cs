@@ -13,16 +13,29 @@ namespace AtomAssistant.ViewModels.Pages
         private readonly ChatService _chatService;
         private readonly ILogger<ChatPageViewModel> _logger;
         private long _activeChatId;
-        private string _activeModel = "gpt-4o";
+        private string _activeModel = "Gemini 3.6 Flash";
 
         [ObservableProperty]
         private ObservableCollection<MessageItem> messages = new();
+
+        [ObservableProperty]
+        private ObservableCollection<string> availableModels = new()
+        {
+            "Gemini 3.6 Flash",
+            "Groq (OSS-120B)",
+            "OpenAI GPT-4o",
+            "Ollama (Local)",
+            "Llama.cpp (Local)"
+        };
 
         [ObservableProperty]
         private string inputText = string.Empty;
 
         [ObservableProperty]
         private bool isStreaming;
+
+        [ObservableProperty]
+        private int pendingApprovalsCount;
 
         [ObservableProperty]
         private MessageItem? selectedMessage;
@@ -38,7 +51,7 @@ namespace AtomAssistant.ViewModels.Pages
         {
             Messages.Add(new MessageItem
             {
-                Content = "Hello! I'm AtomAssistant. How can I help you today?",
+                Content = "Greetings Vishnupriyan! I am ATOM Desktop Assistant with integrated Model Gateway, Memory 2.0, and Human Approval security gate.",
                 IsUser = false,
                 Timestamp = DateTime.Now
             });
@@ -47,6 +60,28 @@ namespace AtomAssistant.ViewModels.Pages
         public void SetActiveModel(string model)
         {
             _activeModel = model;
+        }
+
+        [RelayCommand]
+        private async Task CheckPendingApprovals()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var res = await client.GetAsync("http://localhost:8080/api/v1/approvals?status=pending");
+                if (res.IsSuccessStatusCode)
+                {
+                    var json = await res.Content.ReadAsStringAsync();
+                    if (json.Contains("\"data\":["))
+                    {
+                        PendingApprovalsCount = json.Split("\"id\":").Length - 1;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not reach ATOM approval endpoint");
+            }
         }
 
         public async Task LoadChat(long chatId)
