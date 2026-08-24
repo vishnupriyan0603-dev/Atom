@@ -107,7 +107,7 @@ include_once __DIR__ . '/components/header.php';
                 <div class="mb-3">
                     <label class="form-label text-muted small fw-bold">Source Class Definition</label>
                     <textarea class="form-control bg-dark text-white border-secondary" id="synthInputCode" rows="6" style="font-family: monospace; font-size: 12px;">
-<?php
+&lt;?php
 namespace Atom\Services;
 
 class NotificationDispatcher

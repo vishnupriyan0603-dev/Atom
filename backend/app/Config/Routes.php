@@ -16,8 +16,10 @@ $routes->get('api/health', 'Api\Health::index');
 
 // Web frontend pages mapping
 $routes->get('/', 'Home::index');
+$routes->get('index.php', 'Home::index');
 $routes->get('chat', 'Home::chat');
-$routes->get('admin.php', 'Home::serve/admin.php');
+$routes->get('chat.php', 'Home::chat');
+$routes->get('admin.php', 'Home::admin/index');
 $routes->get('admin', 'Home::admin/index');
 $routes->get('admin/(:any)', 'Home::admin/$1');
 $routes->get('static/(:any)', 'Home::serve/$1');

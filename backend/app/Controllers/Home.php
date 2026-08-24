@@ -6,8 +6,21 @@ class Home extends BaseController
 {
     private function getWebDir(): string
     {
-        $path = realpath(FCPATH . '../../frontend/web');
-        return $path ?: '';
+        $candidates = [
+            realpath(FCPATH . '../../frontend/web'),
+            realpath(FCPATH . '../frontend/web'),
+            realpath(ROOTPATH . '../frontend/web'),
+            realpath(ROOTPATH . 'frontend/web'),
+            realpath(dirname(FCPATH, 2) . '/frontend/web'),
+            'E:/xampp/htdocs/my work/Atom/frontend/web',
+        ];
+
+        foreach ($candidates as $c) {
+            if ($c && is_dir($c)) {
+                return $c;
+            }
+        }
+        return '';
     }
 
     public function index()
@@ -23,32 +36,37 @@ class Home extends BaseController
     public function admin(...$segments)
     {
         $page = implode('/', $segments);
+        if (empty($page) || $page === '/') {
+            $page = 'index';
+        }
 
-        // Serve real static assets under /admin/ (e.g. /admin/js/shared.js) directly,
-        // falling back to rendering a PHP page otherwise.
+        // Strip trailing .php if user or redirect included it
+        $cleanPage = preg_replace('/\.php$/i', '', $page);
+
+        // Serve real static assets under /admin/ (e.g. /admin/js/shared.js, css, images) directly
         $webDir = $this->getWebDir();
         $candidate = $webDir ? realpath($webDir . '/admin/' . $page) : false;
         if ($candidate && is_file($candidate) && strtolower(pathinfo($candidate, PATHINFO_EXTENSION)) !== 'php') {
             $mimeTypes = [
-                'css'  => 'text/css',
-                'js'   => 'application/javascript',
-                'png'  => 'image/png',
-                'jpg'  => 'image/jpeg',
-                'jpeg' => 'image/jpeg',
-                'gif'  => 'image/gif',
-                'svg'  => 'image/svg+xml',
-                'ico'  => 'image/x-icon',
-                'woff' => 'font/woff',
-                'woff2'=> 'font/woff2',
+                'css'   => 'text/css',
+                'js'    => 'application/javascript',
+                'png'   => 'image/png',
+                'jpg'   => 'image/jpeg',
+                'jpeg'  => 'image/jpeg',
+                'gif'   => 'image/gif',
+                'svg'   => 'image/svg+xml',
+                'ico'   => 'image/x-icon',
+                'woff'  => 'font/woff',
+                'woff2' => 'font/woff2',
             ];
-            $ext = pathinfo($candidate, PATHINFO_EXTENSION);
+            $ext = strtolower(pathinfo($candidate, PATHINFO_EXTENSION));
             return $this->response
                 ->setContentType($mimeTypes[$ext] ?? 'application/octet-stream')
                 ->setHeader('Cache-Control', 'max-age=3600, public')
                 ->setBody(file_get_contents($candidate));
         }
 
-        return $this->renderPhpFile('admin/' . $page . '.php');
+        return $this->renderPhpFile('admin/' . $cleanPage . '.php');
     }
 
     /**
@@ -61,9 +79,19 @@ class Home extends BaseController
             return view('welcome_message');
         }
 
-        $filePath = realpath($webDir . '/' . $relativePath);
-        if (!$filePath || !str_starts_with($filePath, $webDir) || !file_exists($filePath)) {
-            return $this->response->setStatusCode(404)->setBody('Page not found');
+        $cleanRel = ltrim($relativePath, '/\\');
+        $filePath = realpath($webDir . '/' . $cleanRel);
+
+        // Direct path check if realpath returns false
+        if (!$filePath || !file_exists($filePath)) {
+            $directPath = $webDir . '/' . $cleanRel;
+            if (file_exists($directPath)) {
+                $filePath = $directPath;
+            }
+        }
+
+        if (!$filePath || !file_exists($filePath)) {
+            return $this->response->setStatusCode(404)->setBody('Page not found: ' . esc($relativePath));
         }
 
         // Execute PHP file using output buffering
@@ -73,7 +101,7 @@ class Home extends BaseController
         } catch (\Throwable $e) {
             ob_end_clean();
             log_message('error', '[ATOM PAGE] Failed to render ' . $relativePath . ': ' . $e->getMessage());
-            return $this->response->setStatusCode(500)->setBody('Error rendering template');
+            return $this->response->setStatusCode(500)->setBody('Error rendering template: ' . esc($e->getMessage()));
         }
         $output = ob_get_clean();
 
@@ -88,35 +116,39 @@ class Home extends BaseController
             return $this->response->setStatusCode(404);
         }
 
-        $filePath = realpath($webDir . '/' . $path);
-        if (!$filePath || !str_starts_with($filePath, $webDir)) {
+        $cleanPath = ltrim($path, '/\\');
+        $filePath = realpath($webDir . '/' . $cleanPath);
+        if (!$filePath || !file_exists($filePath)) {
+            $direct = $webDir . '/' . $cleanPath;
+            if (file_exists($direct)) {
+                $filePath = $direct;
+            }
+        }
+
+        if (!$filePath || !file_exists($filePath)) {
             return $this->response->setStatusCode(404);
         }
 
-        if (!file_exists($filePath)) {
-            return $this->response->setStatusCode(404);
-        }
-
-        $ext = pathinfo($filePath, PATHINFO_EXTENSION);
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
         $mimeTypes = [
-            'css'  => 'text/css',
-            'js'   => 'application/javascript',
-            'html' => 'text/html',
-            'png'  => 'image/png',
-            'jpg'  => 'image/jpeg',
-            'jpeg' => 'image/jpeg',
-            'gif'  => 'image/gif',
-            'svg'  => 'image/svg+xml',
-            'ico'  => 'image/x-icon',
-            'woff' => 'font/woff',
-            'woff2'=> 'font/woff2',
+            'css'   => 'text/css',
+            'js'    => 'application/javascript',
+            'html'  => 'text/html',
+            'png'   => 'image/png',
+            'jpg'   => 'image/jpeg',
+            'jpeg'  => 'image/jpeg',
+            'gif'   => 'image/gif',
+            'svg'   => 'image/svg+xml',
+            'ico'   => 'image/x-icon',
+            'woff'  => 'font/woff',
+            'woff2' => 'font/woff2',
         ];
 
         $mime = $mimeTypes[$ext] ?? 'application/octet-stream';
         
         // If it's a php file, render it rather than serving raw source code
         if ($ext === 'php') {
-            return $this->renderPhpFile($path);
+            return $this->renderPhpFile($cleanPath);
         }
 
         $content = file_get_contents($filePath);

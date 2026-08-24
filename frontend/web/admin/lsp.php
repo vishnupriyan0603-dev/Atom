@@ -60,7 +60,7 @@ include_once __DIR__ . '/components/header.php';
                 <div class="mb-3">
                     <label class="form-label text-muted small fw-bold">Source Code Buffer</label>
                     <textarea class="form-control bg-dark text-white border-secondary" id="lspCodeInput" rows="7" style="font-family: monospace; font-size: 13px;" onkeyup="triggerLiveCompletion(event)">
-<?php
+&lt;?php
 namespace App\Controllers;
 
 class UserController extends BaseController
