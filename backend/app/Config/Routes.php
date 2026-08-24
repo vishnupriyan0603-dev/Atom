@@ -84,6 +84,13 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
     $routes->post('jobs/(:num)/retry', 'Api\Jobs::retry/$1');
     $routes->post('jobs/(:num)/cancel', 'Api\Jobs::cancel/$1');
 
+    // Plugin / Skill System API
+    $routes->get('skills', 'Api\Skills::list');
+    $routes->post('skills/(:segment)/enable', 'Api\Skills::enable/$1');
+    $routes->post('skills/(:segment)/disable', 'Api\Skills::disable/$1');
+    $routes->get('skills/history', 'Api\Skills::history');
+    $routes->get('skills/(:segment)/history', 'Api\Skills::history/$1');
+
     // Chats
     $routes->get('chats', 'Api\Chats::index');
     $routes->post('chats', 'Api\Chats::create');
