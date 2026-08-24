@@ -739,7 +739,70 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 35 — Code Refactoring & Micro-Architecture API Methods ──────────
+
+  /// POST /api/v1/refactor/smells — Scan source code and detect code smells.
+  Future<Map<String, dynamic>> scanCodeSmells(String code) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/refactor/smells'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'code': code}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/refactor/transform — Apply automated AST transformation.
+  Future<Map<String, dynamic>> applyRefactorTransformation(String type, String code, {Map<String, dynamic>? options}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/refactor/transform'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'type': type, 'code': code, 'options': options ?? {}}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/refactor/dependencies — Compute dependency graph coupling and cycles.
+  Future<Map<String, dynamic>> analyzeDependencies(Map<String, dynamic> graph) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/refactor/dependencies'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'graph': graph}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/refactor/verify — Verify syntactic and semantic refactoring safety.
+  Future<Map<String, dynamic>> verifyRefactorSafety(String original, String refactored) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/refactor/verify'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'original': original, 'refactored': refactored}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
+
 
 
 

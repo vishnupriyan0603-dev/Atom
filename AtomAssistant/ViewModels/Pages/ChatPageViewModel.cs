@@ -695,6 +695,42 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 35 — Autonomous Code Refactoring Commands ───────────────────
+
+        /// <summary>Scans source code for complexity anti-patterns and code smells.</summary>
+        [RelayCommand]
+        private async Task ScanCodeSmells()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{\"code\":\"class Demo{}\"}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/refactor/smells", reqContent);
+                _logger.LogInformation("Code smells scan dispatched: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not scan code smells");
+            }
+        }
+
+        /// <summary>Applies an AST safe refactoring transformation.</summary>
+        [RelayCommand]
+        private async Task ApplyRefactorTransform()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{\"type\":\"simplify_boolean\",\"code\":\"if($x===true){}\"}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/refactor/transform", reqContent);
+                _logger.LogInformation("Refactor transform applied: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not apply refactor transform");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

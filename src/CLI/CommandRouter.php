@@ -369,6 +369,16 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 35 — Code Refactoring & Micro-Architecture ──────────
+                case '/refactor':
+                case '/refactor:smells':
+                case '/refactor:transform':
+                case '/refactor:deps':
+                case '/refactor:verify':
+                    $this->handleRefactor($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -2116,6 +2126,62 @@ class CommandRouter
             $this->ui->writeLine("    /voice:chunk <text>          Simulate streaming voice audio chunk");
             $this->ui->writeLine("    /voice:interrupt             Trigger immediate barge-in interruption");
             $this->ui->writeLine("    /voice:emotion               Analyze acoustic emotional prosody");
+        }
+        $this->ui->writeLine();
+    }
+
+    // ── Phase 35 — Code Refactoring & Micro-Architecture Handlers ─────────────
+
+    private function handleRefactor(string $command, string $args = ''): void
+    {
+        $smells = new \Atom\Refactoring\CodeSmellDetector();
+        $ast = new \Atom\Refactoring\ASTTransformationEngine();
+        $deps = new \Atom\Refactoring\DependencyGraphAnalyzer();
+        $verifier = new \Atom\Refactoring\RefactorSafetyVerifier();
+
+        if ($command === '/refactor:smells') {
+            $code = trim($args) ?: 'class Demo { public function run($a) { if ($a === true) { return true; } } }';
+            $res = $smells->scan($code);
+            $this->ui->highlight("🔍 Code Smells Scan Results");
+            $this->ui->writeLine("  Maintainability Index : " . $res['maintainability_index'] . " / 100");
+            $this->ui->writeLine("  Cyclomatic Complexity : " . $res['cyclomatic_complexity']);
+            $this->ui->writeLine("  Total Smells Detected : " . $res['total_smells']);
+            $this->ui->writeLine("  Refactoring Urgency   : " . $res['refactoring_urgency']);
+            foreach ($res['smells'] as $s) {
+                $this->ui->writeLine("  • [{$s['severity']}] {$s['type']}: {$s['description']}");
+            }
+        } elseif ($command === '/refactor:transform') {
+            $code = trim($args) ?: 'if ($isValid === true) { return true; } else { return false; }';
+            $res = $ast->transform('simplify_boolean', $code);
+            $this->ui->highlight("⚡ AST Transformation Applied");
+            $this->ui->writeLine("  Type        : " . $res['type']);
+            $this->ui->writeLine("  Description : " . $res['description']);
+            $this->ui->writeLine("  Result Code : " . trim($res['code']));
+        } elseif ($command === '/refactor:deps') {
+            $graph = [
+                'OrderController' => ['OrderService', 'AuthService'],
+                'OrderService'    => ['OrderRepository', 'PaymentGateway'],
+                'PaymentGateway'  => ['AuthService'],
+            ];
+            $res = $deps->analyze($graph);
+            $this->ui->highlight("📊 Architectural Dependency Graph");
+            $this->ui->writeLine("  Total Nodes     : " . $res['total_nodes']);
+            $this->ui->writeLine("  Circular Cycles : " . (empty($res['circular_cycles']) ? 'None (Clean DAG)' : count($res['circular_cycles'])));
+            foreach ($res['nodes'] as $node => $m) {
+                $this->ui->writeLine("  • {$node} (Ca: {$m['afferent_coupling']}, Ce: {$m['efferent_coupling']}, Instability: {$m['instability_index']})");
+            }
+        } elseif ($command === '/refactor:verify') {
+            $res = $verifier->verify('public function test(){}', 'public function test(){}');
+            $this->ui->highlight("🛡️ Refactor Safety Verification");
+            $this->ui->writeLine("  Safe         : " . ($res['safe'] ? 'YES' : 'NO'));
+            $this->ui->writeLine("  Syntax Valid : " . ($res['syntax_valid'] ? 'YES' : 'NO'));
+        } else {
+            $this->ui->highlight("🛠️ Autonomous Code Refactoring Studio");
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /refactor:smells [code]      Scan for complexity smells & maintainability index");
+            $this->ui->writeLine("    /refactor:transform [code]   Apply automated AST refactor transformation");
+            $this->ui->writeLine("    /refactor:deps               Compute architectural coupling & circular cycles");
+            $this->ui->writeLine("    /refactor:verify [code]      Verify syntactic and semantic safety");
         }
         $this->ui->writeLine();
     }

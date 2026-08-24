@@ -344,6 +344,12 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('voice/duplex/interrupt', 'Api\VoiceDuplex::interrupt');
     $routes->post('voice/duplex/emotion', 'Api\VoiceDuplex::emotion');
     $routes->get('voice/duplex/state', 'Api\VoiceDuplex::state');
+
+    // Phase 35 — Autonomous Code Refactoring & Micro-Architecture Routes
+    $routes->post('refactor/smells', 'Api\Refactoring::smells');
+    $routes->post('refactor/transform', 'Api\Refactoring::transform');
+    $routes->post('refactor/dependencies', 'Api\Refactoring::dependencies');
+    $routes->post('refactor/verify', 'Api\Refactoring::verify');
 });
 
 
