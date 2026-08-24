@@ -10,6 +10,18 @@ class ModelManager
     /** @var array Role mappings, e.g. ['primary' => 'llama3.1', 'teacher' => 'gemini-1.5-flash', 'fallback' => 'gemini-1.5-flash'] */
     private array $roles = [];
 
+    private ?\Atom\ModelGateway\ModelGatewayInterface $gateway = null;
+
+    public function setModelGateway(\Atom\ModelGateway\ModelGatewayInterface $gateway): void
+    {
+        $this->gateway = $gateway;
+    }
+
+    public function getModelGateway(): ?\Atom\ModelGateway\ModelGatewayInterface
+    {
+        return $this->gateway;
+    }
+
     public function registerModel(string $alias, ModelInterface $model): void
     {
         $this->models[strtolower($alias)] = $model;
