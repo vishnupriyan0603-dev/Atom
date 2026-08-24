@@ -8,11 +8,11 @@ echo.
 cd /d "%~dp0backend"
 
 echo [1/2] Running database migrations...
-php spark migrate --force 2>nul
+php -d extension=intl spark migrate --force 2>nul
 
 echo.
 echo [2/2] Starting API server on http://localhost:8080
 echo.
-php spark serve --host 0.0.0.0
+php -d extension=intl spark serve --host 0.0.0.0
 
 pause

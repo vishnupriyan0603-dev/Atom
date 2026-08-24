@@ -10,7 +10,7 @@ echo.
 :: Step 1: Start Backend API Server
 echo [Step 1/3] Starting Backend API Server on http://localhost:8080 ...
 cd /d "%~dp0backend"
-start cmd /k "title ATOM Backend API Server ^& cd /d "%~dp0backend" ^& php spark serve --host 0.0.0.0"
+start cmd /k "title ATOM Backend API Server ^& cd /d "%~dp0backend" ^& php -d extension=intl spark serve --host 0.0.0.0"
 
 :: Wait for server to initialize
 timeout /t 3 /nobreak >nul
@@ -19,7 +19,7 @@ timeout /t 3 /nobreak >nul
 echo.
 echo [Step 2/3] Executing Self-Learning Evaluation via CLI...
 cd /d "%~dp0backend"
-php spark atom:self-improve
+php -d extension=intl spark atom:self-improve
 
 :: Step 3: Launch Desktop WPF Assistant App
 echo.
