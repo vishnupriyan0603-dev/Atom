@@ -887,7 +887,84 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 37 — WebRTC P2P Direct Mesh API Methods ─────────────────────────
+
+  /// POST /api/v1/webrtc/peer/register — Register P2P peer.
+  Future<Map<String, dynamic>> registerWebRtcPeer(String peerId, {String deviceType = 'mobile'}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/webrtc/peer/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'peer_id': peerId, 'device_type': deviceType}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/webrtc/sdp/offer — Post SDP Offer.
+  Future<Map<String, dynamic>> sendSdpOffer(String fromPeer, String toPeer, String sdp) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/webrtc/sdp/offer'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'from_peer': fromPeer, 'to_peer': toPeer, 'sdp': sdp}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/webrtc/sdp/answer — Complete SDP Answer handshake.
+  Future<Map<String, dynamic>> sendSdpAnswer(String sessionId, String sdp) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/webrtc/sdp/answer'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'session_id': sessionId, 'sdp': sdp}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/webrtc/gossip/sync — P2P Gossip state convergence.
+  Future<Map<String, dynamic>> syncGossipState(Map<String, dynamic> digest, {Map<String, dynamic>? deltas}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/webrtc/gossip/sync'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'digest': digest, 'deltas': deltas ?? {}}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// GET /api/v1/webrtc/topology — Get active mesh topology.
+  Future<Map<String, dynamic>> getWebRtcTopology() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/webrtc/topology'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
+
 
 
 

@@ -767,6 +767,42 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 37 — Distributed Edge Swarm & WebRTC P2P Commands ───────────
+
+        /// <summary>Registers this desktop node in the WebRTC edge swarm mesh.</summary>
+        [RelayCommand]
+        private async Task RegisterWebRtcPeer()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{\"peer_id\":\"peer_desktop\",\"device_type\":\"desktop\"}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/webrtc/peer/register", reqContent);
+                _logger.LogInformation("WebRTC peer registered: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not register WebRTC peer");
+            }
+        }
+
+        /// <summary>Sends an SDP offer to initiate a direct P2P data stream.</summary>
+        [RelayCommand]
+        private async Task SendSdpOffer()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{\"from_peer\":\"peer_desktop\",\"to_peer\":\"peer_mobile\",\"sdp\":\"v=0...\"}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/webrtc/sdp/offer", reqContent);
+                _logger.LogInformation("SDP Offer dispatched: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not send SDP Offer");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

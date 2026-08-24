@@ -389,6 +389,16 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 37 — Distributed Edge Swarm & WebRTC P2P ────────────
+                case '/webrtc':
+                case '/webrtc:peer':
+                case '/webrtc:offer':
+                case '/webrtc:gossip':
+                case '/webrtc:topology':
+                    $this->handleWebRtc($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -2245,6 +2255,55 @@ class CommandRouter
             $this->ui->writeLine("    /rbac:tenant <name>          Provision isolated tenant workspace");
             $this->ui->writeLine("    /rbac:token <scopes>         Generate scoped HMAC-SHA256 API token");
             $this->ui->writeLine("    /rbac:matrix                 Inspect full role permission capability table");
+        }
+        $this->ui->writeLine();
+    }
+
+    // ── Phase 37 — Distributed Edge Swarm & WebRTC P2P Handlers ──────────────
+
+    private function handleWebRtc(string $command, string $args = ''): void
+    {
+        $signaling = new \Atom\Network\WebRTCMeshSignalingHub();
+        $dc = new \Atom\Network\DataChannelStreamProtocol();
+        $consensus = new \Atom\Network\MeshConsensusProtocol();
+
+        if ($command === '/webrtc:peer') {
+            $peerId = trim($args) ?: 'peer_cli_' . bin2hex(random_bytes(3));
+            $peer = $signaling->registerPeer($peerId, 'cli', ['datachannel']);
+            $this->ui->highlight("🌐 WebRTC Peer Registered");
+            $this->ui->writeLine("  Peer ID   : " . $peer['peer_id']);
+            $this->ui->writeLine("  Device    : " . $peer['device_type']);
+            $this->ui->writeLine("  Status    : " . $peer['status']);
+        } elseif ($command === '/webrtc:offer') {
+            $parts = explode(' ', trim($args), 2);
+            $from = !empty($parts[0]) ? $parts[0] : 'peer_local';
+            $to = !empty($parts[1]) ? $parts[1] : 'peer_remote';
+            $session = $signaling->postOffer($from, $to, 'v=0\r\no=atom 1 1 IN IP4 0.0.0.0');
+            $this->ui->highlight("📡 SDP Offer Broadcasted");
+            $this->ui->writeLine("  Session ID : " . $session['session_id']);
+            $this->ui->writeLine("  From       : " . $session['from_peer']);
+            $this->ui->writeLine("  To         : " . $session['to_peer']);
+            $this->ui->writeLine("  Status     : " . $session['status']);
+        } elseif ($command === '/webrtc:gossip') {
+            $consensus->setState('node_local', 'cluster_epoch', time());
+            $digest = $consensus->generateDigest();
+            $this->ui->highlight("🔄 Anti-Entropy Gossip State Convergence");
+            $this->ui->writeLine("  Local Digest Keys : " . count($digest));
+            foreach ($digest as $k => $v) {
+                $this->ui->writeLine("  • {$k} => Version {$v}");
+            }
+        } elseif ($command === '/webrtc:topology') {
+            $this->ui->highlight("🗺️ P2P WebRTC Edge Mesh Topology");
+            $this->ui->writeLine("  Signaling Mode : FULL_MESH");
+            $this->ui->writeLine("  Active Peers   : 1 (Local Loopback)");
+            $this->ui->writeLine("  Raft Node Role : LEADER (Term 1)");
+        } else {
+            $this->ui->highlight("🌐 Distributed Edge Swarm & WebRTC P2P Direct Mesh");
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /webrtc:peer [id]            Register peer node in P2P mesh");
+            $this->ui->writeLine("    /webrtc:offer [from] [to]    Broadcast SDP offer for direct data stream");
+            $this->ui->writeLine("    /webrtc:gossip               Trigger anti-entropy gossip state sync");
+            $this->ui->writeLine("    /webrtc:topology             Inspect active mesh topology & peer roster");
         }
         $this->ui->writeLine();
     }

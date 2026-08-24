@@ -357,6 +357,14 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('rbac/token/generate', 'Api\Rbac::generateToken');
     $routes->post('rbac/token/revoke', 'Api\Rbac::revokeToken');
     $routes->get('rbac/matrix', 'Api\Rbac::matrix');
+
+    // Phase 37 — Distributed Edge Swarm & WebRTC P2P Mesh Routes
+    $routes->post('webrtc/peer/register', 'Api\WebRtcMesh::registerPeer');
+    $routes->post('webrtc/sdp/offer', 'Api\WebRtcMesh::sdpOffer');
+    $routes->post('webrtc/sdp/answer', 'Api\WebRtcMesh::sdpAnswer');
+    $routes->post('webrtc/ice/candidate', 'Api\WebRtcMesh::iceCandidate');
+    $routes->post('webrtc/gossip/sync', 'Api\WebRtcMesh::gossipSync');
+    $routes->get('webrtc/topology', 'Api\WebRtcMesh::topology');
 });
 
 
