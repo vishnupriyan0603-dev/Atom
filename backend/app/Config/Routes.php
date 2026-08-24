@@ -249,7 +249,14 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('evaluations/runs', 'Api\Evaluations::getRuns');
     $routes->post('evaluations/runs', 'Api\Evaluations::createRun');
     $routes->post('evaluations/compare', 'Api\Evaluations::compareCandidate');
+
+    // Production Intelligence, Safety Governance & Adaptive Model / Agent Routing Routes
+    $routes->get('routing/policies', 'Api\Routing::getPolicies');
+    $routes->get('routing/candidates', 'Api\Routing::getCandidates');
+    $routes->post('routing/select', 'Api\Routing::selectCandidate');
+    $routes->get('routing/decisions', 'Api\Routing::getDecisions');
 });
+
 
 
 

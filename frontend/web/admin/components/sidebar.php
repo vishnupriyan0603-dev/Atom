@@ -67,6 +67,12 @@
         <span class="sidebar-label">Agent Evaluation</span>
       </a>
 
+      <a href="/admin/routing" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-[#1e2735] text-gray-400 hover:text-white">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        <span class="sidebar-label">Adaptive Routing</span>
+      </a>
+
+
 
 
 

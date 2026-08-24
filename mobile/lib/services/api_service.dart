@@ -119,7 +119,19 @@ class ApiService {
     return [];
   }
 
+  Future<List<dynamic>> fetchRoutingCandidates() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/routing/candidates'));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        return body['data'] ?? [];
+      }
+    } catch (_) {}
+    return [];
+  }
+
   Future<bool> approveRequest(int id) async {
+
 
 
 

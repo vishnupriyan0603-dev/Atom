@@ -206,6 +206,18 @@ class CommandRouter
                     $this->handleEvaluations($command, $args);
                     return true;
 
+                case '/routing':
+                case '/routing:list':
+                case '/routing:show':
+                case '/routing:health':
+                case '/routing:decisions':
+                case '/routing:test':
+                case '/routing:enable':
+                case '/routing:disable':
+                    $this->handleRouting($command, $args);
+                    return true;
+
+
 
 
 
@@ -1311,7 +1323,25 @@ class CommandRouter
         }
         $this->ui->writeLine();
     }
+
+    private function handleRouting(string $command, string $args = ''): void
+    {
+        $engine = new \Atom\Routing\RoutingEngine();
+        if ($command === '/routing:test' || ($command === '/routing' && !empty($args))) {
+            $this->ui->info("Executing Adaptive Model / Agent Routing...");
+            $res = $engine->selectCandidate(['operation' => $args ?: 'coding']);
+            $this->ui->success("Selected Target: " . $res['selected_candidate'] . " (Provider: " . strtoupper($res['provider']) . ", Score: " . number_format($res['score'] * 100, 1) . "%)");
+        } else {
+            $this->ui->highlight("Production Intelligence & Adaptive Routing");
+            $this->ui->writeLine("  /routing:list             List active routing policies");
+            $this->ui->writeLine("  /routing:test <operation> Test candidate selection for request");
+            $this->ui->writeLine("  /routing:health           Inspect provider health & circuit breakers");
+            $this->ui->writeLine("  /routing:decisions        Inspect routing decision audit log");
+        }
+        $this->ui->writeLine();
+    }
 }
+
 
 
 

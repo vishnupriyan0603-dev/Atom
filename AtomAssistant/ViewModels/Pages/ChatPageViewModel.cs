@@ -140,7 +140,23 @@ namespace AtomAssistant.ViewModels.Pages
         }
 
         [RelayCommand]
+        private async Task InspectAdaptiveRouting()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var response = await client.GetAsync("http://localhost:8080/api/v1/routing/candidates");
+                _logger.LogInformation("Routing candidates retrieved: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not inspect routing candidates");
+            }
+        }
+
+        [RelayCommand]
         private async Task CheckPendingApprovals()
+
 
 
 
