@@ -567,6 +567,52 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 32 — Sandboxed Plugin Marketplace Commands ───────────────────
+
+        /// <summary>Installs a verified plugin from the marketplace.</summary>
+        [RelayCommand]
+        private async Task InstallPlugin(string pluginId)
+        {
+            if (string.IsNullOrWhiteSpace(pluginId)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { id = pluginId }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/marketplace/install", reqContent);
+                _logger.LogInformation("Plugin installed: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not install plugin");
+            }
+        }
+
+        /// <summary>Executes a sandboxed plugin capability method.</summary>
+        [RelayCommand]
+        private async Task ExecuteSandboxedPlugin(string method)
+        {
+            if (string.IsNullOrWhiteSpace(method)) return;
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new { method, @params = new { } }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/marketplace/execute", reqContent);
+                _logger.LogInformation("Plugin capability executed: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not execute plugin capability");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

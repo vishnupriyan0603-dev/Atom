@@ -338,6 +338,16 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 32 — Sandboxed Plugin Marketplace ───────────────────
+                case '/plugin:market':
+                case '/plugin:install':
+                case '/plugin:uninstall':
+                case '/plugin:toggle':
+                case '/plugin:exec':
+                    $this->handleMarketplace($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -1894,6 +1904,78 @@ class CommandRouter
             $this->ui->writeLine("    /math:matrix <op>        Execute matrix determinant/inversion");
             $this->ui->writeLine("    /math:stats <data>       Descriptive statistics and regression");
             $this->ui->writeLine("    /algo:complexity <code>  Analyze code Big-O time and space complexity");
+        }
+        $this->ui->writeLine();
+    }
+
+    // ── Phase 32 — Sandboxed Plugin Marketplace CLI Handlers ─────────────────
+
+    private function handleMarketplace(string $command, string $args = ''): void
+    {
+        $registry = new \Atom\Marketplace\PluginMarketplaceRegistry();
+        $gateway = new \Atom\Sandbox\PluginCapabilityGateway($registry);
+
+        if ($command === '/plugin:market') {
+            $catalog = $registry->getCatalog();
+            $this->ui->highlight("🛍️ ATOM Enterprise Plugin Marketplace");
+            $this->ui->writeLine("  Available Verified Plugins (" . count($catalog) . "):");
+            foreach ($catalog as $p) {
+                $status = $p['is_installed'] ? ($p['is_enabled'] ? '[INSTALLED]' : '[DISABLED]') : '[AVAILABLE]';
+                $this->ui->writeLine("  • {$p['name']} ({$p['id']}) v{$p['version']} {$status}");
+                $this->ui->writeLine("    Category: {$p['category']} | Author: {$p['author']} | Rating: ★ {$p['rating']}");
+            }
+        } elseif ($command === '/plugin:install') {
+            $id = trim($args) ?: 'db_query_optimizer';
+            $catalog = $registry->getCatalog();
+            $target = null;
+            foreach ($catalog as $p) {
+                if ($p['id'] === $id) {
+                    $target = $p;
+                    break;
+                }
+            }
+            if ($target) {
+                $res = $registry->install($target);
+                $this->ui->highlight("📥 Plugin Installed Successfully: {$id}");
+                $this->ui->writeLine("  Status: " . $res['plugin']['status']);
+                $this->ui->writeLine("  Capabilities: " . implode(', ', $res['plugin']['capabilities']));
+            } else {
+                $this->ui->error("Plugin '{$id}' not found in catalog.");
+            }
+        } elseif ($command === '/plugin:uninstall') {
+            $id = trim($args);
+            if ($registry->uninstall($id)) {
+                $this->ui->highlight("🗑️ Plugin '{$id}' uninstalled.");
+            } else {
+                $this->ui->error("Plugin '{$id}' was not installed.");
+            }
+        } elseif ($command === '/plugin:toggle') {
+            $id = trim($args);
+            try {
+                $res = $registry->toggle($id);
+                $this->ui->highlight("🔄 Plugin '{$id}' is now {$res['status']}.");
+            } catch (\Exception $e) {
+                $this->ui->error($e->getMessage());
+            }
+        } elseif ($command === '/plugin:exec') {
+            $method = trim($args) ?: 'explain_query';
+            try {
+                $res = $gateway->dispatch($method, []);
+                $this->ui->highlight("⚡ Executed '{$method}' in Sandbox");
+                $this->ui->writeLine("  Plugin    : " . $res['plugin_id']);
+                $this->ui->writeLine("  Latency   : " . $res['duration_ms'] . "ms");
+                $this->ui->writeLine("  Result    : " . json_encode($res['result']));
+            } catch (\Exception $e) {
+                $this->ui->error("Execution error: " . $e->getMessage());
+            }
+        } else {
+            $this->ui->highlight("🛍️ Plugin Marketplace & Sandbox Engine");
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /plugin:market              List verified marketplace catalog");
+            $this->ui->writeLine("    /plugin:install <id>        Install & sign verified plugin");
+            $this->ui->writeLine("    /plugin:uninstall <id>      Uninstall plugin package");
+            $this->ui->writeLine("    /plugin:toggle <id>         Enable or disable plugin");
+            $this->ui->writeLine("    /plugin:exec <method>       Execute capability method in sandbox");
         }
         $this->ui->writeLine();
     }

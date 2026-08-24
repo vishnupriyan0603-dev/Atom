@@ -544,7 +544,67 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 32 — Sandboxed Plugin Marketplace API Methods ───────────────────
+
+  /// GET /api/v1/marketplace/plugins — Fetch plugin catalog and installed state.
+  Future<Map<String, dynamic>> fetchMarketplacePlugins({String category = 'all'}) async {
+    try {
+      final uri = Uri.parse('$baseUrl/marketplace/plugins?category=$category');
+      final response = await http.get(uri);
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/marketplace/install — Install a verified plugin.
+  Future<Map<String, dynamic>> installPlugin(String pluginId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/marketplace/install'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id': pluginId}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/marketplace/uninstall — Uninstall plugin.
+  Future<Map<String, dynamic>> uninstallPlugin(String pluginId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/marketplace/uninstall'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'id': pluginId}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/marketplace/execute — Execute sandboxed plugin capability.
+  Future<Map<String, dynamic>> executeSandboxedPlugin(String method, {Map<String, dynamic>? params}) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/marketplace/execute'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'method': method, 'params': params ?? {}}),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
+
 
 
 

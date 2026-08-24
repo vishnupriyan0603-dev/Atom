@@ -323,6 +323,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('compute/statistics', 'Api\Computation::statistics');
     $routes->post('compute/geometry', 'Api\Computation::geometry');
     $routes->post('compute/complexity', 'Api\Computation::complexity');
+
+    // Phase 32 — Sandboxed Plugin Marketplace Routes
+    $routes->get('marketplace/plugins', 'Api\Marketplace::index');
+    $routes->post('marketplace/install', 'Api\Marketplace::install');
+    $routes->post('marketplace/uninstall', 'Api\Marketplace::uninstall');
+    $routes->post('marketplace/toggle', 'Api\Marketplace::toggle');
+    $routes->post('marketplace/execute', 'Api\Marketplace::execute');
 });
 
 
