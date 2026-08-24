@@ -185,4 +185,31 @@ class KnowledgeSearch
             'total_matches' => count($chunks) + count($triples)
         ];
     }
+
+    /**
+     * Calculates cosine similarity score between two vector arrays (0.0 to 1.0).
+     */
+    public function cosineSimilarity(array $vecA, array $vecB): float
+    {
+        $dotProduct = 0.0;
+        $normA = 0.0;
+        $normB = 0.0;
+
+        $count = min(count($vecA), count($vecB));
+        if ($count === 0) return 0.0;
+
+        for ($i = 0; $i < $count; $i++) {
+            $valA = (float)$vecA[$i];
+            $valB = (float)$vecB[$i];
+            $dotProduct += $valA * $valB;
+            $normA += $valA * $valA;
+            $normB += $valB * $valB;
+        }
+
+        if ($normA <= 0 || $normB <= 0) {
+            return 0.0;
+        }
+
+        return $dotProduct / (sqrt($normA) * sqrt($normB));
+    }
 }
