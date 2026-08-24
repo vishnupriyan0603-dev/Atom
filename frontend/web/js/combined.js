@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initRAGUploader();
     initKnowledgeGraph();
     initTripleEditor();
+    initSelfLearningView();
     initTelemetryStream();
     initStatsCounter();
 });
@@ -404,6 +405,81 @@ function initTripleEditor() {
     }
 
     renderTable();
+}
+
+// Self-Learning Engine & Human Authorization Queue Logic
+let patchesData = [
+    { id: 'EXP-409', title: 'SQLite WAL mode indexing for +14% faster vector retrieval', delta: '+14% Vector Speed', status: 'Pending' },
+    { id: 'EXP-408', title: 'Automatic context window compression when history > 6 messages', delta: '-60% Input Tokens', status: 'Approved' },
+    { id: 'EXP-407', title: 'Groq API payload pre-warming connection pool', delta: '-22ms TTFT Latency', status: 'Approved' }
+];
+
+function initSelfLearningView() {
+    const queueList = document.getElementById('learningQueueList');
+    const badge = document.getElementById('pendingPatchBadge');
+    const triggerBtn = document.getElementById('triggerExpBtn');
+
+    function renderQueue() {
+        if (!queueList) return;
+
+        const pendingCount = patchesData.filter(p => p.status === 'Pending').length;
+        if (badge) {
+            badge.innerText = `${pendingCount} Pending Approval${pendingCount === 1 ? '' : 's'}`;
+        }
+
+        queueList.innerHTML = patchesData.map(p => {
+            const isPending = p.status === 'Pending';
+            const statusColor = p.status === 'Approved' ? '#00e676' : (p.status === 'Rejected' ? '#ff5252' : '#ff9100');
+
+            return `
+                <tr>
+                    <td><strong style="font-family: monospace; color: #38bdf8;">#${p.id}</strong></td>
+                    <td><span style="color: #f8fafc; font-weight: 500;">${p.title}</span></td>
+                    <td><span class="badge-tag" style="background: rgba(0, 242, 254, 0.15); color: #00f2fe;">${p.delta}</span></td>
+                    <td><span style="color: ${statusColor}; font-weight: 600; font-size: 0.82rem;">● ${p.status}</span></td>
+                    <td style="text-align: right;">
+                        ${isPending ? `
+                            <button class="btn-action" style="background: var(--green-gradient); color: #000; padding: 6px 16px; font-size: 0.8rem; border-radius: 14px; margin-right: 6px;" onclick="approvePatch('${p.id}')">Approve & Apply</button>
+                            <button class="btn-action" style="background: rgba(255,82,82,0.2); border: 1px solid rgba(255,82,82,0.4); color: #ff5252; padding: 6px 14px; font-size: 0.8rem; border-radius: 14px;" onclick="rejectPatch('${p.id}')">Reject</button>
+                        ` : `
+                            <span style="font-size: 0.8rem; color: #64748b;">Action Completed</span>
+                        `}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    window.approvePatch = function(id) {
+        const patch = patchesData.find(p => p.id === id);
+        if (patch) {
+            patch.status = 'Approved';
+            renderQueue();
+        }
+    };
+
+    window.rejectPatch = function(id) {
+        const patch = patchesData.find(p => p.id === id);
+        if (patch) {
+            patch.status = 'Rejected';
+            renderQueue();
+        }
+    };
+
+    if (triggerBtn) {
+        triggerBtn.addEventListener('click', () => {
+            const newExpId = `EXP-${Math.floor(410 + Math.random() * 80)}`;
+            patchesData.unshift({
+                id: newExpId,
+                title: 'A/B Sandbox detected +8% higher embedding precision via hybrid re-ranking',
+                delta: '+8% Accuracy',
+                status: 'Pending'
+            });
+            renderQueue();
+        });
+    }
+
+    renderQueue();
 }
 
 // Telemetry & Metrics Simulation

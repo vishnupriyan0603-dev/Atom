@@ -376,25 +376,71 @@
 
             <!-- VIEW 4: A/B SANDBOX & SAFETY GATE -->
             <section class="view-panel" id="view-learning">
-                <div class="page-header">
-                    <h2 class="page-title">Self-Learning Engine & Safety Gate</h2>
-                    <p class="page-subtitle">A/B Sandbox experiments, flaw detection, and human authorization approval queue.</p>
+                <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h2 class="page-title">Self-Learning Engine & Safety Gate</h2>
+                        <p class="page-subtitle">A/B Sandbox experiments, flaw detection, and human authorization approval queue.</p>
+                    </div>
+                    <button class="btn-action" id="triggerExpBtn" style="background: var(--primary-gradient); color: #070a12; font-weight: 700; border-radius: 20px; padding: 10px 22px;">
+                        <i class="fa-solid fa-flask-vial" style="margin-right: 6px;"></i> Trigger Sandbox Experiment
+                    </button>
                 </div>
 
-                <div class="glass-card" style="margin-bottom: 20px;">
-                    <h3 style="font-size: 1.1rem; color: #ff9100; margin-bottom: 16px;">
-                        <i class="fa-solid fa-triangle-exclamation"></i> Human Authorization Required (1 Pending Patch)
+                <!-- A/B Model Performance Comparison Card -->
+                <div class="glass-card" style="margin-bottom: 24px;">
+                    <h3 style="font-size: 1.1rem; color: #00f2fe; margin-bottom: 16px;">
+                        <i class="fa-solid fa-scale-balanced"></i> Active A/B Sandbox Model Benchmarks
                     </h3>
-                    <div style="background: rgba(255, 145, 0, 0.08); border: 1px solid rgba(255, 145, 0, 0.25); border-radius: 12px; padding: 18px; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-weight: 600; color: #f8fafc; font-size: 0.95rem;">Proposed Optimization #EXP-409</div>
-                            <div style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">Self-learning engine detected +14% faster vector retrieval by enabling SQLite WAL mode indexing.</div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+                        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); border-radius: 12px; padding: 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-weight: 700; color: #38bdf8;">Baseline Model (A)</span>
+                                <span class="badge-tag">Production</span>
+                            </div>
+                            <div style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 8px;">Model: <strong>Gemini 3.6 Flash</strong></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #64748b;">
+                                <span>Avg Latency: <strong style="color: #fff;">124 ms</strong></span>
+                                <span>Accuracy: <strong style="color: #00e676;">99.1%</strong></span>
+                            </div>
                         </div>
-                        <div style="display: flex; gap: 10px;">
-                            <button class="btn-action" style="background: var(--green-gradient); color: #000;" onclick="alert('Patch #EXP-409 Approved!')">Approve & Apply</button>
-                            <button class="btn-action" style="background: rgba(255,82,82,0.2); border: 1px solid rgba(255,82,82,0.4); color: #ff5252;" onclick="alert('Patch Rejected.')">Reject</button>
+
+                        <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(168, 85, 247, 0.4); border-radius: 12px; padding: 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <span style="font-weight: 700; color: #a855f7;">Variant Candidate (B)</span>
+                                <span class="badge-tag" style="background: rgba(168, 85, 247, 0.15); color: #a855f7;">+14% Faster</span>
+                            </div>
+                            <div style="font-size: 0.88rem; color: #94a3b8; margin-bottom: 8px;">Model: <strong>DeepSeek-R1 (WAL Indexing)</strong></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #64748b;">
+                                <span>Avg Latency: <strong style="color: #00e676;">107 ms</strong></span>
+                                <span>Accuracy: <strong style="color: #00e676;">99.6%</strong></span>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Human Authorization Approval Queue -->
+                <div class="glass-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h3 style="font-size: 1.1rem; color: #ff9100;">
+                            <i class="fa-solid fa-shield-halved"></i> Human Authorization Approval Queue
+                        </h3>
+                        <span class="badge-tag" id="pendingPatchBadge" style="background: rgba(255, 145, 0, 0.15); color: #ff9100;">1 Pending Approval</span>
+                    </div>
+
+                    <table class="doc-table">
+                        <thead>
+                            <tr>
+                                <th>Patch ID</th>
+                                <th>Proposed Optimization / Fix</th>
+                                <th>Benchmark Delta</th>
+                                <th>Safety Status</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="learningQueueList">
+                            <!-- Populated dynamically via JS -->
+                        </tbody>
+                    </table>
                 </div>
             </section>
 
