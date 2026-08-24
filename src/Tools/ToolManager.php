@@ -5,13 +5,25 @@ namespace Atom\Tools;
 class ToolManager
 {
     private array $tools = [];
+    private ToolRegistry $registry;
+
+    public function __construct(?ToolRegistry $registry = null)
+    {
+        $this->registry = $registry ?? new ToolRegistry();
+    }
+
+    public function getRegistry(): ToolRegistry
+    {
+        return $this->registry;
+    }
 
     /**
      * Registers a tool.
      */
-    public function registerTool(ToolInterface $tool): void
+    public function registerTool(ToolInterface $tool, ?ToolDefinition $definition = null): void
     {
         $this->tools[$tool->getName()] = $tool;
+        $this->registry->registerTool($tool, $definition);
     }
 
     /**
@@ -19,22 +31,68 @@ class ToolManager
      */
     public function hasTool(string $name): bool
     {
-        return isset($this->tools[$name]);
+        return $this->registry->hasTool($name);
     }
 
     /**
-     * Executes the registered tool by name.
+     * Executes the registered tool by name following full lifecycle security checks.
      */
     public function executeTool(string $name, array $arguments): array
     {
         if (!$this->hasTool($name)) {
             return [
                 'success' => false,
-                'error' => "Requested tool '{$name}' is not registered."
+                'error'   => "Requested tool '{$name}' is not registered."
             ];
         }
 
-        return $this->tools[$name]->execute($arguments);
+        if (!$this->registry->isEnabled($name)) {
+            return [
+                'success' => false,
+                'error'   => "Tool '{$name}' is currently disabled by administrator policy."
+            ];
+        }
+
+        // 1. Schema Validation
+        $validation = $this->registry->validateInput($name, $arguments);
+        if (!$validation['valid']) {
+            return [
+                'success' => false,
+                'error'   => "Schema validation failed: " . $validation['error']
+            ];
+        }
+
+        // 2. Risk Evaluation & Human Approval Gate
+        $def = $this->registry->getDefinition($name);
+        if ($def !== null && $def->requiresHumanApproval()) {
+            if (empty($arguments['human_approved'])) {
+                return [
+                    'success'               => false,
+                    'requires_human_gate'  => true,
+                    'tool_name'             => $name,
+                    'risk_level'            => $def->riskLevel,
+                    'error'                 => "High-risk tool '{$name}' requires human approval before execution."
+                ];
+            }
+        }
+
+        // 3. Execution
+        $handler = $this->registry->getHandler($name) ?? ($this->tools[$name] ?? null);
+        if ($handler === null) {
+            return [
+                'success' => false,
+                'error'   => "No handler found for tool '{$name}'."
+            ];
+        }
+
+        try {
+            return $handler->execute($arguments);
+        } catch (\Throwable $e) {
+            return [
+                'success' => false,
+                'error'   => "Tool execution error: " . $e->getMessage()
+            ];
+        }
     }
 
     /**
@@ -44,10 +102,13 @@ class ToolManager
     {
         $list = [];
         foreach ($this->tools as $name => $tool) {
-            // Document basic info
+            $def = $this->registry->getDefinition($name);
+            $desc = $def ? $def->description : $this->getToolDescription($name);
             $list[] = [
-                'name' => $name,
-                'description' => $this->getToolDescription($name)
+                'name'        => $name,
+                'description' => $desc,
+                'risk_level'  => $def ? $def->riskLevel : 'low',
+                'schema'      => $def ? $def->inputSchema : []
             ];
         }
         return $list;
