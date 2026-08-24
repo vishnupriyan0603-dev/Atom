@@ -296,6 +296,16 @@ class CommandRouter
                     return true;
                 // ─────────────────────────────────────────────────────────────
 
+                // ── Phase 28 — Real-Time WebSocket & Sync Commands ────────────
+                case '/sync':
+                case '/sync:peers':
+                case '/sync:push':
+                case '/sync:pull':
+                case '/sync:broadcast':
+                    $this->handleSync($command, $args);
+                    return true;
+                // ─────────────────────────────────────────────────────────────
+
                 default:
                     $this->ui->error("Unknown command: " . $command . ". Type /help for assistance.");
                     return true;
@@ -1680,8 +1690,42 @@ class CommandRouter
             $this->ui->writeLine("  Commands:");
             $this->ui->writeLine("    /desktop:status         Inspect active window and OS telemetry");
             $this->ui->writeLine("    /desktop:clipboard      Inspect and analyze clipboard buffer");
-            $this->ui->writeLine("    /desktop:notify <msg>   Dispatch native desktop notification");
-            $this->ui->writeLine("    /desktop:action <act>   Execute safe system action (mute/unmute)");
+    // ── Phase 28 — Real-Time WebSocket & Sync CLI Handlers ───────────────────
+
+    private function handleSync(string $command, string $args = ''): void
+    {
+        $engine = new \Atom\Sync\SyncEngine();
+        if ($command === '/sync:broadcast') {
+            $msg = $args ?: 'Test sync broadcast event from ATOM CLI.';
+            $res = $engine->broadcastEvent('cli:broadcast', ['message' => $msg]);
+            $this->ui->success("Event broadcasted to " . $res['recipients_count'] . " connected peer(s).");
+        } elseif ($command === '/sync:push') {
+            $parts = explode(' ', $args, 2);
+            $key = $parts[0] ?: 'cli_note';
+            $val = $parts[1] ?? 'CLI state sync entry';
+            $delta = $engine->pushDelta('note', $key, ['content' => $val], 'cli_client');
+            $this->ui->success("Delta recorded at Vector Clock #{$delta['clock']}: [{$key} => {$val}]");
+        } elseif ($command === '/sync:pull') {
+            $res = $engine->pullDeltas(0);
+            $this->ui->highlight("📥 State Replication Deltas (Clock #{$res['current_clock']})");
+            $this->ui->writeLine("  Total Deltas : " . $res['count']);
+            foreach ($res['deltas'] as $d) {
+                $this->ui->writeLine("    - Clock #{$d['clock']} [{$d['entity_type']}/{$d['entity_id']}] from {$d['origin_device']}");
+            }
+        } else {
+            $this->ui->highlight("🔄 Real-Time WebSocket & Cross-Device State Sync");
+            $topology = $engine->getSyncTopology();
+            $this->ui->writeLine("  Sync Status      : " . strtoupper($topology['sync_status']));
+            $this->ui->writeLine("  Vector Clock     : #" . $topology['current_vector_clock']);
+            $this->ui->writeLine("  Active Peers     : " . $topology['active_peers_count']);
+            foreach ($topology['peers'] as $p) {
+                $this->ui->writeLine("    • " . $p['device_name'] . " (" . $p['client_type'] . " @ " . $p['ip_address'] . ") — " . strtoupper($p['status']));
+            }
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /sync:peers             Inspect connected peer topology matrix");
+            $this->ui->writeLine("    /sync:push <key> <val>  Record & replicate a state mutation delta");
+            $this->ui->writeLine("    /sync:pull              Pull recent state deltas since clock");
+            $this->ui->writeLine("    /sync:broadcast <msg>   Broadcast real-time event to all peers");
         }
         $this->ui->writeLine();
     }

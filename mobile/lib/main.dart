@@ -119,6 +119,8 @@ class MobileDashboardScreen extends StatelessWidget {
                 _buildCard('IDE PROTOCOL (LSP)', 'JSON-RPC 2.0', const Color(0xFF6366F1)),
                 // Phase 27 — Desktop Automation & Sidecar Tile
                 _buildCard('DESKTOP SIDECAR', 'ONLINE', const Color(0xFFF43F5E)),
+                // Phase 28 — Real-Time WebSocket & Sync Tile
+                _buildCard('REAL-TIME SYNC', 'REPLICATING', const Color(0xFF06B6D4)),
               ],
             ),
           ],

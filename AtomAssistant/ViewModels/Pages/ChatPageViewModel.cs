@@ -373,6 +373,57 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── Phase 28 — Real-Time WebSocket & Sync Commands ───────────────────
+
+        /// <summary>Register WPF desktop peer with synchronization hub.</summary>
+        [RelayCommand]
+        private async Task RegisterSyncPeer()
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new {
+                        device_id = "desktop_wpf_master",
+                        client_type = "desktop_wpf",
+                        device_name = "ATOM Desktop (WPF)"
+                    }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/sync/register", reqContent);
+                _logger.LogInformation("Desktop peer registered: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not register sync peer");
+            }
+        }
+
+        /// <summary>Broadcast real-time message event to all peers.</summary>
+        [RelayCommand]
+        private async Task BroadcastSyncEvent(string eventName, string message)
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new {
+                        @event = string.IsNullOrWhiteSpace(eventName) ? "desktop:ping" : eventName,
+                        payload = new { message, source = "desktop_wpf" }
+                    }),
+                    System.Text.Encoding.UTF8,
+                    "application/json"
+                );
+                var response = await client.PostAsync("http://localhost:8080/api/v1/sync/broadcast", reqContent);
+                _logger.LogInformation("Sync event broadcasted: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not broadcast sync event");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

@@ -336,5 +336,57 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── Phase 28 — Real-Time WebSocket & Sync API Methods ─────────────────────
+
+  /// GET /api/v1/sync/peers — Retrieve active connected peer devices.
+  Future<Map<String, dynamic>> fetchSyncPeers() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/sync/peers'));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/sync/register — Register mobile client peer.
+  Future<Map<String, dynamic>> registerSyncPeer(String deviceId, String deviceName) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/sync/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'device_id': deviceId,
+          'client_type': 'mobile_flutter',
+          'device_name': deviceName,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// POST /api/v1/sync/push — Push state delta to sync hub.
+  Future<Map<String, dynamic>> pushSyncDelta(String entityType, String entityId, Map<String, dynamic> payload) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/sync/push'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'entity_type': entityType,
+          'entity_id': entityId,
+          'payload': payload,
+          'device_id': 'mobile_flutter',
+        }),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
 

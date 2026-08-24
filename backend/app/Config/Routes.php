@@ -295,6 +295,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('desktop/window/focus', 'Api\Desktop::focusWindow');
     $routes->post('desktop/notify', 'Api\Desktop::notify');
     $routes->post('desktop/action', 'Api\Desktop::action');
+
+    // Phase 28 — Real-Time WebSocket & Cross-Device Sync Routes
+    $routes->get('sync/peers', 'Api\Sync::peers');
+    $routes->post('sync/register', 'Api\Sync::register');
+    $routes->post('sync/push', 'Api\Sync::push');
+    $routes->post('sync/pull', 'Api\Sync::pull');
+    $routes->post('sync/broadcast', 'Api\Sync::broadcast');
 });
 
 
