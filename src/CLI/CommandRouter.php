@@ -1182,31 +1182,17 @@ class CommandRouter
     {
         $this->ui->info("Starting ATOM database & system data export...");
         
-        $backupDir = rtrim($this->workspaceRoot, '/') . '/backups';
-        if (!is_dir($backupDir)) {
-            mkdir($backupDir, 0755, true);
-        }
+        $backupManager = new \Atom\Backup\BackupManager($this->workspaceRoot);
+        $res = $backupManager->createBackup();
 
-        $pm = $this->brain->getProfileManager();
-        if ($pm === null) {
-            $this->ui->error("Owner Profile Manager unavailable for export.");
-            return;
-        }
-
-        $data = $pm->exportUserData();
-        $timestamp = date('Y-m-d_His');
-        $filename = "atom_backup_{$timestamp}.json";
-        $filepath = "{$backupDir}/{$filename}";
-
-        $jsonStr = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-        if (file_put_contents($filepath, $jsonStr) !== false) {
-            $size = round(strlen($jsonStr) / 1024, 2);
+        if ($res['success']) {
+            $size = round($res['file_size'] / 1024, 2);
             $this->ui->success("✅ Database backup created successfully!");
-            $this->ui->writeLine("  • File: backups/{$filename}");
+            $this->ui->writeLine("  • File: backups/{$res['archive_name']}");
             $this->ui->writeLine("  • Size: {$size} KB");
-            $this->ui->writeLine("  • Exported: Owner Profile, Memories, Solutions, Training Data, Documents, Chat History");
+            $this->ui->writeLine("  • Exported: Memories ({$res['stats']['total_memories']}), Documents ({$res['stats']['total_documents']}), Training ({$res['stats']['total_training']})");
         } else {
-            $this->ui->error("Failed to write backup file: {$filepath}");
+            $this->ui->error("Failed to write backup archive.");
         }
         $this->ui->writeLine();
     }
