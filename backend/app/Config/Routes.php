@@ -658,10 +658,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 83 — GraphQL Query Complexity Guard Routes
     $routes->post('api/graphql/analyze', 'Api\GraphQLGuard::analyze');
     $routes->get('api/graphql/budgets', 'Api\GraphQLGuard::budgets');
+
+    // Phase 84 — Markdown-to-PDF Streaming Renderer Routes
+    $routes->post('documents/render/pdf', 'Api\DocumentRenderer::renderPdf');
+    $routes->get('documents/templates', 'Api\DocumentRenderer::templates');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
