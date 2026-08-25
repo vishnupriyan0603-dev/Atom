@@ -445,10 +445,18 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('vision/ui/synthesize', 'Api\Vision::synthesizeUi');
     $routes->post('vision/diagram/schema', 'Api\Vision::synthesizeSchema');
     $routes->get('vision/presets', 'Api\Vision::presets');
+
+    // Phase 43 — Codebase Dependency Graph & Circular Reference Resolver Routes
+    $routes->get('dependency/graph', 'Api\DependencyGraph::graph');
+    $routes->post('dependency/scan', 'Api\DependencyGraph::scan');
+    $routes->post('dependency/cycles', 'Api\DependencyGraph::cycles');
+    $routes->post('dependency/decouple', 'Api\DependencyGraph::decouple');
+    $routes->get('dependency/metrics', 'Api\DependencyGraph::metrics');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 

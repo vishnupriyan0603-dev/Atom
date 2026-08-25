@@ -200,6 +200,11 @@ $getAdminUrl = function(string $route) use ($inDirectAdminDir) {
         <span class="sidebar-label">Refactoring Studio</span>
       </a>
 
+      <a href="<?= $getAdminUrl('dependency_graph') ?>" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-[#1e2735] text-gray-400 hover:text-white">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"></path></svg>
+        <span class="sidebar-label">Dependency Graph (DAG)</span>
+      </a>
+
       <a href="<?= $getAdminUrl('predictive_analytics') ?>" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-[#1e2735] text-gray-400 hover:text-white">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
         <span class="sidebar-label">Predictive Brain</span>
