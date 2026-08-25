@@ -27,12 +27,13 @@ require_once __DIR__ . '/bootstrap.php';
       <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-400">
         <a href="<?= $getBaseUrl() ?>/index.php" class="text-white hover:text-emerald-400 transition-colors">Home</a>
         <a href="<?= $getBaseUrl() ?>/chat.php" class="hover:text-emerald-400 transition-colors">Chat Interface</a>
-        <a href="<?= $getAdminUrl() ?>" class="hover:text-emerald-400 transition-colors">Control Panel</a>
-        <a href="<?= $getAdminUrl('equalizer') ?>" class="hover:text-emerald-400 transition-colors">Equalizer</a>
-        <a href="<?= $getAdminUrl('planning') ?>" class="hover:text-emerald-400 transition-colors">ToT Planning</a>
-        <a href="<?= $getAdminUrl('knowledge') ?>" class="hover:text-emerald-400 transition-colors">Knowledge Base</a>
+        <a href="<?= $getBaseUrl() ?>/login.php" class="hover:text-emerald-400 transition-colors">Sign In</a>
+        <a href="<?= $getAdminUrl() ?>" class="hover:text-emerald-400 transition-colors">Admin Panel</a>
       </nav>
-      <div>
+      <div class="flex items-center gap-3">
+        <a href="<?= $getBaseUrl() ?>/login.php" class="hidden sm:inline-flex items-center justify-center px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#11151c] hover:bg-[#16202e] border border-[#1e2838] text-gray-300 transition">
+          Sign In
+        </a>
         <a href="<?= $getBaseUrl() ?>/chat.php" class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/10 transition-all transform hover:-translate-y-0.5">
           Launch Chat
         </a>
