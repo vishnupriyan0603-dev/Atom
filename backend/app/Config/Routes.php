@@ -538,10 +538,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 58 — Real-Time Audio Spectral Noise Filter Routes
     $routes->post('voice/filter/denoise', 'Api\AcousticFilter::denoise');
     $routes->get('voice/filter/presets', 'Api\AcousticFilter::presets');
+
+    // Phase 59 — Autonomous Git VCS Semantic Release Routes
+    $routes->post('vcs/release/analyze', 'Api\SemanticRelease::analyze');
+    $routes->get('vcs/release/history', 'Api\SemanticRelease::history');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 

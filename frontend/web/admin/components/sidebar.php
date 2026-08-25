@@ -209,6 +209,11 @@ $isActive = function(string $route) use ($currentPage) {
       <span class="sidebar-label">Federated Learning (55)</span>
     </a>
 
+    <a href="<?= $getAdminUrl('release_studio') ?>" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all <?= $isActive('release_studio') ? 'bg-[#1e2735] text-teal-400 font-bold' : 'text-gray-400 hover:text-white hover:bg-[#161c28]' ?>">
+      <svg class="w-4 h-4 shrink-0 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+      <span class="sidebar-label">Semantic Release (59)</span>
+    </a>
+
     <a href="<?= $getAdminUrl('webrtc_mesh') ?>" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all <?= $isActive('webrtc_mesh') ? 'bg-[#1e2735] text-emerald-400 font-bold' : 'text-gray-400 hover:text-white hover:bg-[#161c28]' ?>">
       <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path></svg>
       <span class="sidebar-label">P2P Edge Mesh</span>
