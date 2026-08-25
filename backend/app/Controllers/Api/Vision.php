@@ -4,18 +4,17 @@ namespace App\Controllers\Api;
 
 use Atom\Vision\VisionEngine;
 use Atom\Vision\MultiModalPayload;
+use Atom\Vision\NeuralCodeOcrEngine;
+use Atom\Vision\VisualLayoutSynthesizer;
+use Atom\Vision\DiagramSchemaSynthesizer;
 
 /**
- * Vision API Controller — Phase 24
- *
- * Endpoints:
- * - POST /api/v1/vision/analyze          — General image analysis / UI conversion
- * - POST /api/v1/vision/screenshot-debug — Debug screenshot with code error diagnosis
+ * Vision API Controller — Phase 24 & Phase 42 Multi-Modal Vision Studio
  */
 class Vision extends BaseApiController
 {
     /**
-     * POST /api/v1/vision/analyze
+     * POST /api/vision/analyze
      */
     public function analyze()
     {
@@ -46,7 +45,7 @@ class Vision extends BaseApiController
     }
 
     /**
-     * POST /api/v1/vision/screenshot-debug
+     * POST /api/vision/screenshot-debug
      */
     public function debugScreenshot()
     {
@@ -72,5 +71,65 @@ class Vision extends BaseApiController
         } catch (\Throwable $e) {
             return $this->respondError('Diagnostic error: ' . $e->getMessage(), 500);
         }
+    }
+
+    /**
+     * POST /api/vision/ocr/code (Phase 42)
+     */
+    public function ocrCode()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $engine = new NeuralCodeOcrEngine();
+        $result = $engine->extractCode($json, [
+            'language' => $json['language'] ?? 'auto',
+            'clean_indentation' => $json['clean_indentation'] ?? true,
+        ]);
+
+        if (!$result['success']) {
+            return $this->respondError($result['error'] ?? 'Code OCR extraction failed', 400);
+        }
+
+        return $this->respondSuccess($result, 'Neural Code OCR completed');
+    }
+
+    /**
+     * POST /api/vision/ui/synthesize (Phase 42)
+     */
+    public function synthesizeUi()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $synthesizer = new VisualLayoutSynthesizer();
+        $result = $synthesizer->synthesize($json);
+
+        return $this->respondSuccess($result, 'UI Code synthesized successfully');
+    }
+
+    /**
+     * POST /api/vision/diagram/schema (Phase 42)
+     */
+    public function synthesizeSchema()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $synthesizer = new DiagramSchemaSynthesizer();
+        $result = $synthesizer->synthesize($json);
+
+        return $this->respondSuccess($result, 'Schema & Diagram synthesized successfully');
+    }
+
+    /**
+     * GET /api/vision/presets (Phase 42)
+     */
+    public function presets()
+    {
+        return $this->respondSuccess([
+            'frameworks' => [
+                ['id' => 'bootstrap5', 'name' => 'Bootstrap 5 (Dark Glassmorphic)', 'badge' => 'Default'],
+                ['id' => 'tailwind', 'name' => 'Tailwind CSS 3.x', 'badge' => 'Modern'],
+                ['id' => 'vanilla', 'name' => 'Vanilla HTML5 + CSS3', 'badge' => 'Native'],
+                ['id' => 'flutter', 'name' => 'Flutter Dart Widget Tree', 'badge' => 'Mobile'],
+            ],
+            'languages' => ['auto', 'php', 'javascript', 'typescript', 'python', 'sql', 'csharp', 'html', 'css'],
+            'themes' => ['dark', 'glass', 'light'],
+        ]);
     }
 }

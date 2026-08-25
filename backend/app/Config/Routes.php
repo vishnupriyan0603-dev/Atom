@@ -437,10 +437,19 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('telemetry/errors/autofix', 'Api\Telemetry::autoFix');
     $routes->post('telemetry/errors/resolve', 'Api\Telemetry::resolveError');
     $routes->delete('telemetry/errors', 'Api\Telemetry::clearErrors');
+
+    // Phase 42 — Multi-Modal Neural Vision, Code OCR & UI Synthesizer Routes
+    $routes->post('vision/analyze', 'Api\Vision::analyze');
+    $routes->post('vision/screenshot-debug', 'Api\Vision::debugScreenshot');
+    $routes->post('vision/ocr/code', 'Api\Vision::ocrCode');
+    $routes->post('vision/ui/synthesize', 'Api\Vision::synthesizeUi');
+    $routes->post('vision/diagram/schema', 'Api\Vision::synthesizeSchema');
+    $routes->get('vision/presets', 'Api\Vision::presets');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
