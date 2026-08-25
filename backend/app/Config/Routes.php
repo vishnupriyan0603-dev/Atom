@@ -474,10 +474,17 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('voice/stream/formants/set', 'Api\VoiceStream::setFormants');
     $routes->get('voice/stream/session/stats', 'Api\VoiceStream::sessionStats');
     $routes->delete('voice/stream/session/stop', 'Api\VoiceStream::stopSession');
+
+    // Phase 47 — Autonomous AST Code Modernizer & OWASP Security Auto-Patcher Routes
+    $routes->post('modernizer/upgrade', 'Api\CodeModernizer::upgrade');
+    $routes->post('modernizer/scan-security', 'Api\CodeModernizer::scanSecurity');
+    $routes->post('modernizer/auto-patch', 'Api\CodeModernizer::autoPatch');
+    $routes->get('modernizer/rules', 'Api\CodeModernizer::rules');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
