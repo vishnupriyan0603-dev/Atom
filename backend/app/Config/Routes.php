@@ -405,6 +405,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('incident/circuit/record', 'Api\IncidentResponse::recordCircuit');
     $routes->post('incident/postmortem', 'Api\IncidentResponse::postMortem');
     $routes->get('incident/status', 'Api\IncidentResponse::status');
+
+    // Phase 41 — Multi-Modal Swarm Orchestration, Audio DSP & Neural Knowledge Routes
+    $routes->get('swarm/topology', 'Api\SwarmOrchestration::topology');
+    $routes->post('swarm/plan', 'Api\SwarmOrchestration::plan');
+    $routes->post('swarm/consensus', 'Api\SwarmOrchestration::consensus');
+    $routes->post('swarm/synthesize', 'Api\SwarmOrchestration::synthesize');
+    $routes->get('audio-dsp/graph', 'Api\SwarmOrchestration::dspGraph');
+    $routes->post('audio-dsp/fft', 'Api\SwarmOrchestration::dspFft');
+    $routes->post('neural-knowledge/chunk', 'Api\SwarmOrchestration::chunk');
+    $routes->post('neural-knowledge/similarity', 'Api\SwarmOrchestration::similarity');
 });
 
 
