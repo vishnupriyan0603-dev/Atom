@@ -452,10 +452,18 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('dependency/cycles', 'Api\DependencyGraph::cycles');
     $routes->post('dependency/decouple', 'Api\DependencyGraph::decouple');
     $routes->get('dependency/metrics', 'Api\DependencyGraph::metrics');
+
+    // Phase 44 — Edge-Native HNSW Vector Index & Semantic Embedding Retrieval Routes
+    $routes->get('vector/index/stats', 'Api\VectorSearch::stats');
+    $routes->post('vector/index/insert', 'Api\VectorSearch::insert');
+    $routes->post('vector/search', 'Api\VectorSearch::search');
+    $routes->post('vector/embed', 'Api\VectorSearch::embed');
+    $routes->delete('vector/index/clear', 'Api\VectorSearch::clear');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
