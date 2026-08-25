@@ -465,3 +465,42 @@ function openSettingsModal() {
 function closeSettingsModal() {
   document.getElementById('settingsModal').classList.remove('show');
 }
+
+// Global runtime error logger for chat view
+window.addEventListener('error', function (event) {
+  if (!event.message && !event.filename) return;
+  try {
+    fetch(apiUrl('/telemetry/errors'), {
+      method: 'POST',
+      headers: apiHeaders(),
+      body: JSON.stringify({
+        message: event.message,
+        file: event.filename || 'chat.php',
+        line: event.lineno || 0,
+        stack_trace: event.error ? event.error.stack : '',
+        source: 'client',
+        user_action: 'Chat interface interaction'
+      })
+    }).catch(function(){});
+  } catch (_) {}
+});
+
+window.addEventListener('unhandledrejection', function (event) {
+  var reason = event.reason;
+  var msg = (reason instanceof Error) ? reason.message : String(reason);
+  try {
+    fetch(apiUrl('/telemetry/errors'), {
+      method: 'POST',
+      headers: apiHeaders(),
+      body: JSON.stringify({
+        message: msg,
+        file: 'chat.php',
+        line: 0,
+        stack_trace: (reason instanceof Error) ? reason.stack : '',
+        source: 'client',
+        user_action: 'Async operation in chat'
+      })
+    }).catch(function(){});
+  } catch (_) {}
+});
+

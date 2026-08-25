@@ -427,7 +427,21 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('voice/equalizer/presets', 'Api\Voice::getEqualizerPresets');
     $routes->post('voice/equalizer/curve', 'Api\Voice::getEqualizerCurve');
     $routes->get('voice/equalizer/state', 'Api\Voice::getEqualizerState');
+
+    // Telemetry & Runtime Error Logging & Auto-Fix Routes
+    $routes->get('telemetry/metrics', 'Api\Telemetry::metrics');
+    $routes->get('telemetry/spans', 'Api\Telemetry::spans');
+    $routes->get('telemetry/errors', 'Api\Telemetry::getErrors');
+    $routes->post('telemetry/errors', 'Api\Telemetry::logError');
+    $routes->post('telemetry/errors/diagnose', 'Api\Telemetry::diagnose');
+    $routes->post('telemetry/errors/autofix', 'Api\Telemetry::autoFix');
+    $routes->post('telemetry/errors/resolve', 'Api\Telemetry::resolveError');
+    $routes->delete('telemetry/errors', 'Api\Telemetry::clearErrors');
 });
+
+// Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
+$routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 

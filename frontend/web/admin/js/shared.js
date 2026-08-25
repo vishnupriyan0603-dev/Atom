@@ -538,3 +538,116 @@ function showAlertModal({ title = 'Notification', message = '', buttonText = 'OK
     await requireAuth();
   }
 })();
+
+// ===== Automated Runtime Error Logging & Diagnostic Pipeline =====
+(function initGlobalErrorMonitoring() {
+  const LOCAL_ERROR_KEY = 'atom_runtime_errors';
+  const MAX_LOCAL_ERRORS = 50;
+
+  function getLocalErrors() {
+    try {
+      return JSON.parse(localStorage.getItem(LOCAL_ERROR_KEY) || '[]');
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function saveLocalError(entry) {
+    try {
+      const list = getLocalErrors();
+      list.unshift(entry);
+      localStorage.setItem(LOCAL_ERROR_KEY, JSON.stringify(list.slice(0, MAX_LOCAL_ERRORS)));
+    } catch (_) {}
+  }
+
+  function clearLocalErrors() {
+    try {
+      localStorage.removeItem(LOCAL_ERROR_KEY);
+    } catch (_) {}
+  }
+
+  async function logClientRuntimeError(details = {}) {
+    const errorId = 'err_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+    const entry = {
+      id: errorId,
+      timestamp: new Date().toISOString(),
+      source: 'client',
+      level: details.level || 'error',
+      message: details.message || 'Unknown runtime error',
+      file: details.file || window.location.pathname,
+      line: details.line || 0,
+      stack_trace: details.stack_trace || (new Error().stack || ''),
+      user_action: details.user_action || 'User interaction on ' + window.location.pathname,
+      context: {
+        url: window.location.href,
+        referrer: document.referrer,
+        userAgent: navigator.userAgent,
+        ...(details.context || {})
+      }
+    };
+
+    saveLocalError(entry);
+
+    // Send asynchronously to backend telemetry endpoint
+    try {
+      const apiUrl = (typeof getApiBaseUrl === 'function' ? getApiBaseUrl() : '/api') + '/telemetry/errors';
+      fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + (typeof getAuthToken === 'function' ? getAuthToken() : '')
+        },
+        body: JSON.stringify(entry)
+      }).catch(() => {});
+    } catch (_) {}
+
+    return entry;
+  }
+
+  // Intercept global runtime exceptions
+  window.addEventListener('error', function (event) {
+    // Ignore cross-origin script error noise with no details
+    if (!event.message && !event.filename) return;
+
+    logClientRuntimeError({
+      message: event.message || 'Script execution error',
+      file: event.filename || window.location.pathname,
+      line: event.lineno || 0,
+      stack_trace: event.error ? (event.error.stack || '') : '',
+      user_action: 'Runtime execution error',
+      level: 'error'
+    });
+  });
+
+  // Intercept unhandled asynchronous Promise rejections
+  window.addEventListener('unhandledrejection', function (event) {
+    const reason = event.reason;
+    let message = 'Unhandled Promise Rejection';
+    let stack = '';
+
+    if (reason instanceof Error) {
+      message = reason.message;
+      stack = reason.stack || '';
+    } else if (typeof reason === 'string') {
+      message = reason;
+    } else if (reason && typeof reason === 'object') {
+      message = reason.message || JSON.stringify(reason);
+    }
+
+    logClientRuntimeError({
+      message: message,
+      file: window.location.pathname,
+      line: 0,
+      stack_trace: stack,
+      user_action: 'Unhandled async promise operation',
+      level: 'error'
+    });
+  });
+
+  window.ATOM_ERROR_LOGGER = {
+    log: logClientRuntimeError,
+    getLocalErrors: getLocalErrors,
+    clearLocalErrors: clearLocalErrors
+  };
+})();
+
