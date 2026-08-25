@@ -560,10 +560,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 63 — Autonomous AST Code Linter & PSR-12 Auto-Fixer Routes
     $routes->post('refactoring/linter/scan', 'Api\CodeLinter::scan');
     $routes->post('refactoring/linter/fix', 'Api\CodeLinter::fix');
+
+    // Phase 64 — Zero-Trust IP Geolocation & Geo-Fencing Routes
+    $routes->post('security/geofence/evaluate', 'Api\GeoFirewall::evaluate');
+    $routes->post('security/geofence/lookup', 'Api\GeoFirewall::lookup');
+    $routes->get('security/geofence/policy', 'Api\GeoFirewall::policy');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
