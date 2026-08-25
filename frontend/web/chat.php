@@ -108,6 +108,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             exit;
         }
 
+        if ($action === 'delete_chat') {
+            $chatId = (int)($input['chat_id'] ?? ($_GET['chat_id'] ?? 0));
+            if ($pdo && $chatId > 0) {
+                try {
+                    $stmt = $pdo->prepare("DELETE FROM messages WHERE chat_id = ?");
+                    $stmt->execute([$chatId]);
+                    $stmt2 = $pdo->prepare("DELETE FROM chats WHERE id = ?");
+                    $stmt2->execute([$chatId]);
+                } catch (\Throwable $e) {}
+            }
+            echo json_encode(['success' => true, 'message' => 'Chat deleted successfully']);
+            exit;
+        }
+
+        if ($action === 'delete_all_chats') {
+            if ($pdo) {
+                try {
+                    $pdo->exec("DELETE FROM messages");
+                    $pdo->exec("DELETE FROM chats");
+                } catch (\Throwable $e) {
+                    try {
+                        $pdo->exec("DELETE FROM atom_sessions");
+                    } catch (\Throwable $e2) {}
+                }
+            }
+            echo json_encode(['success' => true, 'message' => 'All chats cleared']);
+            exit;
+        }
+
         if ($action === 'send_message') {
             $chatId = (int)($input['chat_id'] ?? 0);
             $message = trim($input['message'] ?? '');
@@ -292,14 +321,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
   <aside id="chatSidebar" class="w-72 bg-[#0c0f14] border-r border-[#1e2838] flex flex-col justify-between shrink-0 transition-all duration-300 z-40">
     <div class="flex flex-col h-full overflow-hidden">
       <!-- App Brand / Top bar -->
-      <div class="h-16 px-5 flex items-center justify-between border-b border-[#1e2838] shrink-0">
-        <div class="flex items-center gap-3">
+      <div class="h-16 px-4 flex items-center justify-between border-b border-[#1e2838] shrink-0">
+        <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center font-black text-white shadow shadow-emerald-500/10">A</div>
-          <span class="text-base font-bold tracking-tight text-white sidebar-label">ATOM CHAT</span>
+          <span class="text-sm font-bold tracking-tight text-white sidebar-label">ATOM CHAT</span>
         </div>
-        <button onclick="createNewChat()" class="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-xs flex items-center gap-1 font-semibold transition" title="Start New Conversation">
-          <i class="bi bi-plus-lg"></i> <span class="sidebar-label">New</span>
-        </button>
+        <div class="flex items-center gap-1.5">
+          <button onclick="createNewChat()" class="p-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 text-xs flex items-center gap-1 font-semibold transition" title="Start New Conversation">
+            <i class="bi bi-plus-lg"></i> <span class="sidebar-label">New</span>
+          </button>
+          <button onclick="deleteAllChats()" class="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs flex items-center gap-1 font-semibold transition" title="Delete All Sessions">
+            <i class="bi bi-trash"></i> <span class="sidebar-label hidden sm:inline">Clear</span>
+          </button>
+        </div>
       </div>
 
       <!-- Quick Launch Filter -->
@@ -561,11 +595,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
       if (endpoint === '/chats' && options.method === 'POST') fallbackAction = 'create_chat';
       else if (endpoint.startsWith('/chats/') && endpoint.endsWith('/messages')) fallbackAction = 'get_messages';
       else if (endpoint.includes('/messages') || endpoint.includes('/send') || endpoint.includes('/complete')) fallbackAction = 'send_message';
+      else if (endpoint === '/chats/all' || (options.method === 'DELETE' && endpoint.includes('/all'))) fallbackAction = 'delete_all_chats';
+      else if (options.method === 'DELETE' && endpoint.startsWith('/chats/')) fallbackAction = 'delete_chat';
 
       let directUrl = WEB_API + '?action=' + fallbackAction;
-      if (fallbackAction === 'get_messages') {
+      if (fallbackAction === 'get_messages' || fallbackAction === 'delete_chat') {
         const parts = endpoint.split('/');
-        directUrl += '&chat_id=' + parts[2];
+        directUrl += '&chat_id=' + (parts[2] || '0');
       }
 
       try {
@@ -592,12 +628,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           allChats = json.data;
           renderChatList(allChats);
-          if (!activeChatId) {
+          if (!activeChatId || !allChats.some(c => c.id === activeChatId)) {
             selectChat(allChats[0].id, allChats[0].title);
           }
         } else {
-          // If empty, auto-create initial welcome chat
+          allChats = [];
           list.innerHTML = '<div class="text-center py-8 text-gray-500 text-xs">No conversations yet.<br><button onclick="createNewChat()" class="mt-2 text-emerald-400 font-bold hover:underline">+ Start New Chat</button></div>';
+          const box = document.getElementById('chatMessages');
+          box.innerHTML = `
+            <div class="text-center py-16 text-gray-500 text-xs">
+              <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3 text-xl">
+                <i class="bi bi-chat-quote"></i>
+              </div>
+              <p class="font-semibold text-gray-300 text-sm">No Active Conversation</p>
+              <p class="text-xs text-gray-500 mt-1">Click "+ New" to start a fresh chat session.</p>
+            </div>
+          `;
+          activeChatId = null;
+          document.getElementById('chatTitle').textContent = 'ATOM Assistant';
         }
       } catch (e) {
         list.innerHTML = '<div class="text-center py-8 text-gray-500 text-xs">No active chats.</div>';
@@ -606,14 +654,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 
     function renderChatList(chats) {
       const list = document.getElementById('conversationsList');
+      if (!chats.length) {
+        list.innerHTML = '<div class="text-center py-8 text-gray-500 text-xs">No conversations.</div>';
+        return;
+      }
       list.innerHTML = chats.map(c => `
         <div onclick="selectChat(${c.id}, '${escapeHtml(c.title)}')" class="w-full p-2.5 rounded-xl text-left text-xs font-semibold cursor-pointer transition flex items-center justify-between group ${c.id === activeChatId ? 'bg-[#1e2735] text-white border border-emerald-500/30' : 'text-gray-400 hover:bg-[#16202e] hover:text-white'}">
-          <div class="flex items-center gap-2.5 truncate">
-            <i class="bi bi-chat-text text-gray-500 group-hover:text-emerald-400 text-xs"></i>
+          <div class="flex items-center gap-2.5 truncate flex-1 min-w-0 pr-2">
+            <i class="bi bi-chat-text text-gray-500 group-hover:text-emerald-400 text-xs shrink-0"></i>
             <span class="truncate sidebar-label">${escapeHtml(c.title || 'Conversation #' + c.id)}</span>
           </div>
+          <button onclick="event.stopPropagation(); deleteChat(${c.id}, '${escapeHtml(c.title)}')" class="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-400 transition shrink-0" title="Delete Conversation">
+            <i class="bi bi-trash text-xs"></i>
+          </button>
         </div>
       `).join('');
+    }
+
+    async function deleteChat(id, title) {
+      if (!confirm(`Delete conversation "${title || 'Conversation #' + id}"?`)) return;
+      try {
+        await fetchApiWithFallback('/chats/' + id, { method: 'DELETE' });
+        showToast('Deleted conversation', 'info');
+        activeChatId = (activeChatId === id) ? null : activeChatId;
+        await loadChats();
+      } catch (e) {
+        showToast('Failed to delete conversation', 'error');
+      }
+    }
+
+    async function deleteAllChats() {
+      if (!allChats.length) {
+        alert('No conversations to delete.');
+        return;
+      }
+      if (!confirm('Are you sure you want to delete ALL conversations and clear chat history? This action cannot be undone.')) return;
+      try {
+        await fetchApiWithFallback('/chats/all', { method: 'DELETE' });
+        showToast('All conversations cleared', 'info');
+        activeChatId = null;
+        await loadChats();
+      } catch (e) {
+        showToast('Failed to clear conversations', 'error');
+      }
     }
 
     function filterChatList() {
