@@ -36,7 +36,12 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
     $routes->post('ai/complete', 'Api\AiChat::complete');
     $routes->post('ai/models', 'Api\AiChat::listModels');
 
-    // Knowledge Documents management
+    // Knowledge Records & Documents management
+    $routes->get('knowledge', 'Api\Knowledge::index');
+    $routes->get('knowledge/(:num)', 'Api\Knowledge::show/$1');
+    $routes->post('knowledge', 'Api\Knowledge::create');
+    $routes->put('knowledge/(:num)', 'Api\Knowledge::update/$1');
+    $routes->delete('knowledge/(:num)', 'Api\Knowledge::delete/$1');
     $routes->get('knowledge/documents', 'Api\Knowledge::documents');
     $routes->post('knowledge/upload', 'Api\Knowledge::upload');
     $routes->delete('knowledge/documents/(:num)', 'Api\Knowledge::deleteDocument/$1');
@@ -229,6 +234,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('agents/tasks/(:num)/cancel', 'Api\Agents::cancelTask/$1');
     $routes->get('agents/tasks/(:num)/steps', 'Api\Agents::getTaskSteps/$1');
     $routes->get('agents/tasks/(:num)/stream', 'Api\Agents::streamTaskEvents/$1');
+
+    // Knowledge Records & Documents Management
+    $routes->get('knowledge', 'Api\Knowledge::index');
+    $routes->get('knowledge/(:num)', 'Api\Knowledge::show/$1');
+    $routes->post('knowledge', 'Api\Knowledge::create');
+    $routes->put('knowledge/(:num)', 'Api\Knowledge::update/$1');
+    $routes->delete('knowledge/(:num)', 'Api\Knowledge::delete/$1');
+    $routes->get('knowledge/documents', 'Api\Knowledge::documents');
+    $routes->post('knowledge/upload', 'Api\Knowledge::upload');
 
     // Autonomous Workflow Engine Routes
     $routes->get('workflows', 'Api\Workflows::getWorkflows');
