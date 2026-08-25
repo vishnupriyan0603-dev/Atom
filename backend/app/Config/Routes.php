@@ -506,10 +506,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('profiler/analyze', 'Api\PerformanceProfiler::analyze');
     $routes->post('profiler/optimize', 'Api\PerformanceProfiler::optimize');
     $routes->get('profiler/metrics', 'Api\PerformanceProfiler::metrics');
+
+    // Phase 52 — Autonomous SQL Query Index Optimizer & Migration Routes
+    $routes->post('database/query-optimizer/analyze', 'Api\QueryOptimizer::analyze');
+    $routes->post('database/query-optimizer/generate-migration', 'Api\QueryOptimizer::generateMigration');
+    $routes->get('database/query-optimizer/rules', 'Api\QueryOptimizer::rules');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
