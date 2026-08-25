@@ -618,10 +618,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('network/iot/fleet-status', 'Api\IoTWatchdog::fleetStatus');
     $routes->post('network/iot/ingest', 'Api\IoTWatchdog::ingest');
     $routes->post('network/iot/register-device', 'Api\IoTWatchdog::registerDevice');
+
+    // Phase 76 — Semantic Code Chunk Splitter & Call-Tree Indexer Routes
+    $routes->post('brain/chunker/split', 'Api\CodeChunker::split');
+    $routes->post('brain/chunker/call-tree', 'Api\CodeChunker::callTree');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
