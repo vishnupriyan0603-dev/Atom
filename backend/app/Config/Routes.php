@@ -622,10 +622,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 76 — Semantic Code Chunk Splitter & Call-Tree Indexer Routes
     $routes->post('brain/chunker/split', 'Api\CodeChunker::split');
     $routes->post('brain/chunker/call-tree', 'Api\CodeChunker::callTree');
+
+    // Phase 77 — Feature Flags & Gradual Rollout Matrix Routes
+    $routes->get('config/flags/list', 'Api\FeatureFlags::list');
+    $routes->post('config/flags/evaluate', 'Api\FeatureFlags::evaluate');
+    $routes->post('config/flags/set', 'Api\FeatureFlags::setFlag');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
