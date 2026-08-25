@@ -547,10 +547,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('tracing/traces', 'Api\DistributedTracing::listTraces');
     $routes->post('tracing/spans/start', 'Api\DistributedTracing::startSpan');
     $routes->post('tracing/spans/end', 'Api\DistributedTracing::endSpan');
+
+    // Phase 61 — Database Query Load Simulator Routes
+    $routes->post('database/load-simulator/run', 'Api\QueryLoadSimulator::run');
+    $routes->get('database/load-simulator/presets', 'Api\QueryLoadSimulator::presets');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
