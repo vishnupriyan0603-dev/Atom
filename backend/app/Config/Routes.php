@@ -627,10 +627,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('config/flags/list', 'Api\FeatureFlags::list');
     $routes->post('config/flags/evaluate', 'Api\FeatureFlags::evaluate');
     $routes->post('config/flags/set', 'Api\FeatureFlags::setFlag');
+
+    // Phase 78 — Real-Time Pitch Corrector & Vocal Harmonizer Routes
+    $routes->post('voice/pitch/autotune', 'Api\PitchHarmonizer::autotune');
+    $routes->post('voice/pitch/harmonize', 'Api\PitchHarmonizer::harmonize');
+    $routes->get('voice/pitch/scales', 'Api\PitchHarmonizer::scales');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
