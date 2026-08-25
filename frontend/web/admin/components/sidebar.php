@@ -215,6 +215,11 @@ $getAdminUrl = function(string $route) use ($inDirectAdminDir) {
         <span class="sidebar-label">CI/CD &amp; Testing</span>
       </a>
 
+      <a href="<?= $getAdminUrl('cron_scheduler') ?>" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-[#1e2735] text-gray-400 hover:text-white">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <span class="sidebar-label">Distributed Cron</span>
+      </a>
+
       <a href="<?= $getAdminUrl('refactoring') ?>" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-[#1e2735] text-gray-400 hover:text-white">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
         <span class="sidebar-label">Refactoring Studio</span>

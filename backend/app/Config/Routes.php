@@ -487,10 +487,19 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('abac/policies', 'Api\AbacPolicy::savePolicy');
     $routes->delete('abac/policies/(:segment)', 'Api\AbacPolicy::deletePolicy/$1');
     $routes->post('abac/simulate', 'Api\AbacPolicy::simulate');
+
+    // Phase 49 — Distributed Edge Cron Scheduler & Raft Failover Hub Routes
+    $routes->get('cron/jobs', 'Api\CronScheduler::listJobs');
+    $routes->post('cron/jobs', 'Api\CronScheduler::createJob');
+    $routes->post('cron/jobs/trigger', 'Api\CronScheduler::triggerJob');
+    $routes->post('cron/lease/renew', 'Api\CronScheduler::renewLease');
+    $routes->get('cron/cluster/status', 'Api\CronScheduler::clusterStatus');
+    $routes->delete('cron/jobs/(:segment)', 'Api\CronScheduler::deleteJob/$1');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
