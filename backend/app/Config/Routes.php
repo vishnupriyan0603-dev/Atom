@@ -551,10 +551,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 61 — Database Query Load Simulator Routes
     $routes->post('database/load-simulator/run', 'Api\QueryLoadSimulator::run');
     $routes->get('database/load-simulator/presets', 'Api\QueryLoadSimulator::presets');
+
+    // Phase 62 — Real-Time Voice Harmonizer & Autotune Routes
+    $routes->post('voice/harmonizer/correct-pitch', 'Api\VoiceHarmonizer::correctPitch');
+    $routes->post('voice/harmonizer/generate-harmonies', 'Api\VoiceHarmonizer::generateHarmonies');
+    $routes->get('voice/harmonizer/scales', 'Api\VoiceHarmonizer::scales');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
