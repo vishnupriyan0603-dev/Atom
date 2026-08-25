@@ -569,10 +569,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 65 — Database Schema Drift Detector & Auto-Sync Routes
     $routes->post('database/schema/detect-drift', 'Api\SchemaDrift::detectDrift');
     $routes->post('database/schema/generate-migration', 'Api\SchemaDrift::generateMigration');
+
+    // Phase 66 — WebRTC Peer Data Channel File Transfer Routes
+    $routes->post('network/webrtc/transfer/prepare', 'Api\WebRtcTransfer::prepare');
+    $routes->post('network/webrtc/transfer/ingest-chunk', 'Api\WebRtcTransfer::ingestChunk');
+    $routes->post('network/webrtc/transfer/reassemble', 'Api\WebRtcTransfer::reassemble');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
