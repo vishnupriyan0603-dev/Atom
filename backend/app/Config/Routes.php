@@ -600,10 +600,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('infrastructure/canary/route', 'Api\CanaryGovernor::route');
     $routes->post('infrastructure/canary/update-weights', 'Api\CanaryGovernor::updateWeights');
     $routes->post('infrastructure/canary/record-telemetry', 'Api\CanaryGovernor::recordTelemetry');
+
+    // Phase 72 — Dynamic SQL Query Explainer & Index Synthesizer Routes
+    $routes->post('database/explainer/analyze', 'Api\QueryExplainer::analyze');
+    $routes->post('database/explainer/suggest-indexes', 'Api\QueryExplainer::suggestIndexes');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
