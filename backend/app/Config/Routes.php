@@ -511,10 +511,26 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('database/query-optimizer/analyze', 'Api\QueryOptimizer::analyze');
     $routes->post('database/query-optimizer/generate-migration', 'Api\QueryOptimizer::generateMigration');
     $routes->get('database/query-optimizer/rules', 'Api\QueryOptimizer::rules');
+
+    // Phase 53 — Real-Time Webhook Dispatcher & HMAC-SHA256 Hub Routes
+    $routes->get('webhooks/subscriptions', 'Api\WebhookHub::listSubscriptions');
+    $routes->post('webhooks/subscriptions', 'Api\WebhookHub::createSubscription');
+    $routes->post('webhooks/dispatch', 'Api\WebhookHub::dispatch');
+    $routes->get('webhooks/dlq', 'Api\WebhookHub::listDlq');
+    $routes->post('webhooks/dlq/replay', 'Api\WebhookHub::replayDlq');
+
+    // Phase 54 — Autonomous AST Dead Code Eliminator Routes
+    $routes->post('refactoring/dead-code/scan', 'Api\DeadCodePruner::scan');
+    $routes->post('refactoring/dead-code/prune', 'Api\DeadCodePruner::prune');
+
+    // Phase 55 — Zero-Knowledge Federated Learning Routes
+    $routes->get('federated-learning/weights', 'Api\FederatedLearning::getWeights');
+    $routes->post('federated-learning/aggregate', 'Api\FederatedLearning::aggregate');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
