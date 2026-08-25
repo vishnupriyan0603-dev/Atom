@@ -534,10 +534,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 57 — Autonomous OpenAPI 3.1 & SDK Routes
     $routes->get('docs/openapi.json', 'Api\OpenApiSdk::openApiJson');
     $routes->post('docs/generate-sdk', 'Api\OpenApiSdk::generateSdk');
+
+    // Phase 58 — Real-Time Audio Spectral Noise Filter Routes
+    $routes->post('voice/filter/denoise', 'Api\AcousticFilter::denoise');
+    $routes->get('voice/filter/presets', 'Api\AcousticFilter::presets');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
