@@ -574,10 +574,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('network/webrtc/transfer/prepare', 'Api\WebRtcTransfer::prepare');
     $routes->post('network/webrtc/transfer/ingest-chunk', 'Api\WebRtcTransfer::ingestChunk');
     $routes->post('network/webrtc/transfer/reassemble', 'Api\WebRtcTransfer::reassemble');
+
+    // Phase 67 — Latency Heatmap & SLA Alert Routes
+    $routes->get('telemetry/heatmap/matrix', 'Api\LatencyHeatmap::matrix');
+    $routes->post('telemetry/heatmap/record', 'Api\LatencyHeatmap::record');
+    $routes->get('telemetry/heatmap/sla', 'Api\LatencyHeatmap::sla');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
