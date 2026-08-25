@@ -459,10 +459,19 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('vector/search', 'Api\VectorSearch::search');
     $routes->post('vector/embed', 'Api\VectorSearch::embed');
     $routes->delete('vector/index/clear', 'Api\VectorSearch::clear');
+
+    // Phase 45 — Post-Quantum Cryptography & Zero-Trust Key Exchange Routes
+    $routes->post('pqc/kem/keypair', 'Api\PostQuantum::keypair');
+    $routes->post('pqc/kem/encapsulate', 'Api\PostQuantum::encapsulate');
+    $routes->post('pqc/kem/decapsulate', 'Api\PostQuantum::decapsulate');
+    $routes->post('pqc/sign', 'Api\PostQuantum::sign');
+    $routes->post('pqc/verify', 'Api\PostQuantum::verify');
+    $routes->post('pqc/handshake', 'Api\PostQuantum::handshake');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
