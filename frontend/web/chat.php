@@ -551,10 +551,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
       // Clean markdown tags for natural speech
       const clean = text.replace(/```[\s\S]*?```/g, 'Code block omitted.')
                         .replace(/[#*`_~]/g, '')
-                        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+                        .replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1')
+                        .trim();
+      if (!clean) return;
+
       const utterance = new SpeechSynthesisUtterance(clean);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
+      const isTamil = /[\u0B80-\u0BFF]/.test(clean);
+
+      // Calibrated to Ben 10 Tamil reference audio (sample audio/ben10_tamil_dialogue.mp3)
+      utterance.rate = 1.18;   // Heroic, brisk dialogue velocity
+      utterance.pitch = 1.18;  // Energetic, bright tenor register
+      utterance.volume = 1.0;
+
+      // Select Tamil voice if Tamil text or available on platform
+      const voices = window.speechSynthesis.getVoices();
+      if (isTamil && voices.length > 0) {
+        const tamilVoice = voices.find(v => v.lang && (v.lang.startsWith('ta') || v.name.toLowerCase().includes('tamil')));
+        if (tamilVoice) {
+          utterance.voice = tamilVoice;
+          utterance.lang = 'ta-IN';
+        }
+      }
       window.speechSynthesis.speak(utterance);
     }
 

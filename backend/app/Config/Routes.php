@@ -415,6 +415,18 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('audio-dsp/fft', 'Api\SwarmOrchestration::dspFft');
     $routes->post('neural-knowledge/chunk', 'Api\SwarmOrchestration::chunk');
     $routes->post('neural-knowledge/similarity', 'Api\SwarmOrchestration::similarity');
+
+    // Voice Synthesis & Ben 10 Tamil Base Reference Voice Routes
+    $routes->post('voice/synthesize', 'Api\Voice::synthesize');
+    $routes->post('voice/transcribe', 'Api\Voice::transcribe');
+    $routes->get('voice/voices', 'Api\Voice::getVoices');
+    $routes->get('voice/reference/profile', 'Api\Voice::getReferenceProfile');
+    $routes->post('voice/reference/analyze', 'Api\Voice::analyzeReference');
+    $routes->post('voice/reference/synthesize', 'Api\Voice::synthesizeReference');
+    $routes->post('voice/equalizer/apply', 'Api\Voice::applyEqualizer');
+    $routes->get('voice/equalizer/presets', 'Api\Voice::getEqualizerPresets');
+    $routes->post('voice/equalizer/curve', 'Api\Voice::getEqualizerCurve');
+    $routes->get('voice/equalizer/state', 'Api\Voice::getEqualizerState');
 });
 
 

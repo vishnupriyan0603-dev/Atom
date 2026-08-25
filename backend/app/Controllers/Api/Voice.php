@@ -162,4 +162,45 @@ class Voice extends BaseApiController
         $eq = $this->getEqualizer();
         return $this->respondSuccess($eq->getState(), 'Active equalizer state retrieved');
     }
+
+    /**
+     * GET /api/v1/voice/reference/profile
+     */
+    public function getReferenceProfile()
+    {
+        $engine = new \Atom\Voice\TamilReferenceVoiceEngine();
+        $profile = $engine->extractVoiceProfile();
+        return $this->respondSuccess($profile, 'Reference voice profile retrieved');
+    }
+
+    /**
+     * POST /api/v1/voice/reference/analyze
+     */
+    public function analyzeReference()
+    {
+        $engine = new \Atom\Voice\TamilReferenceVoiceEngine();
+        $profile = $engine->extractVoiceProfile(true);
+        return $this->respondSuccess($profile, 'Reference voice analyzed and calibrated');
+    }
+
+    /**
+     * POST /api/v1/voice/reference/synthesize
+     */
+    public function synthesizeReference()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $text = trim($json['text'] ?? '');
+
+        if (empty($text)) {
+            return $this->respondError('Text parameter is required for Tamil reference synthesis', 400);
+        }
+
+        try {
+            $engine = new \Atom\Voice\TamilReferenceVoiceEngine();
+            $instructions = $engine->generateTamilSpeechInstructions($text);
+            return $this->respondSuccess($instructions, 'Tamil reference speech instructions generated');
+        } catch (\Throwable $e) {
+            return $this->respondError($e->getMessage(), 500);
+        }
+    }
 }
