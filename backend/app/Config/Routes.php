@@ -609,10 +609,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('voice/stems/separate', 'Api\AudioStems::separate');
     $routes->post('voice/stems/mix', 'Api\AudioStems::mix');
     $routes->get('voice/stems/bands', 'Api\AudioStems::bands');
+
+    // Phase 74 — API Schema Fuzzer & Vulnerability Scanner Routes
+    $routes->post('testing/fuzzer/scan', 'Api\ApiFuzzer::scan');
+    $routes->get('testing/fuzzer/payloads', 'Api\ApiFuzzer::payloads');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
