@@ -1,9 +1,86 @@
-// Shared JavaScript logic for ATOM Admin Control panel: auth guard, API helper,
-// collapsibility, global search overlays, toasts, and event handlers.
-
-var ATOM_API = 'http://localhost:8080/api';
+var ATOM_API = getApiBaseUrl();
 var ATOM_TOKEN_KEY = 'atom_web_token';
 var ATOM_EMAIL_KEY = 'atom_web_email';
+
+function getApiBaseUrl() {
+  if (typeof window !== 'undefined' && window.ATOM_API_BASE) {
+    return window.ATOM_API_BASE;
+  }
+  if (typeof window !== 'undefined' && window.location) {
+    var loc = window.location;
+    if (loc.port === '8080') {
+      return loc.origin + '/api';
+    }
+    var p = loc.pathname;
+    var atomIdx = p.toLowerCase().indexOf('/atom');
+    if (atomIdx !== -1) {
+      var basePath = p.substring(0, atomIdx + 5);
+      return loc.origin + basePath + '/backend/public/index.php/api';
+    }
+  }
+  return 'http://localhost:8080/api';
+}
+
+// ===== Safe JSON & HTTP Fetcher (Prevents Unexpected token '<' <!DOCTYPE errors) =====
+async function safeJsonFetch(url, options) {
+  try {
+    var resp = await fetch(url, options);
+    var text = await resp.text();
+
+    if (!text || !text.trim()) {
+      return {
+        success: resp.ok,
+        status: resp.status,
+        data: null,
+        error: resp.ok ? null : ('Server returned empty response (' + resp.status + ')')
+      };
+    }
+
+    var trimmed = text.trim();
+    // Intercept HTML error documents (e.g. <!DOCTYPE html> or <html> 404/500 pages)
+    if (trimmed.startsWith('<') || trimmed.toLowerCase().startsWith('<!doctype')) {
+      var titleMatch = trimmed.match(/<title>([^<]+)<\/title>/i);
+      var htmlMessage = titleMatch ? titleMatch[1].trim() : ('HTTP ' + resp.status + ' ' + resp.statusText);
+      return {
+        success: false,
+        status: resp.status,
+        data: null,
+        error: htmlMessage,
+        is_html: true,
+        raw_html: trimmed.substring(0, 300)
+      };
+    }
+
+    var json;
+    try {
+      json = JSON.parse(trimmed);
+    } catch (parseErr) {
+      return {
+        success: false,
+        status: resp.status,
+        data: null,
+        error: 'JSON Parse Error: ' + parseErr.message
+      };
+    }
+
+    if (typeof json === 'object' && json !== null) {
+      if (json.success === undefined) {
+        json.success = resp.ok;
+      }
+      if (!json.status) {
+        json.status = resp.status;
+      }
+    }
+    return json;
+  } catch (netErr) {
+    return {
+      success: false,
+      status: 0,
+      data: null,
+      error: 'Network connection failed: ' + netErr.message
+    };
+  }
+}
 
 // ===== Auth helpers =====
 function getAuthToken() {
@@ -32,31 +109,54 @@ function authHeaders(json) {
  */
 async function apiFetch(path, options) {
   options = options || {};
-  options.headers = Object.assign(authHeaders(options.method !== 'GET'), options.headers || {});
-  if (options.body && !options.headers['Content-Type']) {
+  options.headers = Object.assign(authHeaders(options.method && options.method !== 'GET'), options.headers || {});
+  if (options.body && typeof options.body === 'string' && !options.headers['Content-Type']) {
     options.headers['Content-Type'] = 'application/json';
   }
 
-  var resp;
-  try {
-    resp = await fetch(ATOM_API + path, options);
-  } catch (e) {
-    return { success: false, message: 'Connection failed: ' + e.message };
+  var fullUrl;
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    fullUrl = path;
+  } else {
+    var base = getApiBaseUrl();
+    var cleanPath = path.startsWith('/') ? path : ('/' + path);
+    if (cleanPath.startsWith('/api/')) {
+      cleanPath = cleanPath.substring(4);
+    }
+    fullUrl = base + cleanPath;
   }
 
-  if (resp.status === 401) {
+  var result = await safeJsonFetch(fullUrl, options);
+
+  // Fallback try to secondary endpoint (localhost:8080 <-> Apache public/index.php) if connection failed or 404
+  if (!result.success && (result.status === 0 || result.status === 404 || (result.error && result.error.includes('failed')))) {
+    var isCurrently8080 = fullUrl.includes(':8080');
+    var fallbackBase = isCurrently8080
+      ? (window.location.origin + '/my%20work/Atom/backend/public/index.php/api')
+      : ('http://localhost:8080/api');
+    var cleanPath2 = path.startsWith('/') ? path : ('/' + path);
+    if (cleanPath2.startsWith('/api/')) cleanPath2 = cleanPath2.substring(4);
+    var fallbackUrl = fallbackBase + cleanPath2;
+
+    if (fallbackUrl !== fullUrl) {
+      var fallbackResult = await safeJsonFetch(fallbackUrl, options);
+      if (fallbackResult.success) {
+        return fallbackResult;
+      }
+    }
+  }
+
+  if (result.status === 401) {
     handleAuthFailure();
     return { success: false, message: 'Session expired. Please log in again.', status: 401 };
   }
 
-  try {
-    var json = await resp.json();
-    if (!json.request_id) json.request_id = 'N/A';
-    return json;
-  } catch (e) {
-    return { success: false, message: 'Invalid response from server', status: resp.status };
-  }
+  return result;
 }
+
+window.getApiBaseUrl = getApiBaseUrl;
+window.safeJsonFetch = safeJsonFetch;
+window.apiFetch = apiFetch;
 
 function getAdminLoginUrl(next) {
   var p = window.location.pathname;

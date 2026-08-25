@@ -34,13 +34,13 @@ $pageTitle = "Plugins & Skills Hub";
     </div>
   </main>
 
+  <script src="js/shared.js"></script>
   <script>
     async function loadSkills() {
       const grid = document.getElementById('skillsGrid');
       try {
-        const res = await fetch('/api/v1/skills');
-        const json = await res.json();
-        const data = json.data || [];
+        const json = await apiFetch('/skills');
+        const data = (json && json.data) || [];
 
         if (data.length === 0) {
           grid.innerHTML = `<div class="col-span-full text-center py-12 text-gray-500 text-xs">No skills registered</div>`;
@@ -83,8 +83,8 @@ $pageTitle = "Plugins & Skills Hub";
     }
 
     async function toggleSkill(name, enable) {
-      const endpoint = enable ? `/api/v1/skills/${name}/enable` : `/api/v1/skills/${name}/disable`;
-      await fetch(endpoint, { method: 'POST' });
+      const endpoint = enable ? `/skills/${name}/enable` : `/skills/${name}/disable`;
+      await apiFetch(endpoint, { method: 'POST' });
       loadSkills();
     }
 

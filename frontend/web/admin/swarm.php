@@ -211,13 +211,11 @@ async function triggerSwarmPlan() {
     if (typeof showToast === 'function') showToast('Dispatching goal to Swarm Orchestrator...', 'purple');
 
     try {
-        const res = await fetch((typeof ATOM_API !== 'undefined' ? ATOM_API : 'http://localhost:8080/api') + '/swarm/plan', {
+        const json = await apiFetch('/swarm/plan', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ goal: goal })
         });
-        const json = await res.json();
-        if (json.success && json.data) {
+        if (json && json.success && json.data) {
             renderWorkOrders(json.data.work_orders);
             if (typeof showToast === 'function') showToast('Swarm work orders planned successfully', 'success');
         }

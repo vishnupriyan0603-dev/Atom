@@ -22,11 +22,27 @@ function apiOpts(method, body) {
   return opts;
 }
 
+async function safeParseResponse(resp) {
+  var text = await resp.text();
+  if (!text || !text.trim()) {
+    return { success: resp.ok, message: resp.ok ? '' : 'Empty response from server' };
+  }
+  var trimmed = text.trim();
+  if (trimmed.startsWith('<') || trimmed.toLowerCase().startsWith('<!doctype')) {
+    var titleMatch = trimmed.match(/<title>([^<]+)<\/title>/i);
+    return { success: false, message: titleMatch ? titleMatch[1] : 'Server returned HTML page (' + resp.status + ')' };
+  }
+  try {
+    return JSON.parse(trimmed);
+  } catch (e) {
+    return { success: false, message: 'Invalid JSON: ' + e.message };
+  }
+}
+
 async function apiFetch(path, method, body) {
   try {
     var resp = await fetch(apiUrl(path), apiOpts(method, body));
-    var json = await resp.json();
-    return json;
+    return await safeParseResponse(resp);
   } catch (e) {
     return { success: false, message: 'Connection failed: ' + e.message };
   }
@@ -35,8 +51,7 @@ async function apiFetch(path, method, body) {
 async function apiV1Fetch(path, method, body) {
   try {
     var resp = await fetch(apiV1Url(path), apiOpts(method, body));
-    var json = await resp.json();
-    return json;
+    return await safeParseResponse(resp);
   } catch (e) {
     return { success: false, message: 'Connection failed: ' + e.message };
   }

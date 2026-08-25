@@ -186,15 +186,6 @@ include_once __DIR__ . '/components/header.php';
 </div>
 
 <script>
-const API_BASE = window.ATOM_API_BASE || '/api';
-const TOKEN    = localStorage.getItem('atom_token') || '';
-
-function apiFetch(path, opts = {}) {
-    return fetch(API_BASE + path, {
-        ...opts,
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN, ...(opts.headers || {}) }
-    }).then(r => r.json());
-}
 
 function setText(id, val) {
     const el = document.getElementById(id);

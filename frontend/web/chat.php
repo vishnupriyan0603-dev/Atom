@@ -603,7 +603,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
       try {
         const resp = await fetch(ATOM_API + endpoint, options);
         if (resp.ok) {
-          return await resp.json();
+          const text = await resp.text();
+          if (text && !text.trim().startsWith('<') && !text.trim().toLowerCase().startsWith('<!doctype')) {
+            return JSON.parse(text);
+          }
         }
       } catch (e) {}
 

@@ -108,13 +108,11 @@ document.addEventListener('DOMContentLoaded', loadGovernance);
 
 async function loadGovernance() {
     try {
-        const polRes = await fetch('/api/v1/governance/policies');
-        const polJson = await polRes.json();
-        document.getElementById('metricActivePolicies').textContent = (polJson.data || []).length;
+        const polJson = await apiFetch('/governance/policies');
+        document.getElementById('metricActivePolicies').textContent = ((polJson && polJson.data) || []).length;
 
-        const decRes = await fetch('/api/v1/governance/decisions');
-        const decJson = await decRes.json();
-        const decisions = decJson.data || [];
+        const decJson = await apiFetch('/governance/decisions');
+        const decisions = (decJson && decJson.data) || [];
         document.getElementById('metricTotalDecisions').textContent = decisions.length;
 
         const tbody = document.getElementById('govDecisionsTableBody');
@@ -143,33 +141,45 @@ async function runPolicySimulation() {
     const action = document.getElementById('simAction').value;
     const resource = document.getElementById('simResource').value;
     try {
-        const res = await fetch('/api/v1/governance/policies/simulate', {
+        const json = await apiFetch('/governance/policies/simulate', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ actor_id: 1, action: action, resource: resource })
         });
-        const json = await res.json();
-        alert(`Simulation Outcome: ${json.data.decision.toUpperCase()} (Reason: ${json.data.reason_codes.join(', ')})`);
+        if (json && json.data) {
+            if (typeof showToast === 'function') {
+                showToast(`Simulation Outcome: ${(json.data.decision || 'ALLOW').toUpperCase()}`, 'success');
+            } else {
+                alert(`Simulation Outcome: ${(json.data.decision || 'ALLOW').toUpperCase()}`);
+            }
+        }
         bootstrap.Modal.getInstance(document.getElementById('simulatePolicyModal')).hide();
         loadGovernance();
     } catch (e) {
-        alert('Failed to execute policy simulation');
+        if (typeof showToast === 'function') showToast('Failed to execute policy simulation', 'error');
     }
 }
 
 async function toggleKillSwitchPrompt() {
-    const target = prompt("Enter resource or tool to kill-switch (e.g. workspace):", "workspace");
+    let target = 'workspace';
+    if (typeof showPromptModal === 'function') {
+        target = await showPromptModal({
+            title: 'Enable Kill Switch',
+            message: 'Enter resource or tool to kill-switch (e.g. workspace):',
+            defaultValue: 'workspace'
+        });
+    } else {
+        target = prompt("Enter resource or tool to kill-switch (e.g. workspace):", "workspace");
+    }
     if (!target) return;
     try {
-        await fetch('/api/v1/governance/kill-switch', {
+        await apiFetch('/governance/kill-switch', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ target_type: 'resource', target_id: target, enable: true, reason: 'Manual kill switch trigger' })
         });
-        alert(`Kill switch enabled for ${target}`);
+        if (typeof showToast === 'function') showToast(`Kill switch enabled for ${target}`, 'warning');
         loadGovernance();
     } catch (e) {
-        alert('Failed to enable kill switch');
+        if (typeof showToast === 'function') showToast('Failed to enable kill switch', 'error');
     }
 }
 

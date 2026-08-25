@@ -104,15 +104,13 @@ document.addEventListener('DOMContentLoaded', loadWorkflows);
 
 async function loadWorkflows() {
     try {
-        const res = await fetch('/api/v1/workflows');
-        const json = await res.json();
-        const workflows = json.data || [];
+        const json = await apiFetch('/workflows');
+        const workflows = (json && json.data) || [];
 
         document.getElementById('metricTotalWorkflows').textContent = workflows.length;
 
-        const execRes = await fetch('/api/v1/workflows/executions');
-        const execJson = await execRes.json();
-        const executions = execJson.data || [];
+        const execJson = await apiFetch('/workflows/executions');
+        const executions = (execJson && execJson.data) || [];
 
         document.getElementById('metricTotalExecutions').textContent = executions.length;
         document.getElementById('metricCompletedExecutions').textContent = executions.filter(e => e.status === 'completed').length;
@@ -147,26 +145,24 @@ async function submitNewWorkflow() {
     if (!name) return;
 
     try {
-        await fetch('/api/v1/workflows', {
+        await apiFetch('/workflows', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ name, description })
         });
         bootstrap.Modal.getInstance(document.getElementById('newWorkflowModal')).hide();
         loadWorkflows();
     } catch (e) {
-        alert('Failed to create workflow');
+        if (typeof showToast === 'function') showToast('Failed to create workflow', 'error');
     }
 }
 
 async function triggerWorkflow(id) {
     try {
-        await fetch(`/api/v1/workflows/${id}/execute`, {
+        await apiFetch(`/workflows/${id}/execute`, {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ input: { objective: 'Run automated research workflow' } })
         });
-        alert(`Workflow #${id} execution dispatched successfully!`);
+        if (typeof showToast === 'function') showToast(`Workflow #${id} execution dispatched successfully!`, 'success');
         loadWorkflows();
     } catch (e) {
         alert('Failed to execute workflow');

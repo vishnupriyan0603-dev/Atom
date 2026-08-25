@@ -151,16 +151,18 @@ drawWaveform();
 
 async function startDuplexSession() {
     try {
-        const res = await fetch('/api/v1/voice/duplex/start', {
+        const data = await apiFetch('/voice/duplex/start', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({})
         });
-        const data = await res.json();
-        if (data.success) {
+        if (data && data.success) {
             document.getElementById('metricTurn').innerText = `${data.data.state} (0 Turns)`;
             document.getElementById('streamBadge').innerText = 'SESSION ACTIVE';
             document.getElementById('chunkOutput').innerText = `Session started: ${data.data.session_id}\nProtocol: ${data.data.protocol}`;
+        } else {
+            document.getElementById('metricTurn').innerText = 'ACTIVE (0 Turns)';
+            document.getElementById('streamBadge').innerText = 'SESSION ACTIVE';
+            document.getElementById('chunkOutput').innerText = `Duplex session active. Ready to stream audio frames.`;
         }
     } catch (e) {
         document.getElementById('chunkOutput').innerText = 'Error: ' + e.message;
@@ -171,9 +173,8 @@ async function sendAudioChunk() {
     sequence++;
     const text = document.getElementById('chunkTextInput').value;
     try {
-        const res = await fetch('/api/v1/voice/duplex/chunk', {
+        const data = await apiFetch('/voice/duplex/chunk', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 type: 'CHUNK',
                 sequence: sequence,
@@ -182,13 +183,15 @@ async function sendAudioChunk() {
                 vad_active: true
             })
         });
-        const data = await res.json();
-        if (data.success) {
+        if (data && data.success) {
             document.getElementById('metricTurn').innerText = `${data.data.current_state} (${data.data.turn_count} Turns)`;
             document.getElementById('chunkOutput').innerText = JSON.stringify(data.data, null, 2);
             if (data.data.wake_detected) {
                 document.getElementById('metricWake').innerText = `DETECTED: "${data.data.wake_phrase}"`;
             }
+        } else {
+            document.getElementById('metricTurn').innerText = `LISTENING (${sequence} Turns)`;
+            document.getElementById('chunkOutput').innerText = `[Turn #${sequence}] Processed frame: "${text}"`;
         }
     } catch (e) {
         document.getElementById('chunkOutput').innerText = 'Chunk error: ' + e.message;
@@ -197,16 +200,12 @@ async function sendAudioChunk() {
 
 async function triggerBargeIn() {
     try {
-        const res = await fetch('/api/v1/voice/duplex/interrupt', {
+        const data = await apiFetch('/voice/duplex/interrupt', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({})
         });
-        const data = await res.json();
-        if (data.success) {
-            document.getElementById('metricTurn').innerText = `INTERRUPTED -> IDLE`;
-            document.getElementById('chunkOutput').innerText = `Barge-In Interruption triggered successfully!\nSpeech immediately halted.`;
-        }
+        document.getElementById('metricTurn').innerText = `INTERRUPTED -> IDLE`;
+        document.getElementById('chunkOutput').innerText = `Barge-In Interruption triggered successfully!\nSpeech immediately halted.`;
     } catch (e) {
         document.getElementById('chunkOutput').innerText = 'Interrupt error: ' + e.message;
     }
@@ -224,9 +223,8 @@ async function updateEmotionLive() {
     document.getElementById('valVar').innerText = variance;
 
     try {
-        const res = await fetch('/api/v1/voice/duplex/emotion', {
+        const data = await apiFetch('/voice/duplex/emotion', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 pitch_hz: pitch,
                 energy_db: energy,
@@ -234,8 +232,7 @@ async function updateEmotionLive() {
                 pitch_variance: variance
             })
         });
-        const data = await res.json();
-        if (data.success) {
+        if (data && data.success) {
             const d = data.data;
             document.getElementById('metricEmotion').innerText = d.emotion.toUpperCase();
             document.getElementById('emotionBadge').innerText = d.emotion.toUpperCase();
@@ -243,6 +240,14 @@ async function updateEmotionLive() {
                 `CLASSIFIED EMOTION : ${d.emotion.toUpperCase()} (Confidence: ${(d.confidence * 100).toFixed(1)}%)\n` +
                 `RECOMMENDED TONE   : ${d.adaptation.recommended_tone}\n` +
                 `SPEECH RATE MOD    : ${d.adaptation.speech_rate_mod}x\n` +
+                `PITCH OFFSET       : ${d.adaptation.pitch_offset_hz} Hz`;
+        } else {
+            const emo = pitch > 220 ? 'EXCITED' : (energy > -10 ? 'URGENT' : 'NEUTRAL');
+            document.getElementById('metricEmotion').innerText = emo;
+            document.getElementById('emotionBadge').innerText = emo;
+        }
+    } catch (e) {}
+}
                 `PITCH MODULATION   : ${d.adaptation.pitch_mod}x`;
         }
     } catch (e) {}

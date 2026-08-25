@@ -152,15 +152,6 @@ Click a refactoring action button to apply AST transformation.
 </div>
 
 <script>
-const API_BASE = window.ATOM_API_BASE || '/api';
-const TOKEN    = localStorage.getItem('atom_token') || '';
-
-function apiFetch(path, opts = {}) {
-    return fetch(API_BASE + path, {
-        ...opts,
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN, ...(opts.headers || {}) }
-    }).then(r => r.json());
-}
 
 function requestCompletions() {
     const code = document.getElementById('lspCodeInput').value;

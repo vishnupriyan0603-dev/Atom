@@ -165,15 +165,6 @@ Enter error trace and click "Diagnose & Synthesize Patch" to generate patch.
 </div>
 
 <script>
-const API_BASE = window.ATOM_API_BASE || '/api';
-const TOKEN    = localStorage.getItem('atom_token') || '';
-
-function apiFetch(path, opts = {}) {
-    return fetch(API_BASE + path, {
-        ...opts,
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN, ...(opts.headers || {}) }
-    }).then(r => r.json());
-}
 
 function synthesizeTestLive() {
     const code = document.getElementById('synthInputCode').value;

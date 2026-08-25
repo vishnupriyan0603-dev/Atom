@@ -190,19 +190,10 @@ Upload or select an image to inspect multi-modal analysis output.
 </div>
 
 <script>
-const API_BASE = window.ATOM_API_BASE || '/api';
-const TOKEN    = localStorage.getItem('atom_token') || '';
 let selectedImageBase64 = '';
 let selectedImageMime = 'image/png';
 let isRecording = false;
 let recognition = null;
-
-function apiFetch(path, opts = {}) {
-    return fetch(API_BASE + path, {
-        ...opts,
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + TOKEN, ...(opts.headers || {}) }
-    }).then(r => r.json());
-}
 
 function synthesizeSpeech() {
     const text = document.getElementById('ttsInputText').value.trim() || 'Hello Vichu! Atom Speech Engine is active.';

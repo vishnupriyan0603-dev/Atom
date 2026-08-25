@@ -105,14 +105,12 @@ document.addEventListener('DOMContentLoaded', loadEvaluations);
 
 async function loadEvaluations() {
     try {
-        const dsRes = await fetch('/api/v1/evaluations/datasets');
-        const dsJson = await dsRes.json();
-        const datasets = dsJson.data || [];
+        const dsJson = await apiFetch('/evaluations/datasets');
+        const datasets = (dsJson && dsJson.data) || [];
         document.getElementById('metricTotalDatasets').textContent = datasets.length;
 
-        const runRes = await fetch('/api/v1/evaluations/runs');
-        const runJson = await runRes.json();
-        const runs = runJson.data || [];
+        const runJson = await apiFetch('/evaluations/runs');
+        const runs = (runJson && runJson.data) || [];
         document.getElementById('metricTotalRuns').textContent = runs.length;
 
         const tbody = document.getElementById('evalRunsTableBody');
@@ -139,15 +137,19 @@ async function loadEvaluations() {
 async function submitEvalRun() {
     const targetType = document.getElementById('evalTargetSelect').value;
     try {
-        await fetch('/api/v1/evaluations/runs', {
+        await apiFetch('/evaluations/runs', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ dataset_id: 1, target_type: targetType, target_id: '1' })
+            body: JSON.stringify({ dataset_id: 1, target_type: targetType, target_id: 'default' })
         });
+        if (typeof showToast === 'function') {
+            showToast('Evaluation run dispatched successfully!', 'success');
+        } else {
+            alert('Evaluation run dispatched successfully!');
+        }
         bootstrap.Modal.getInstance(document.getElementById('newRunModal')).hide();
         loadEvaluations();
     } catch (e) {
-        alert('Failed to launch evaluation run');
+        if (typeof showToast === 'function') showToast('Failed to start evaluation run', 'error');
     }
 }
 

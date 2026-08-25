@@ -79,17 +79,14 @@ document.addEventListener('DOMContentLoaded', loadRouting);
 
 async function loadRouting() {
     try {
-        const polRes = await fetch('/api/v1/routing/policies');
-        const polJson = await polRes.json();
-        document.getElementById('metricActivePolicies').textContent = (polJson.data || []).length;
+        const polJson = await apiFetch('/routing/policies');
+        document.getElementById('metricActivePolicies').textContent = ((polJson && polJson.data) || []).length;
 
-        const candRes = await fetch('/api/v1/routing/candidates');
-        const candJson = await candRes.json();
-        document.getElementById('metricCandidatePool').textContent = (candJson.data || []).length;
+        const candJson = await apiFetch('/routing/candidates');
+        document.getElementById('metricCandidatePool').textContent = ((candJson && candJson.data) || []).length;
 
-        const decRes = await fetch('/api/v1/routing/decisions');
-        const decJson = await decRes.json();
-        const decisions = decJson.data || [];
+        const decJson = await apiFetch('/routing/decisions');
+        const decisions = (decJson && decJson.data) || [];
 
         const tbody = document.getElementById('decisionsTableBody');
         if (decisions.length === 0) {
@@ -115,16 +112,20 @@ async function loadRouting() {
 
 async function triggerTestRouting() {
     try {
-        const res = await fetch('/api/v1/routing/select', {
+        const json = await apiFetch('/routing/select', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ operation: 'coding', high_risk: false })
         });
-        const json = await res.json();
-        alert(`Selected Target: ${json.data.selected_candidate} (Score: ${(json.data.score * 100).toFixed(1)}%)`);
+        if (json && json.data) {
+            if (typeof showToast === 'function') {
+                showToast(`Selected Target: ${json.data.selected_candidate} (Score: ${(json.data.score * 100).toFixed(1)}%)`, 'success');
+            } else {
+                alert(`Selected Target: ${json.data.selected_candidate} (Score: ${(json.data.score * 100).toFixed(1)}%)`);
+            }
+        }
         loadRouting();
     } catch (e) {
-        alert('Failed to test adaptive routing');
+        if (typeof showToast === 'function') showToast('Failed to test adaptive routing', 'error');
     }
 }
 
