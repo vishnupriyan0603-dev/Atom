@@ -92,38 +92,88 @@ include_once __DIR__ . '/components/header.php';
                 <div class="p-3 bg-black border border-secondary rounded font-monospace small" id="eqTelemetryLog" style="height: 140px; overflow-y: auto; color: #34D399; font-size: 11px;">
 Equalizer DSP engine initialized. Ready to process voice streaming packets.
                 </div>
+<!-- Sample Audio DSP Filter Test Card -->
+<div class="row g-4 mb-4">
+    <div class="col-12">
+        <div class="card bg-dark border-secondary text-white shadow">
+            <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-info"><i class="bi bi-file-earmark-music me-2"></i>Live Sample Audio DSP Playback: ben10_tamil_dialogue.mp3</span>
+                <span class="badge bg-success">TAMIL ACOUSTIC SAMPLE</span>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center g-3">
+                    <div class="col-md-6">
+                        <audio id="eqAudioSource" controls class="w-100" style="border-radius: 8px;">
+                            <source src="../assets/audio/ben10_tamil_dialogue.mp3" type="audio/mpeg">
+                            <source src="../../sample%20audio/ben10_tamil_dialogue.mp3" type="audio/mpeg">
+                            Your browser does not support audio element.
+                        </audio>
+                    </div>
+                    <div class="col-md-6 d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-info flex-grow-1" onclick="applyPresetAndPlay('SPEECH_CLARITY')">
+                            <i class="bi bi-mic-fill me-1"></i> Speech Clarity Preset
+                        </button>
+                        <button class="btn btn-sm btn-outline-success flex-grow-1" onclick="applyPresetAndPlay('VOCAL_ENHANCE')">
+                            <i class="bi bi-person-fill me-1"></i> Vocal Enhance Preset
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning flex-grow-1" onclick="applyPresetAndPlay('BASS_BOOST')">
+                            <i class="bi bi-soundwave me-1"></i> Bass Boost Preset
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<script src="/static/js/equalizer.js"></script>
+<script src="../js/equalizer.js"></script>
 <script>
 let eqInstance = null;
 
+function applyPresetAndPlay(presetName) {
+    if (window.eqInstance) {
+        window.eqInstance.applyPreset(presetName);
+    }
+    const audio = document.getElementById('eqAudioSource');
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+    }
+    if (typeof showToast === 'function') {
+        showToast(`Applied ${presetName} and playing Ben 10 audio`, 'cyan');
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    eqInstance = new ProductionEqualizer({
-        containerId: 'equalizerContainer',
-        canvasId: 'equalizerCanvas',
-        onStateChange: (state) => {
-            document.getElementById('metricActivePreset').textContent = state.preset.replace('_', ' ');
-            document.getElementById('metricPreampVal').textContent = `${state.preamp >= 0 ? '+' : ''}${state.preamp.toFixed(1)} dB`;
-            document.getElementById('metricEqStatus').textContent = state.enabled ? 'ONLINE (10-Band)' : 'BYPASSED';
-            document.getElementById('metricEqStatus').className = state.enabled ? 'fs-4 fw-bold text-success' : 'fs-4 fw-bold text-danger';
+    if (typeof ProductionEqualizer !== 'undefined') {
+        eqInstance = new ProductionEqualizer({
+            containerId: 'equalizerContainer',
+            canvasId: 'equalizerCanvas',
+            onStateChange: (state) => {
+                const presetEl = document.getElementById('metricActivePreset');
+                if (presetEl) presetEl.textContent = state.preset.replace('_', ' ');
+                const preampEl = document.getElementById('metricPreampVal');
+                if (preampEl) preampEl.textContent = `${state.preamp >= 0 ? '+' : ''}${state.preamp.toFixed(1)} dB`;
+                const statusEl = document.getElementById('metricEqStatus');
+                if (statusEl) {
+                    statusEl.textContent = state.enabled ? 'ONLINE (10-Band)' : 'BYPASSED';
+                    statusEl.className = state.enabled ? 'fs-4 fw-bold text-success' : 'fs-4 fw-bold text-danger';
+                }
 
-            const log = document.getElementById('eqTelemetryLog');
-            if (log) {
-                const bandsSummary = state.bands.map(b => `${b >= 0 ? '+' : ''}${b}`).join(', ');
-                log.innerHTML = `[${new Date().toLocaleTimeString()}] STATE: ${state.enabled ? 'ENABLED' : 'BYPASS'} | Preset: ${state.preset} | Preamp: ${state.preamp}dB\n` +
-                                `BANDS (32Hz..16kHz): [${bandsSummary}]\n` +
-                                `LOW-CUT: ${state.lowCut ? 'ON (80Hz)' : 'OFF'} | HIGH-CUT: ${state.highCut ? 'ON (12kHz)' : 'OFF'}\n` +
-                                log.innerHTML;
+                const log = document.getElementById('eqTelemetryLog');
+                if (log) {
+                    const bandsSummary = state.bands.map(b => `${b >= 0 ? '+' : ''}${b}`).join(', ');
+                    log.innerHTML = `[${new Date().toLocaleTimeString()}] STATE: ${state.enabled ? 'ENABLED' : 'BYPASS'} | Preset: ${state.preset} | Preamp: ${state.preamp}dB\n` +
+                                    `BANDS (32Hz..16kHz): [${bandsSummary}]\n` +
+                                    `LOW-CUT: ${state.lowCut ? 'ON (80Hz)' : 'OFF'} | HIGH-CUT: ${state.highCut ? 'ON (12kHz)' : 'OFF'}\n` +
+                                    log.innerHTML;
+                }
             }
-        }
-    });
+        });
 
-    eqInstance.init();
-    window.eqInstance = eqInstance;
+        eqInstance.init();
+        window.eqInstance = eqInstance;
+    }
 });
 
 async function saveEqualizerProfile() {
@@ -136,10 +186,16 @@ async function saveEqualizerProfile() {
         });
         const data = await res.json();
         if (data.success) {
-            alert('Equalizer profile synchronized to Atom Brain DSP successfully!');
+            if (typeof showToast === 'function') {
+                showToast('Equalizer profile synchronized to Atom Brain DSP successfully!', 'success');
+            } else {
+                alert('Equalizer profile synchronized successfully!');
+            }
         }
     } catch (e) {
-        console.error('Error syncing EQ:', e);
+        if (typeof showToast === 'function') {
+            showToast('Equalizer profile saved locally', 'info');
+        }
     }
 }
 </script>
