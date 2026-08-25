@@ -444,6 +444,50 @@ LLM_API_URL=http://localhost:11434/v1</pre>
                 <li><strong>Core Principle:</strong> <em>ATOM thinks with the AI, acts with controlled tools, and verifies the result before claiming success.</em></li>
             </ul>
         </div>
+
+        <div class="card">
+            <h2>14. Interactive Chat &amp; CLI Slash Commands Reference</h2>
+            <p>ATOM provides a comprehensive suite of interactive slash commands across Terminal CLI (<code>php atom.php</code>), Web Admin, and Desktop WPF client:</p>
+            <table>
+                <thead>
+                    <tr><th>Command</th><th>Category</th><th>Description &amp; Example</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>/voice:eq [preset]</code></td><td>Audio DSP</td><td>Apply 10-band acoustic EQ preset (e.g. <code>/voice:eq VOCAL_ENHANCE</code>)</td></tr>
+                    <tr><td><code>/voice:eq:set &lt;band&gt; &lt;gain&gt;</code></td><td>Audio DSP</td><td>Set specific frequency band gain (e.g. <code>/voice:eq:set 4 3.5</code>)</td></tr>
+                    <tr><td><code>/voice:wake &lt;phrase&gt;</code></td><td>Voice Duplex</td><td>Test acoustic wake-word detection (e.g. <code>/voice:wake Hey Atom</code>)</td></tr>
+                    <tr><td><code>/incident:heal &lt;runbook&gt;</code></td><td>Self-Healing</td><td>Trigger automated remediation runbook (e.g. <code>/incident:heal drain_connection_pool</code>)</td></tr>
+                    <tr><td><code>/incident:circuit</code></td><td>Self-Healing</td><td>Inspect active 3-state Circuit Breaker status</td></tr>
+                    <tr><td><code>/search:code &lt;query&gt;</code></td><td>Code Search</td><td>Semantic natural language repository code search</td></tr>
+                    <tr><td><code>/predict:forecast</code></td><td>Predictive AI</td><td>Compute Holt-Winters triple exponential time-series forecast</td></tr>
+                    <tr><td><code>/rbac:check &lt;perm&gt;</code></td><td>Enterprise RBAC</td><td>Evaluate active user ABAC/RBAC permission attributes</td></tr>
+                    <tr><td><code>/vault:unlock [pass]</code></td><td>Security Vault</td><td>Unlock AES-256-GCM zero-knowledge encrypted vault session</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h2>15. Real-Time Voice Commands &amp; Audio Duplex Manual</h2>
+            <p>ATOM includes a full-duplex conversational voice engine and acoustic DSP processor:</p>
+            <ul>
+                <li><strong>Acoustic Wake Word:</strong> Trigger with <em>"Hey Atom"</em>, <em>"Atom"</em>, or <em>"OK Atom"</em> with soundex phonetic distance matching.</li>
+                <li><strong>Conversational Turn-Taking &amp; Barge-In:</strong> Automatic transition between <code>IDLE</code>, <code>USER_SPEAKING</code>, <code>THINKING</code>, and <code>AI_SPEAKING</code>. Immediate interruption cancellation upon user speech.</li>
+                <li><strong>Prosodic Emotion Classifier:</strong> Evaluates pitch ($F_0$), RMS energy (dB), speech rate (wpm), and variance to adapt voice tone and empathy in real-time.</li>
+                <li><strong>10-Band Parametric Equalizer:</strong> Web Audio biquad filter chain with 10 presets (<code>SPEECH_CLARITY</code>, <code>VOCAL_ENHANCE</code>, <code>NOISE_REDUCTION</code>, <code>BASS_BOOST</code>, <code>PODCAST</code>).</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>16. How to Add &amp; Update New Commands (Developer Guide)</h2>
+            <p>To register or modify chat slash commands and voice intents:</p>
+            <ol>
+                <li><strong>CLI Router:</strong> Register the command in <code>src/CLI/CommandRouter.php</code> under the main <code>switch ($command)</code> block.</li>
+                <li><strong>Backend API:</strong> Implement endpoint in <code>backend/app/Controllers/Api/</code> and add route to <code>backend/app/Config/Routes.php</code>.</li>
+                <li><strong>Voice Intent:</strong> Map voice trigger in <code>src/Voice/WakeWordDetector.php</code> and <code>ConversationalTurnTakingManager.php</code>.</li>
+                <li><strong>Client Bindings:</strong> Add method in <code>mobile/lib/services/api_service.dart</code> and RelayCommand in <code>AtomAssistant/ViewModels/Pages/ChatPageViewModel.cs</code>.</li>
+                <li><strong>Manual Update:</strong> Add the new command to <code>docs/ATOM_User_Manual_Guide.md</code> and <code>docs/ATOM_User_Manual_Guide.html</code>.</li>
+            </ol>
+        </div>
     </div>
 </body>
 </html>
