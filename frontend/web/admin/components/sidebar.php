@@ -43,6 +43,11 @@ $getAdminUrl = function(string $route) use ($inDirectAdminDir) {
         <span class="sidebar-label">Voice &amp; Vision</span>
       </a>
 
+      <a href="<?= $getAdminUrl('voice_studio') ?>" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-[#1e2735] text-emerald-400 hover:text-emerald-300">
+        <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+        <span class="sidebar-label font-bold">ATOM Voice (Ben 10)</span>
+      </a>
+
       <a href="<?= $getAdminUrl('daemon') ?>" class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all hover:bg-[#1e2735] text-gray-400 hover:text-white">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
         <span class="sidebar-label">Proactive Daemon</span>
