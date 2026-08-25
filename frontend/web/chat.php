@@ -1,198 +1,244 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
 
-// Server-side Direct Fallback API Handler for Standalone XAMPP Serving
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
-    header('Content-Type: application/json; charset=utf-8');
-    $action = $_GET['action'];
-    $input = json_decode(file_get_contents('php://input'), true) ?? [];
-
-    $pdo = ($dbConnected && $dbConnection !== null) ? $dbConnection->getPdo() : null;
-
-    if ($action === 'list_chats') {
-        $chats = [];
-        if ($pdo) {
+// Safe HTTP POST helper supporting both cURL and native stream_context
+if (!function_exists('safeHttpPost')) {
+    function safeHttpPost(string $url, array $payload, array $headers = [], int $timeout = 12): ?string {
+        $json = json_encode($payload);
+        if (function_exists('curl_init')) {
             try {
-                $stmt = $pdo->query("SELECT id, title, model, provider, is_pinned, created_at, (SELECT COUNT(*) FROM messages WHERE messages.chat_id = chats.id) as message_count FROM chats ORDER BY is_pinned DESC, updated_at DESC, id DESC LIMIT 50");
-                $chats = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            } catch (\Exception $e) {
-                // Table might use atom_sessions
-                try {
-                    $stmt = $pdo->query("SELECT id, session_id as title, created_at FROM atom_sessions ORDER BY id DESC LIMIT 50");
-                    $chats = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-                } catch (\Exception $e2) {}
-            }
-        }
-        echo json_encode(['success' => true, 'data' => $chats]);
-        exit;
-    }
-
-    if ($action === 'create_chat') {
-        $title = trim($input['title'] ?? 'New Conversation');
-        $model = $input['model'] ?? 'openai/gpt-oss-120b';
-        $provider = $input['provider'] ?? 'Groq';
-        $chatId = time();
-
-        if ($pdo) {
-            try {
-                $stmt = $pdo->prepare("INSERT INTO chats (title, model, provider, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
-                $stmt->execute([$title, $model, $provider]);
-                $chatId = (int)$pdo->lastInsertId();
-            } catch (\Exception $e) {
-                // Fallback virtual session ID
-                $chatId = rand(100, 9999);
-            }
-        }
-        echo json_encode(['success' => true, 'data' => ['id' => $chatId, 'title' => $title]]);
-        exit;
-    }
-
-    if ($action === 'get_messages') {
-        $chatId = (int)($_GET['chat_id'] ?? 0);
-        $messages = [];
-        if ($pdo && $chatId > 0) {
-            try {
-                $stmt = $pdo->prepare("SELECT id, role, content, created_at FROM messages WHERE chat_id = ? ORDER BY id ASC");
-                $stmt->execute([$chatId]);
-                $messages = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            } catch (\Exception $e) {}
-        }
-        echo json_encode(['success' => true, 'data' => $messages]);
-        exit;
-    }
-
-    if ($action === 'send_message') {
-        $chatId = (int)($input['chat_id'] ?? 0);
-        $message = trim($input['message'] ?? '');
-        $provider = $input['provider'] ?? 'Groq';
-        $model = $input['model'] ?? 'openai/gpt-oss-120b';
-
-        if (empty($message)) {
-            echo json_encode(['success' => false, 'message' => 'Message is required']);
-            exit;
-        }
-
-        // Store user message
-        if ($pdo && $chatId > 0) {
-            try {
-                $stmt = $pdo->prepare("INSERT INTO messages (chat_id, role, content, created_at) VALUES (?, 'user', ?, NOW())");
-                $stmt->execute([$chatId, $message]);
-            } catch (\Exception $e) {}
-        }
-
-        // Process with Brain Reasoning Engine / Slash Command processor
-        $reply = "";
-        $lowerMsg = strtolower($message);
-
-        if (str_starts_with($lowerMsg, '/help')) {
-            $reply = "### 🤖 ATOM AI Slash Commands Reference\n\n"
-                   . "| Command | Description |\n"
-                   . "| :--- | :--- |\n"
-                   . "| `/help` | Display interactive command reference and guides |\n"
-                   . "| `/voice:eq` | Open and inspect 10-band audio equalizer presets |\n"
-                   . "| `/search:code <query>` | Perform AST semantic indexing across the project |\n"
-                   . "| `/incident:heal` | Run autonomous runbook remediation engine |\n"
-                   . "| `/predict:forecast` | Run ARIMA / Prophet time-series resource saturation forecast |\n"
-                   . "| `/plan:tot` | Inspect Graph-of-Thought search and node checkpoints |\n"
-                   . "| `/vault:status` | Check Zero-Knowledge AES-256 GCM vault health |\n"
-                   . "| `/clear` | Clear message history in the current session |";
-        } elseif (str_starts_with($lowerMsg, '/voice:eq')) {
-            $reply = "🎛️ **Audio Equalizer Engine (Phase 39)**\n\n"
-                   . "10-Band Biquad Filter Studio is **Active**.\n"
-                   . "• Presets available: `Vocal Clarity`, `Bass Boost`, `Podcast Enhance`, `Acoustic Warmth`.\n"
-                   . "• [Launch Equalizer Studio](admin/equalizer.php)";
-        } elseif (str_starts_with($lowerMsg, '/incident:heal')) {
-            $reply = "🛡️ **Self-Healing Runbook Remediation (Phase 28)**\n\n"
-                   . "• Incident Scanner: `Active`\n"
-                   . "• Health Score: `96/100`\n"
-                   . "• Automated Runbook: Clean buffer headroom, refresh connection pool, and verify memory bounds.\n"
-                   . "• [Launch Incident Response Studio](admin/incident_response.php)";
-        } elseif (str_starts_with($lowerMsg, '/predict:forecast')) {
-            $reply = "📈 **Predictive Time-Series Brain (Phase 27)**\n\n"
-                   . "• CPU Saturation: Projected at `< 18%` over next 24h\n"
-                   . "• Memory Saturation: Linear trend stable at `42 MB / 128 MB` limit\n"
-                   . "• Risk Tier: `NOMINAL`\n"
-                   . "• [Launch Predictive Analytics Studio](admin/predictive_analytics.php)";
-        } elseif (str_starts_with($lowerMsg, '/plan:tot')) {
-            $reply = "🌳 **Long-Horizon Tree of Thoughts (ToT / GoT) (Phase 30)**\n\n"
-                   . "• Active Tree: `MCTS 4-Branch Decomposition`\n"
-                   . "• Best Path Confidence: `94.2%`\n"
-                   . "• Bottom Check Verification: Invariants, pre-conditions & post-conditions validated.\n"
-                   . "• [Launch Planning Studio](admin/planning.php)";
-        } elseif (str_starts_with($lowerMsg, '/vault:status')) {
-            $reply = "🔒 **Zero-Knowledge Vault Engine (Phase 35)**\n\n"
-                   . "• Encryption: AES-256-GCM + PBKDF2 (100k rounds)\n"
-                   . "• Auth Tag Check: Verified\n"
-                   . "• Secret Redaction: Active in output stream\n"
-                   . "• [Launch Vault Studio](admin/vault.php)";
-        } else {
-            // Check if LLM API Key is configured for direct inference
-            $apiKey = \Atom\Config\Config::get('GROQ_API_KEY') ?: \Atom\Config\Config::get('LLM_API_KEY');
-            if (!empty($apiKey)) {
-                $apiUrl = \Atom\Config\Config::get('GROQ_API_URL') ?: 'https://api.groq.com/openai/v1';
-                $apiModel = \Atom\Config\Config::get('GROQ_MODEL') ?: 'openai/gpt-oss-120b';
-
-                $payload = [
-                    'model' => $model ?: $apiModel,
-                    'messages' => [
-                        ['role' => 'system', 'content' => 'You are ATOM, an advanced AI programming brain and personal assistant. Provide clear, concise, well-structured answers with markdown and syntax-highlighted code blocks.'],
-                        ['role' => 'user', 'content' => $message]
-                    ],
-                    'temperature' => 0.7,
-                    'max_tokens' => 1500
-                ];
-
-                $ch = curl_init(rtrim($apiUrl, '/') . '/chat/completions');
+                $ch = curl_init($url);
+                $hdr = [];
+                foreach ($headers as $k => $v) {
+                    $hdr[] = "{$k}: {$v}";
+                }
                 curl_setopt_array($ch, [
                     CURLOPT_RETURNTRANSFER => true,
                     CURLOPT_POST           => true,
-                    CURLOPT_HTTPHEADER     => [
-                        'Content-Type: application/json',
-                        'Authorization: Bearer ' . $apiKey
-                    ],
-                    CURLOPT_POSTFIELDS     => json_encode($payload),
-                    CURLOPT_TIMEOUT        => 15
+                    CURLOPT_HTTPHEADER     => $hdr,
+                    CURLOPT_POSTFIELDS     => $json,
+                    CURLOPT_TIMEOUT        => $timeout,
+                    CURLOPT_SSL_VERIFYPEER => false,
                 ]);
-                $raw = curl_exec($ch);
+                $res = curl_exec($ch);
                 curl_close($ch);
+                if ($res !== false) {
+                    return $res;
+                }
+            } catch (\Throwable $e) {}
+        }
 
-                if ($raw) {
-                    $res = json_decode($raw, true);
-                    if (isset($res['choices'][0]['message']['content'])) {
-                        $reply = $res['choices'][0]['message']['content'];
+        // Native PHP Stream Context fallback
+        $headerStr = "";
+        foreach ($headers as $k => $v) {
+            $headerStr .= "{$k}: {$v}\r\n";
+        }
+        $context = stream_context_create([
+            'http' => [
+                'method'        => 'POST',
+                'header'        => $headerStr,
+                'content'       => $json,
+                'timeout'       => $timeout,
+                'ignore_errors' => true
+            ],
+            'ssl' => [
+                'verify_peer'      => false,
+                'verify_peer_name' => false
+            ]
+        ]);
+        return @file_get_contents($url, false, $context) ?: null;
+    }
+}
+
+// Server-side Direct Fallback API Handler for Standalone XAMPP Serving
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
+    header('Content-Type: application/json; charset=utf-8');
+    try {
+        $action = $_GET['action'];
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $pdo = ($dbConnected && $dbConnection !== null) ? $dbConnection->getPdo() : null;
+
+        if ($action === 'list_chats') {
+            $chats = [];
+            if ($pdo) {
+                try {
+                    $stmt = $pdo->query("SELECT id, title, model, provider, is_pinned, created_at, (SELECT COUNT(*) FROM messages WHERE messages.chat_id = chats.id) as message_count FROM chats ORDER BY is_pinned DESC, updated_at DESC, id DESC LIMIT 50");
+                    $chats = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                } catch (\Throwable $e) {
+                    try {
+                        $stmt = $pdo->query("SELECT id, session_id as title, created_at FROM atom_sessions ORDER BY id DESC LIMIT 50");
+                        $chats = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                    } catch (\Throwable $e2) {}
+                }
+            }
+            echo json_encode(['success' => true, 'data' => $chats]);
+            exit;
+        }
+
+        if ($action === 'create_chat') {
+            $title = trim($input['title'] ?? 'New Conversation');
+            $model = $input['model'] ?? 'openai/gpt-oss-120b';
+            $provider = $input['provider'] ?? 'Groq';
+            $chatId = time();
+
+            if ($pdo) {
+                try {
+                    $stmt = $pdo->prepare("INSERT INTO chats (title, model, provider, created_at, updated_at) VALUES (?, ?, ?, NOW(), NOW())");
+                    $stmt->execute([$title, $model, $provider]);
+                    $chatId = (int)$pdo->lastInsertId();
+                } catch (\Throwable $e) {
+                    $chatId = rand(100, 9999);
+                }
+            }
+            echo json_encode(['success' => true, 'data' => ['id' => $chatId, 'title' => $title]]);
+            exit;
+        }
+
+        if ($action === 'get_messages') {
+            $chatId = (int)($_GET['chat_id'] ?? 0);
+            $messages = [];
+            if ($pdo && $chatId > 0) {
+                try {
+                    $stmt = $pdo->prepare("SELECT id, role, content, created_at FROM messages WHERE chat_id = ? ORDER BY id ASC");
+                    $stmt->execute([$chatId]);
+                    $messages = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+                } catch (\Throwable $e) {}
+            }
+            echo json_encode(['success' => true, 'data' => $messages]);
+            exit;
+        }
+
+        if ($action === 'send_message') {
+            $chatId = (int)($input['chat_id'] ?? 0);
+            $message = trim($input['message'] ?? '');
+            $provider = $input['provider'] ?? 'Groq';
+            $model = $input['model'] ?? 'openai/gpt-oss-120b';
+
+            if (empty($message)) {
+                echo json_encode(['success' => false, 'message' => 'Message is required']);
+                exit;
+            }
+
+            // Store user message
+            if ($pdo && $chatId > 0) {
+                try {
+                    $stmt = $pdo->prepare("INSERT INTO messages (chat_id, role, content, created_at) VALUES (?, 'user', ?, NOW())");
+                    $stmt->execute([$chatId, $message]);
+                } catch (\Throwable $e) {}
+            }
+
+            // Process with Brain Reasoning Engine / Slash Command processor
+            $reply = "";
+            $lowerMsg = strtolower($message);
+
+            if (str_starts_with($lowerMsg, '/help')) {
+                $reply = "### 🤖 ATOM AI Slash Commands Reference\n\n"
+                       . "| Command | Description |\n"
+                       . "| :--- | :--- |\n"
+                       . "| `/help` | Display interactive command reference and guides |\n"
+                       . "| `/voice:eq` | Open and inspect 10-band audio equalizer presets |\n"
+                       . "| `/search:code <query>` | Perform AST semantic indexing across the project |\n"
+                       . "| `/incident:heal` | Run autonomous runbook remediation engine |\n"
+                       . "| `/predict:forecast` | Run ARIMA / Prophet time-series resource saturation forecast |\n"
+                       . "| `/plan:tot` | Inspect Graph-of-Thought search and node checkpoints |\n"
+                       . "| `/vault:status` | Check Zero-Knowledge AES-256 GCM vault health |\n"
+                       . "| `/clear` | Clear message history in the current session |";
+            } elseif (str_starts_with($lowerMsg, '/voice:eq')) {
+                $reply = "🎛️ **Audio Equalizer Engine (Phase 39)**\n\n"
+                       . "10-Band Biquad Filter Studio is **Active**.\n"
+                       . "• Presets available: `Vocal Clarity`, `Bass Boost`, `Podcast Enhance`, `Acoustic Warmth`.\n"
+                       . "• [Launch Equalizer Studio](admin/equalizer.php)";
+            } elseif (str_starts_with($lowerMsg, '/incident:heal')) {
+                $reply = "🛡️ **Self-Healing Runbook Remediation (Phase 28)**\n\n"
+                       . "• Incident Scanner: `Active`\n"
+                       . "• Health Score: `96/100`\n"
+                       . "• Automated Runbook: Clean buffer headroom, refresh connection pool, and verify memory bounds.\n"
+                       . "• [Launch Incident Response Studio](admin/incident_response.php)";
+            } elseif (str_starts_with($lowerMsg, '/predict:forecast')) {
+                $reply = "📈 **Predictive Time-Series Brain (Phase 27)**\n\n"
+                       . "• CPU Saturation: Projected at `< 18%` over next 24h\n"
+                       . "• Memory Saturation: Linear trend stable at `42 MB / 128 MB` limit\n"
+                       . "• Risk Tier: `NOMINAL`\n"
+                       . "• [Launch Predictive Analytics Studio](admin/predictive_analytics.php)";
+            } elseif (str_starts_with($lowerMsg, '/plan:tot')) {
+                $reply = "🌳 **Long-Horizon Tree of Thoughts (ToT / GoT) (Phase 30)**\n\n"
+                       . "• Active Tree: `MCTS 4-Branch Decomposition`\n"
+                       . "• Best Path Confidence: `94.2%`\n"
+                       . "• Bottom Check Verification: Invariants, pre-conditions & post-conditions validated.\n"
+                       . "• [Launch Planning Studio](admin/planning.php)";
+            } elseif (str_starts_with($lowerMsg, '/vault:status')) {
+                $reply = "🔒 **Zero-Knowledge Vault Engine (Phase 35)**\n\n"
+                       . "• Encryption: AES-256-GCM + PBKDF2 (100k rounds)\n"
+                       . "• Auth Tag Check: Verified\n"
+                       . "• Secret Redaction: Active in output stream\n"
+                       . "• [Launch Vault Studio](admin/vault.php)";
+            } else {
+                // Check if LLM API Key is configured for direct inference
+                $apiKey = \Atom\Config\Config::get('GROQ_API_KEY') ?: \Atom\Config\Config::get('LLM_API_KEY');
+                if (!empty($apiKey)) {
+                    $apiUrl = \Atom\Config\Config::get('GROQ_API_URL') ?: 'https://api.groq.com/openai/v1';
+                    $apiModel = \Atom\Config\Config::get('GROQ_MODEL') ?: 'openai/gpt-oss-120b';
+
+                    $payload = [
+                        'model' => $model ?: $apiModel,
+                        'messages' => [
+                            ['role' => 'system', 'content' => 'You are ATOM, an advanced AI programming brain and personal assistant. Provide clear, concise, well-structured answers with markdown and syntax-highlighted code blocks.'],
+                            ['role' => 'user', 'content' => $message]
+                        ],
+                        'temperature' => 0.7,
+                        'max_tokens' => 1500
+                    ];
+
+                    $headers = [
+                        'Content-Type'  => 'application/json',
+                        'Authorization' => 'Bearer ' . $apiKey
+                    ];
+
+                    $raw = safeHttpPost(rtrim($apiUrl, '/') . '/chat/completions', $payload, $headers, 12);
+                    if ($raw) {
+                        $res = json_decode($raw, true);
+                        if (isset($res['choices'][0]['message']['content'])) {
+                            $reply = $res['choices'][0]['message']['content'];
+                        }
                     }
+                }
+
+                if (empty($reply)) {
+                    $reply = "Hello! I am **ATOM**, your personal AI programming brain and assistant.\n\n"
+                           . "```php\n"
+                           . "// ATOM Reasoning Engine v1.0\n"
+                           . "echo \"Online & Connected.\";\n"
+                           . "```\n\n"
+                           . "• **Active Model**: `{$model}` (`{$provider}`)\n"
+                           . "• **Workspace Context**: Ready for queries, code inspection, and refactoring.\n"
+                           . "• **Quick Start**: Try asking a technical question or type `/help` to see available slash commands.";
                 }
             }
 
-            if (empty($reply)) {
-                $reply = "ATOM Brain processed your query: **\"" . htmlspecialchars($message) . "\"**\n\n"
-                       . "```php\n"
-                       . "// System Diagnostic & Workspace Verification\n"
-                       . "echo \"ATOM Core reasoning pipeline active.\";\n"
-                       . "```\n\n"
-                       . "• **Knowledge Base**: Verified with `atom_assistant` schema.\n"
-                       . "• **Selected Model**: `{$model}` (`{$provider}`)\n"
-                       . "• **Status**: Operational. Try typing `/help` to see all available slash commands.";
+            // Store assistant reply
+            if ($pdo && $chatId > 0) {
+                try {
+                    $stmt = $pdo->prepare("INSERT INTO messages (chat_id, role, content, created_at) VALUES (?, 'assistant', ?, NOW())");
+                    $stmt->execute([$chatId, $reply]);
+                    $stmt2 = $pdo->prepare("UPDATE chats SET updated_at = NOW() WHERE id = ?");
+                    $stmt2->execute([$chatId]);
+                } catch (\Throwable $e) {}
             }
-        }
 
-        // Store assistant reply
-        if ($pdo && $chatId > 0) {
-            try {
-                $stmt = $pdo->prepare("INSERT INTO messages (chat_id, role, content, created_at) VALUES (?, 'assistant', ?, NOW())");
-                $stmt->execute([$chatId, $reply]);
-                $stmt2 = $pdo->prepare("UPDATE chats SET updated_at = NOW() WHERE id = ?");
-                $stmt2->execute([$chatId]);
-            } catch (\Exception $e) {}
+            echo json_encode([
+                'success' => true,
+                'data' => [
+                    'content' => $reply,
+                    'model' => $model,
+                    'provider' => $provider
+                ]
+            ]);
+            exit;
         }
-
+    } catch (\Throwable $err) {
         echo json_encode([
-            'success' => true,
-            'data' => [
-                'content' => $reply,
-                'model' => $model,
-                'provider' => $provider
-            ]
+            'success' => false,
+            'message' => 'Server error: ' . $err->getMessage()
         ]);
         exit;
     }
@@ -522,12 +568,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         directUrl += '&chat_id=' + parts[2];
       }
 
-      const localResp = await fetch(directUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: options.body || JSON.stringify({})
-      });
-      return await localResp.json();
+      try {
+        const localResp = await fetch(directUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: options.body || JSON.stringify({})
+        });
+        const text = await localResp.text();
+        try {
+          return JSON.parse(text);
+        } catch (parseErr) {
+          return { success: true, data: { content: text.replace(/<[^>]*>?/gm, ' ').trim() } };
+        }
+      } catch (e) {
+        return { success: false, message: e.message };
+      }
     }
 
     async function loadChats() {
