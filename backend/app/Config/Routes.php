@@ -526,10 +526,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 55 — Zero-Knowledge Federated Learning Routes
     $routes->get('federated-learning/weights', 'Api\FederatedLearning::getWeights');
     $routes->post('federated-learning/aggregate', 'Api\FederatedLearning::aggregate');
+
+    // Phase 56 — Multi-Tenant Zero-Trust Rate Limiter Routes
+    $routes->post('rate-limiter/check', 'Api\RateLimiter::check');
+    $routes->get('rate-limiter/metrics', 'Api\RateLimiter::metrics');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
