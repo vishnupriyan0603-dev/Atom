@@ -556,10 +556,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('voice/harmonizer/correct-pitch', 'Api\VoiceHarmonizer::correctPitch');
     $routes->post('voice/harmonizer/generate-harmonies', 'Api\VoiceHarmonizer::generateHarmonies');
     $routes->get('voice/harmonizer/scales', 'Api\VoiceHarmonizer::scales');
+
+    // Phase 63 — Autonomous AST Code Linter & PSR-12 Auto-Fixer Routes
+    $routes->post('refactoring/linter/scan', 'Api\CodeLinter::scan');
+    $routes->post('refactoring/linter/fix', 'Api\CodeLinter::fix');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 

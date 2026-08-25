@@ -139,6 +139,11 @@ $isActive = function(string $route) use ($currentPage) {
       <span class="sidebar-label">Refactoring Studio</span>
     </a>
 
+    <a href="<?= $getAdminUrl('code_linter') ?>" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all <?= $isActive('code_linter') ? 'bg-[#1e2735] text-amber-400 font-bold' : 'text-gray-400 hover:text-white hover:bg-[#161c28]' ?>">
+      <svg class="w-4 h-4 shrink-0 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span class="sidebar-label">PSR-12 Linter (63)</span>
+    </a>
+
     <a href="<?= $getAdminUrl('cicd') ?>" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all <?= $isActive('cicd') ? 'bg-[#1e2735] text-emerald-400 font-bold' : 'text-gray-400 hover:text-white hover:bg-[#161c28]' ?>">
       <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
       <span class="sidebar-label">CI/CD &amp; Testing</span>
