@@ -632,10 +632,17 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('voice/pitch/autotune', 'Api\PitchHarmonizer::autotune');
     $routes->post('voice/pitch/harmonize', 'Api\PitchHarmonizer::harmonize');
     $routes->get('voice/pitch/scales', 'Api\PitchHarmonizer::scales');
+
+    // Phase 79 — Database Connection Pool Governor Routes
+    $routes->get('database/pool/status', 'Api\ConnectionPool::status');
+    $routes->post('database/pool/lease', 'Api\ConnectionPool::lease');
+    $routes->post('database/pool/release', 'Api\ConnectionPool::release');
+    $routes->post('database/pool/reclaim-leaks', 'Api\ConnectionPool::reclaimLeaks');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
