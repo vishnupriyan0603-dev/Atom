@@ -129,6 +129,11 @@ $isActive = function(string $route) use ($currentPage) {
       <span class="sidebar-label">CI/CD &amp; Testing</span>
     </a>
 
+    <a href="<?= $getAdminUrl('openapi_studio') ?>" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all <?= $isActive('openapi_studio') ? 'bg-[#1e2735] text-indigo-400 font-bold' : 'text-gray-400 hover:text-white hover:bg-[#161c28]' ?>">
+      <svg class="w-4 h-4 shrink-0 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+      <span class="sidebar-label">OpenAPI &amp; SDKs (57)</span>
+    </a>
+
     <!-- Category 3: Security & Zero-Trust -->
     <div class="nav-category pt-3 pb-1">
       <span class="px-3 text-[10px] font-bold tracking-wider uppercase sidebar-label text-pink-400">Security &amp; Zero-Trust</span>

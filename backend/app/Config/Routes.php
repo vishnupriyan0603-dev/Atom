@@ -530,10 +530,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 56 — Multi-Tenant Zero-Trust Rate Limiter Routes
     $routes->post('rate-limiter/check', 'Api\RateLimiter::check');
     $routes->get('rate-limiter/metrics', 'Api\RateLimiter::metrics');
+
+    // Phase 57 — Autonomous OpenAPI 3.1 & SDK Routes
+    $routes->get('docs/openapi.json', 'Api\OpenApiSdk::openApiJson');
+    $routes->post('docs/generate-sdk', 'Api\OpenApiSdk::generateSdk');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
