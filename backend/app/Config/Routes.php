@@ -649,10 +649,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('infrastructure/chaos/start', 'Api\ChaosGovernor::start');
     $routes->post('infrastructure/chaos/stop', 'Api\ChaosGovernor::stop');
     $routes->post('infrastructure/chaos/evaluate', 'Api\ChaosGovernor::evaluate');
+
+    // Phase 82 — Video Keyframe Extractor & Scene Segmenter Routes
+    $routes->post('vision/video/segment', 'Api\VideoSegmenter::segment');
+    $routes->post('vision/video/keyframes', 'Api\VideoSegmenter::keyframes');
+    $routes->get('vision/video/codecs', 'Api\VideoSegmenter::codecs');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
