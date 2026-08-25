@@ -207,55 +207,222 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
-// ===== Advanced Toast Notifications =====
-// Reusable toaster for the ATOM admin panel. Types: success, error, warning, info.
-function showToast(message, type) {
-  type = type || 'info';
+// ===== Advanced Toast & Alert Notification Suite =====
 
+function playNotificationSound(type) {
+  try {
+    if (!window.AudioContext && !window.webkitAudioContext) return;
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    if (type === 'error') {
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.15);
+    } else if (type === 'success') {
+      osc.frequency.setValueAtTime(520, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(780, ctx.currentTime + 0.12);
+    } else {
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(550, ctx.currentTime + 0.1);
+    }
+    gain.gain.setValueAtTime(0.04, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.16);
+  } catch (e) {}
+}
+
+/**
+ * Reusable animated glassmorphic toaster.
+ * Types: success, error, warning, info, purple, cyan
+ */
+function showToast(message, type = 'info', duration = 3500) {
   let container = document.getElementById('toastContainer');
   if (!container) {
     container = document.createElement('div');
     container.id = 'toastContainer';
-    container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:10px;max-width:360px;';
+    container.style.cssText = 'position:fixed;top:20px;right:20px;z-index:99999;display:flex;flex-direction:column;gap:10px;max-width:380px;pointer-events:none;';
     document.body.appendChild(container);
   }
 
-  const styles = {
-    success: { icon: '&#10003;', accent: '#10b981', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.45)', label: 'SUCCESS' },
-    error:   { icon: '&#10005;', accent: '#ef4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.45)', label: 'ERROR' },
-    warning: { icon: '&#9888;', accent: '#f59e0b', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.45)', label: 'WARNING' },
-    info:    { icon: '&#8505;', accent: '#3b82f6', bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.45)', label: 'INFO' }
+  const themes = {
+    success: { icon: '✓', color: '#10b981', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.4)', glow: 'rgba(16,185,129,0.2)', title: 'SUCCESS' },
+    error:   { icon: '✕', color: '#ef4444', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.4)', glow: 'rgba(239,68,68,0.2)', title: 'ERROR' },
+    warning: { icon: '⚠', color: '#f59e0b', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.4)', glow: 'rgba(245,158,11,0.2)', title: 'WARNING' },
+    info:    { icon: 'ℹ', color: '#3b82f6', bg: 'rgba(59,130,246,0.12)', border: 'rgba(59,130,246,0.4)', glow: 'rgba(59,130,246,0.2)', title: 'INFO' },
+    cyan:    { icon: '⚡', color: '#06b6d4', bg: 'rgba(6,182,212,0.12)', border: 'rgba(6,182,212,0.4)', glow: 'rgba(6,182,212,0.2)', title: 'ATOM' },
+    purple:  { icon: '✦', color: '#a855f7', bg: 'rgba(168,85,247,0.12)', border: 'rgba(168,85,247,0.4)', glow: 'rgba(168,85,247,0.2)', title: 'REASONING' }
   };
-  const s = styles[type] || styles.info;
+
+  const t = themes[type] || themes.info;
+  playNotificationSound(type);
 
   const toast = document.createElement('div');
-  toast.style.cssText = 'display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:12px;'
-    + 'background:' + s.bg + ';border:1px solid ' + s.border + ';backdrop-filter:blur(8px);'
-    + 'box-shadow:0 12px 40px rgba(0,0,0,0.55);opacity:0;transform:translateX(30px);'
-    + 'transition:all 0.3s cubic-bezier(0.16,1,0.3,1);';
-  toast.innerHTML =
-    '<div style="flex:0 0 28px;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;'
-    + 'font-size:13px;font-weight:900;color:#fff;background:' + s.accent + ';">' + s.icon + '</div>'
-    + '<div style="flex:1;min-width:0;">'
-    + '<div style="font-size:10px;font-weight:800;letter-spacing:0.06em;color:' + s.accent + ';">' + s.label + '</div>'
-    + '<div style="font-size:13px;font-weight:500;color:#f0f4f8;margin-top:2px;line-height:1.4;">'
-    + escapeHtml(message) + '</div></div>'
-    + '<button aria-label="Dismiss" style="flex:0 0 auto;background:none;border:none;color:#8b93a1;cursor:pointer;font-size:15px;line-height:1;padding:0;">&times;</button>';
+  toast.style.cssText = `pointer-events:auto;position:relative;display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:14px;background:#0c0f14;border:1px solid ${t.border};box-shadow:0 16px 40px rgba(0,0,0,0.7), 0 0 20px ${t.glow};opacity:0;transform:translateX(40px) scale(0.95);transition:all 0.3s cubic-bezier(0.16,1,0.3,1);overflow:hidden;backdrop-filter:blur(12px);`;
+  
+  toast.innerHTML = `
+    <div style="flex:0 0 30px;width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;background:${t.color};box-shadow:0 2px 10px ${t.glow};">${t.icon}</div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:10px;font-weight:800;letter-spacing:0.06em;color:${t.color};text-transform:uppercase;">${t.title}</div>
+      <div style="font-size:12.5px;font-weight:500;color:#f0f4f8;margin-top:2px;line-height:1.45;">${escapeHtml(message)}</div>
+    </div>
+    <button aria-label="Dismiss" style="flex:0 0 auto;background:none;border:none;color:#64748b;cursor:pointer;font-size:16px;line-height:1;padding:2px 4px;border-radius:6px;transition:color 0.15s;">&times;</button>
+    <div class="toast-progress" style="position:absolute;bottom:0;left:0;height:2.5px;width:100%;background:${t.color};opacity:0.8;transform-origin:left;transition:transform ${duration}ms linear;"></div>
+  `;
 
   container.appendChild(toast);
 
-  // Entry animation
-  requestAnimationFrame(() => { toast.style.opacity = '1'; toast.style.transform = 'translateX(0)'; });
+  requestAnimationFrame(() => {
+    toast.style.opacity = '1';
+    toast.style.transform = 'translateX(0) scale(1)';
+    const bar = toast.querySelector('.toast-progress');
+    if (bar) bar.style.transform = 'scaleX(0)';
+  });
 
-  // Dismiss handlers
   const dismiss = () => {
-    toast.style.opacity = '0'; toast.style.transform = 'translateX(30px)';
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(40px) scale(0.95)';
     setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
   };
-  toast.querySelector('button').addEventListener('click', dismiss);
-  setTimeout(dismiss, 3500);
+
+  const closeBtn = toast.querySelector('button');
+  if (closeBtn) closeBtn.addEventListener('click', dismiss);
+  setTimeout(dismiss, duration);
 
   return toast;
+}
+
+/**
+ * Advanced Interactive Modal Prompter.
+ * Replaces browser prompt() with a sleek glassmorphic modal.
+ */
+function showPromptModal({ title = 'Input Required', message = '', placeholder = '', defaultValue = '', confirmText = 'Submit', cancelText = 'Cancel' } = {}) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(8,10,13,0.85);backdrop-filter:blur(8px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;transition:opacity 0.2s ease;';
+    
+    overlay.innerHTML = `
+      <div style="background:#11151c;border:1px solid #1e2838;box-shadow:0 24px 60px rgba(0,0,0,0.8), 0 0 30px rgba(6,182,212,0.15);border-radius:18px;max-width:440px;width:100%;padding:24px;transform:scale(0.95);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1);">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <div style="width:32px;height:32px;border-radius:10px;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);color:#06b6d4;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px;">✎</div>
+          <h3 style="font-size:16px;font-weight:800;color:#fff;margin:0;">${escapeHtml(title)}</h3>
+        </div>
+        ${message ? `<p style="font-size:12px;color:#94a3b8;margin:0 0 16px 0;line-height:1.5;">${escapeHtml(message)}</p>` : ''}
+        <input type="text" id="modalPromptInput" value="${escapeHtml(defaultValue)}" placeholder="${escapeHtml(placeholder)}" style="width:100%;height:44px;padding:0 14px;background:#080a0d;border:1px solid #1e2838;border-radius:12px;color:#fff;font-size:13px;outline:none;margin-bottom:20px;box-sizing:border-box;transition:border-color 0.2s;">
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button id="modalPromptCancel" style="padding:9px 16px;border-radius:10px;background:#0c0f14;border:1px solid #1e2838;color:#94a3b8;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;">${escapeHtml(cancelText)}</button>
+          <button id="modalPromptConfirm" style="padding:9px 18px;border-radius:10px;background:#10b981;border:none;color:#000;font-size:12px;font-weight:800;cursor:pointer;transition:all 0.15s;">${escapeHtml(confirmText)}</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+    const input = overlay.querySelector('#modalPromptInput');
+    const confirmBtn = overlay.querySelector('#modalPromptConfirm');
+    const cancelBtn = overlay.querySelector('#modalPromptCancel');
+    const card = overlay.querySelector('div');
+
+    requestAnimationFrame(() => {
+      overlay.style.opacity = '1';
+      card.style.transform = 'scale(1)';
+      if (input) { input.focus(); input.select(); }
+    });
+
+    const close = (val) => {
+      overlay.style.opacity = '0';
+      card.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        resolve(val);
+      }, 200);
+    };
+
+    confirmBtn.addEventListener('click', () => close(input.value.trim() || null));
+    cancelBtn.addEventListener('click', () => close(null));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(null); });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') close(input.value.trim() || null);
+      if (e.key === 'Escape') close(null);
+    });
+  });
+}
+
+/**
+ * Advanced Confirmation Modal.
+ * Replaces browser confirm() with a sleek glassmorphic modal.
+ */
+function showConfirmModal({ title = 'Confirm Action', message = 'Are you sure you want to proceed?', confirmText = 'Confirm', cancelText = 'Cancel', type = 'danger' } = {}) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(8,10,13,0.85);backdrop-filter:blur(8px);z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;opacity:0;transition:opacity 0.2s ease;';
+    
+    const isDanger = (type === 'danger');
+    const accentColor = isDanger ? '#ef4444' : '#10b981';
+    const accentBg = isDanger ? 'rgba(239,68,68,0.15)' : 'rgba(16,185,129,0.15)';
+    const accentBorder = isDanger ? 'rgba(239,68,68,0.35)' : 'rgba(16,185,129,0.35)';
+    const icon = isDanger ? '⚠' : '✓';
+
+    overlay.innerHTML = `
+      <div style="background:#11151c;border:1px solid #1e2838;box-shadow:0 24px 60px rgba(0,0,0,0.8), 0 0 30px ${accentBg};border-radius:18px;max-width:440px;width:100%;padding:24px;transform:scale(0.95);transition:transform 0.2s cubic-bezier(0.16,1,0.3,1);">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div style="width:36px;height:36px;border-radius:11px;background:${accentBg};border:1px solid ${accentBorder};color:${accentColor};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;">${icon}</div>
+          <h3 style="font-size:16px;font-weight:800;color:#fff;margin:0;">${escapeHtml(title)}</h3>
+        </div>
+        <p style="font-size:12.5px;color:#94a3b8;margin:0 0 20px 0;line-height:1.5;">${escapeHtml(message)}</p>
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
+          <button id="modalConfirmCancel" style="padding:9px 16px;border-radius:10px;background:#0c0f14;border:1px solid #1e2838;color:#94a3b8;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;">${escapeHtml(cancelText)}</button>
+          <button id="modalConfirmAction" style="padding:9px 18px;border-radius:10px;background:${accentColor};border:none;color:#fff;font-size:12px;font-weight:800;cursor:pointer;transition:all 0.15s;">${escapeHtml(confirmText)}</button>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+    const confirmBtn = overlay.querySelector('#modalConfirmAction');
+    const cancelBtn = overlay.querySelector('#modalConfirmCancel');
+    const card = overlay.querySelector('div');
+
+    requestAnimationFrame(() => {
+      overlay.style.opacity = '1';
+      card.style.transform = 'scale(1)';
+      confirmBtn.focus();
+    });
+
+    const close = (val) => {
+      overlay.style.opacity = '0';
+      card.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        resolve(val);
+      }, 200);
+    };
+
+    confirmBtn.addEventListener('click', () => close(true));
+    cancelBtn.addEventListener('click', () => close(false));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(false); });
+    document.addEventListener('keydown', function escHandler(e) {
+      if (e.key === 'Escape') {
+        document.removeEventListener('keydown', escHandler);
+        close(false);
+      }
+    });
+  });
+}
+
+/**
+ * Advanced Alert Modal.
+ * Replaces browser alert() with a sleek glassmorphic modal.
+ */
+function showAlertModal({ title = 'Notification', message = '', buttonText = 'OK', type = 'info' } = {}) {
+  return showConfirmModal({
+    title,
+    message,
+    confirmText: buttonText,
+    cancelText: '',
+    type: type === 'error' ? 'danger' : 'success'
+  }).then(() => {});
 }
 
 // ===== Admin auth gate =====

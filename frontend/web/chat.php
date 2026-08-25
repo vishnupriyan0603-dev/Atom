@@ -672,30 +672,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
     }
 
     async function deleteChat(id, title) {
-      if (!confirm(`Delete conversation "${title || 'Conversation #' + id}"?`)) return;
+      const confirmed = await showConfirmModal({
+        title: 'Delete Conversation',
+        message: `Are you sure you want to permanently delete "${title || 'Conversation #' + id}"?`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        type: 'danger'
+      });
+      if (!confirmed) return;
+
       try {
         await fetchApiWithFallback('/chats/' + id, { method: 'DELETE' });
-        showToast('Deleted conversation', 'info');
+        showToast('Deleted conversation successfully', 'info');
         activeChatId = (activeChatId === id) ? null : activeChatId;
         await loadChats();
       } catch (e) {
-        showToast('Failed to delete conversation', 'error');
+        showToast('Failed to delete conversation: ' + e.message, 'error');
       }
     }
 
     async function deleteAllChats() {
       if (!allChats.length) {
-        alert('No conversations to delete.');
+        showToast('No conversations to delete', 'warning');
         return;
       }
-      if (!confirm('Are you sure you want to delete ALL conversations and clear chat history? This action cannot be undone.')) return;
+      const confirmed = await showConfirmModal({
+        title: 'Clear All Conversations',
+        message: 'Are you sure you want to delete ALL conversations and wipe chat history? This action is permanent and cannot be undone.',
+        confirmText: 'Wipe All History',
+        cancelText: 'Keep Chats',
+        type: 'danger'
+      });
+      if (!confirmed) return;
+
       try {
         await fetchApiWithFallback('/chats/all', { method: 'DELETE' });
-        showToast('All conversations cleared', 'info');
+        showToast('All conversations cleared', 'success');
         activeChatId = null;
         await loadChats();
       } catch (e) {
-        showToast('Failed to clear conversations', 'error');
+        showToast('Failed to clear conversations: ' + e.message, 'error');
       }
     }
 
@@ -706,7 +722,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
     }
 
     async function createNewChat() {
-      const title = prompt('Enter conversation title:', 'Coding Architecture Reasoning');
+      const title = await showPromptModal({
+        title: 'Start New Conversation',
+        message: 'Enter a topic or technical goal for this AI reasoning session:',
+        placeholder: 'e.g. Distributed Consensus Engine',
+        defaultValue: 'Architecture Reasoning Session',
+        confirmText: 'Create Chat'
+      });
       if (!title) return;
 
       const model = document.getElementById('chatModel').value;
@@ -717,6 +739,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
 
       if (json.success && json.data && json.data.id) {
         activeChatId = json.data.id;
+        showToast('Created conversation: ' + title, 'success');
         await loadChats();
         selectChat(activeChatId, title);
       }
