@@ -667,10 +667,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('infrastructure/circuit/services', 'Api\CircuitMesh::services');
     $routes->post('infrastructure/circuit/execute', 'Api\CircuitMesh::execute');
     $routes->post('infrastructure/circuit/reset', 'Api\CircuitMesh::reset');
+
+    // Phase 86 — Reverse Proxy & Multi-Algorithm Load Balancer Routes
+    $routes->get('network/proxy/upstreams', 'Api\ReverseProxy::upstreams');
+    $routes->post('network/proxy/route', 'Api\ReverseProxy::route');
+    $routes->post('network/proxy/configure', 'Api\ReverseProxy::configure');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
