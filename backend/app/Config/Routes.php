@@ -604,10 +604,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 72 — Dynamic SQL Query Explainer & Index Synthesizer Routes
     $routes->post('database/explainer/analyze', 'Api\QueryExplainer::analyze');
     $routes->post('database/explainer/suggest-indexes', 'Api\QueryExplainer::suggestIndexes');
+
+    // Phase 73 — Audio Vocal Isolator & Stem Separator Routes
+    $routes->post('voice/stems/separate', 'Api\AudioStems::separate');
+    $routes->post('voice/stems/mix', 'Api\AudioStems::mix');
+    $routes->get('voice/stems/bands', 'Api\AudioStems::bands');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
