@@ -501,10 +501,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('command-center/dispatch', 'Api\CommandCenter::dispatch');
     $routes->post('command-center/run-diagnostics', 'Api\CommandCenter::runDiagnostics');
     $routes->post('command-center/heal', 'Api\CommandCenter::heal');
+
+    // Phase 51 — Autonomous AST Performance Profiler & Complexity Analyzer Routes
+    $routes->post('profiler/analyze', 'Api\PerformanceProfiler::analyze');
+    $routes->post('profiler/optimize', 'Api\PerformanceProfiler::optimize');
+    $routes->get('profiler/metrics', 'Api\PerformanceProfiler::metrics');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
