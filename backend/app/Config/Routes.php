@@ -594,10 +594,17 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('database/cache/set', 'Api\CacheInvalidator::setKey');
     $routes->post('database/cache/get', 'Api\CacheInvalidator::getKey');
     $routes->post('database/cache/invalidate-tag', 'Api\CacheInvalidator::invalidateTag');
+
+    // Phase 71 — Canary Deployment & Traffic Split Routes
+    $routes->get('infrastructure/canary/status', 'Api\CanaryGovernor::status');
+    $routes->post('infrastructure/canary/route', 'Api\CanaryGovernor::route');
+    $routes->post('infrastructure/canary/update-weights', 'Api\CanaryGovernor::updateWeights');
+    $routes->post('infrastructure/canary/record-telemetry', 'Api\CanaryGovernor::recordTelemetry');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
