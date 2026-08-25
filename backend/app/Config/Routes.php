@@ -654,10 +654,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('vision/video/segment', 'Api\VideoSegmenter::segment');
     $routes->post('vision/video/keyframes', 'Api\VideoSegmenter::keyframes');
     $routes->get('vision/video/codecs', 'Api\VideoSegmenter::codecs');
+
+    // Phase 83 — GraphQL Query Complexity Guard Routes
+    $routes->post('api/graphql/analyze', 'Api\GraphQLGuard::analyze');
+    $routes->get('api/graphql/budgets', 'Api\GraphQLGuard::budgets');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
