@@ -583,10 +583,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 68 — Audio Emotion & Acoustic Mood Routes
     $routes->post('voice/emotion/classify', 'Api\AudioEmotion::classify');
     $routes->get('voice/emotion/moods', 'Api\AudioEmotion::moods');
+
+    // Phase 69 — Natural Conversational Dialogue & Persona Routes
+    $routes->post('brain/dialogue/respond', 'Api\NaturalDialogue::respond');
+    $routes->post('brain/dialogue/teach', 'Api\NaturalDialogue::teach');
+    $routes->post('brain/dialogue/english-hint', 'Api\NaturalDialogue::englishHint');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
