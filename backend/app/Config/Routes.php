@@ -643,10 +643,17 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('brain/metacognition/reflect', 'Api\MetacognitiveBrain::reflect');
     $routes->post('brain/metacognition/prune-graph', 'Api\MetacognitiveBrain::pruneGraph');
     $routes->get('brain/metacognition/metrics', 'Api\MetacognitiveBrain::metrics');
+
+    // Phase 81 — Autonomous Chaos Engineering & Failure Injection Routes
+    $routes->get('infrastructure/chaos/experiments', 'Api\ChaosGovernor::experiments');
+    $routes->post('infrastructure/chaos/start', 'Api\ChaosGovernor::start');
+    $routes->post('infrastructure/chaos/stop', 'Api\ChaosGovernor::stop');
+    $routes->post('infrastructure/chaos/evaluate', 'Api\ChaosGovernor::evaluate');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
