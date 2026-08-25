@@ -542,10 +542,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 59 — Autonomous Git VCS Semantic Release Routes
     $routes->post('vcs/release/analyze', 'Api\SemanticRelease::analyze');
     $routes->get('vcs/release/history', 'Api\SemanticRelease::history');
+
+    // Phase 60 — Real-Time Distributed Tracing & OpenTelemetry Routes
+    $routes->get('tracing/traces', 'Api\DistributedTracing::listTraces');
+    $routes->post('tracing/spans/start', 'Api\DistributedTracing::startSpan');
+    $routes->post('tracing/spans/end', 'Api\DistributedTracing::endSpan');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
