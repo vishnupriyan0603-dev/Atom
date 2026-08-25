@@ -480,10 +480,18 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('modernizer/scan-security', 'Api\CodeModernizer::scanSecurity');
     $routes->post('modernizer/auto-patch', 'Api\CodeModernizer::autoPatch');
     $routes->get('modernizer/rules', 'Api\CodeModernizer::rules');
+
+    // Phase 48 — Dynamic Attribute-Based Access Control (ABAC) & Zero-Trust Firewall Routes
+    $routes->post('abac/evaluate', 'Api\AbacPolicy::evaluate');
+    $routes->get('abac/policies', 'Api\AbacPolicy::listPolicies');
+    $routes->post('abac/policies', 'Api\AbacPolicy::savePolicy');
+    $routes->delete('abac/policies/(:segment)', 'Api\AbacPolicy::deletePolicy/$1');
+    $routes->post('abac/simulate', 'Api\AbacPolicy::simulate');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
