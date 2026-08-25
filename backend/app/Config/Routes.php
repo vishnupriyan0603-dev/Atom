@@ -467,10 +467,18 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('pqc/sign', 'Api\PostQuantum::sign');
     $routes->post('pqc/verify', 'Api\PostQuantum::verify');
     $routes->post('pqc/handshake', 'Api\PostQuantum::handshake');
+
+    // Phase 46 — Real-Time Voice Duplex Stream & Dynamic Formant Shifter Routes
+    $routes->post('voice/stream/session/start', 'Api\VoiceStream::startSession');
+    $routes->post('voice/stream/chunk', 'Api\VoiceStream::processChunk');
+    $routes->post('voice/stream/formants/set', 'Api\VoiceStream::setFormants');
+    $routes->get('voice/stream/session/stats', 'Api\VoiceStream::sessionStats');
+    $routes->delete('voice/stream/session/stop', 'Api\VoiceStream::stopSession');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
