@@ -579,10 +579,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('telemetry/heatmap/matrix', 'Api\LatencyHeatmap::matrix');
     $routes->post('telemetry/heatmap/record', 'Api\LatencyHeatmap::record');
     $routes->get('telemetry/heatmap/sla', 'Api\LatencyHeatmap::sla');
+
+    // Phase 68 — Audio Emotion & Acoustic Mood Routes
+    $routes->post('voice/emotion/classify', 'Api\AudioEmotion::classify');
+    $routes->get('voice/emotion/moods', 'Api\AudioEmotion::moods');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
