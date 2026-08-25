@@ -662,10 +662,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 84 — Markdown-to-PDF Streaming Renderer Routes
     $routes->post('documents/render/pdf', 'Api\DocumentRenderer::renderPdf');
     $routes->get('documents/templates', 'Api\DocumentRenderer::templates');
+
+    // Phase 85 — Dynamic Circuit Breaker & Fallback Mesh Routes
+    $routes->get('infrastructure/circuit/services', 'Api\CircuitMesh::services');
+    $routes->post('infrastructure/circuit/execute', 'Api\CircuitMesh::execute');
+    $routes->post('infrastructure/circuit/reset', 'Api\CircuitMesh::reset');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
