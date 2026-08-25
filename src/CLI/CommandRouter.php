@@ -365,6 +365,9 @@ class CommandRouter
                 case '/voice:chunk':
                 case '/voice:interrupt':
                 case '/voice:emotion':
+                case '/voice:eq':
+                case '/voice:eq:set':
+                case '/voice:eq:presets':
                     $this->handleVoiceDuplex($command, $args);
                     return true;
                 // ─────────────────────────────────────────────────────────────
@@ -2168,14 +2171,39 @@ class CommandRouter
             $this->ui->writeLine("  Confidence       : " . ($res['confidence'] * 100) . "%");
             $this->ui->writeLine("  Recommended Tone : " . $res['adaptation']['recommended_tone']);
             $this->ui->writeLine("  Rate Modulation  : " . $res['adaptation']['speech_rate_mod'] . "x");
+        } elseif ($command === '/voice:eq') {
+            $eq = new \Atom\Voice\AudioEqualizerEngine();
+            $preset = trim($args) ?: 'SPEECH_CLARITY';
+            $eq->applyPreset($preset);
+            $state = $eq->getState();
+            $this->ui->highlight("🎚️ Parametric 10-Band Equalizer Applied");
+            $this->ui->writeLine("  Preset : " . $state['preset']);
+            $this->ui->writeLine("  Bands  : " . json_encode($state['bands']));
+        } elseif ($command === '/voice:eq:set') {
+            $eq = new \Atom\Voice\AudioEqualizerEngine();
+            $parts = explode(' ', trim($args));
+            $band = isset($parts[0]) ? (int)$parts[0] : 4;
+            $gain = isset($parts[1]) ? (float)$parts[1] : 3.0;
+            $eq->setBandGain($band, $gain);
+            $this->ui->highlight("🎛️ Equalizer Band Gain Set");
+            $this->ui->writeLine("  Band [{$band}] (" . \Atom\Voice\AudioEqualizerEngine::BANDS[$band] . "Hz) : " . ($gain >= 0 ? "+{$gain}" : $gain) . " dB");
+        } elseif ($command === '/voice:eq:presets') {
+            $eq = new \Atom\Voice\AudioEqualizerEngine();
+            $this->ui->highlight("📋 Available Acoustic EQ Presets");
+            foreach (array_keys($eq->getPresets()) as $p) {
+                $this->ui->writeLine("  • " . str_pad($p, 18) . " (" . implode(', ', array_map(fn($v) => ($v >= 0 ? "+{$v}" : $v), $eq->getPresets()[$p])) . ")");
+            }
         } else {
-            $this->ui->highlight("🎙️ Real-Time Voice Duplex & Streaming Audio Brain");
+            $this->ui->highlight("🎙️ Real-Time Voice Duplex & DSP Audio Equalizer");
             $this->ui->writeLine("  Protocol : PCM 16kHz 16-bit Mono (Full-Duplex)");
             $this->ui->writeLine("  Commands:");
             $this->ui->writeLine("    /voice:wake <phrase>         Test acoustic wake-word detection");
             $this->ui->writeLine("    /voice:chunk <text>          Simulate streaming voice audio chunk");
             $this->ui->writeLine("    /voice:interrupt             Trigger immediate barge-in interruption");
             $this->ui->writeLine("    /voice:emotion               Analyze acoustic emotional prosody");
+            $this->ui->writeLine("    /voice:eq [preset]           Apply 10-band acoustic EQ preset");
+            $this->ui->writeLine("    /voice:eq:set <band> <gain>  Set specific frequency band gain");
+            $this->ui->writeLine("    /voice:eq:presets            List available DSP equalizer presets");
         }
         $this->ui->writeLine();
     }

@@ -274,6 +274,10 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('voice/synthesize', 'Api\Voice::synthesize');
     $routes->post('voice/transcribe', 'Api\Voice::transcribe');
     $routes->get('voice/voices', 'Api\Voice::getVoices');
+    $routes->post('voice/equalizer/apply', 'Api\Voice::applyEqualizer');
+    $routes->get('voice/equalizer/presets', 'Api\Voice::getEqualizerPresets');
+    $routes->post('voice/equalizer/curve', 'Api\Voice::getEqualizerCurve');
+    $routes->get('voice/equalizer/state', 'Api\Voice::getEqualizerState');
     $routes->post('vision/analyze', 'Api\Vision::analyze');
     $routes->post('vision/screenshot-debug', 'Api\Vision::debugScreenshot');
 

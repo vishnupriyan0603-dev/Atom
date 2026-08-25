@@ -911,6 +911,42 @@ namespace AtomAssistant.ViewModels.Pages
             }
         }
 
+        // ── DSP Audio Equalizer Commands ──────────────────────────────────────
+
+        /// <summary>Applies a named audio equalizer preset (e.g. VOCAL_ENHANCE, BASS_BOOST).</summary>
+        [RelayCommand]
+        private async Task ApplyEqualizerPreset(string preset)
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{\"preset\":\"" + (preset ?? "FLAT") + "\"}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/voice/equalizer/apply", reqContent);
+                _logger.LogInformation("Equalizer preset applied: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not apply equalizer preset");
+            }
+        }
+
+        /// <summary>Toggles audio equalizer DSP processing state.</summary>
+        [RelayCommand]
+        private async Task ToggleEqualizerPower(bool enabled)
+        {
+            try
+            {
+                using var client = new System.Net.Http.HttpClient();
+                var reqContent = new System.Net.Http.StringContent("{\"enabled\":" + (enabled ? "true" : "false") + "}", System.Text.Encoding.UTF8, "application/json");
+                var response = await client.PostAsync("http://localhost:8080/api/v1/voice/equalizer/apply", reqContent);
+                _logger.LogInformation("Equalizer power toggled: {StatusCode}", response.StatusCode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not toggle equalizer power");
+            }
+        }
+
         // ─────────────────────────────────────────────────────────────────────
 
         [RelayCommand]

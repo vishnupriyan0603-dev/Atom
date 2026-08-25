@@ -1102,6 +1102,51 @@ class ApiService {
     } catch (_) {}
     return {'success': false};
   }
+
+  // ── DSP Audio Equalizer Methods ─────────────────────────────────────────────
+
+  /// POST /api/v1/voice/equalizer/apply — Apply & validate 10-band EQ settings.
+  Future<Map<String, dynamic>> applyEqualizerSettings(Map<String, dynamic> eqData) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/voice/equalizer/apply'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(eqData),
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// GET /api/v1/voice/equalizer/presets — Get standard EQ presets.
+  Future<Map<String, dynamic>> getEqualizerPresets() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/voice/equalizer/presets'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
+
+  /// GET /api/v1/voice/equalizer/state — Get current active EQ profile state.
+  Future<Map<String, dynamic>> getEqualizerState() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/voice/equalizer/state'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {}
+    return {'success': false};
+  }
 }
 
 
