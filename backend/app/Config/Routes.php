@@ -588,10 +588,17 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('brain/dialogue/respond', 'Api\NaturalDialogue::respond');
     $routes->post('brain/dialogue/teach', 'Api\NaturalDialogue::teach');
     $routes->post('brain/dialogue/english-hint', 'Api\NaturalDialogue::englishHint');
+
+    // Phase 70 Landmark — Distributed Cache Invalidation & Stampede Shield Routes
+    $routes->get('database/cache/stats', 'Api\CacheInvalidator::stats');
+    $routes->post('database/cache/set', 'Api\CacheInvalidator::setKey');
+    $routes->post('database/cache/get', 'Api\CacheInvalidator::getKey');
+    $routes->post('database/cache/invalidate-tag', 'Api\CacheInvalidator::invalidateTag');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
