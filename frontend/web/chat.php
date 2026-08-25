@@ -37,7 +37,7 @@ require_once __DIR__ . '/bootstrap.php';
       </div>
     </div>
     <div class="p-4 border-t border-[#1e2838]">
-      <a href="/admin" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-[#11151c] text-emerald-400 hover:bg-[#16202e] border border-[#1e2838] transition-all">
+      <a href="<?= $getAdminUrl() ?>" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-bold bg-[#11151c] text-emerald-400 hover:bg-[#16202e] border border-[#1e2838] transition-all">
         Control Panel &rarr;
       </a>
     </div>
@@ -77,7 +77,7 @@ require_once __DIR__ . '/bootstrap.php';
     </div>
   </div>
 
-  <script src="/admin/js/shared.js"></script>
+  <script src="<?= $getBaseUrl() ?>/admin/js/shared.js"></script>
   <script>
     let activeChatId = null;
 

@@ -25,12 +25,12 @@ require_once __DIR__ . '/bootstrap.php';
         <span class="text-xl font-bold tracking-tight text-white">ATOM <span class="text-emerald-400 text-xs font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 ml-1">BRAIN</span></span>
       </div>
       <nav class="hidden md:flex items-center gap-6 text-sm font-medium text-gray-400">
-        <a href="/index.php" class="text-white hover:text-emerald-400 transition-colors">Home</a>
-        <a href="/chat.php" class="hover:text-emerald-400 transition-colors">Chat Interface</a>
-        <a href="/admin/index.php" class="hover:text-emerald-400 transition-colors">Control Panel</a>
+        <a href="<?= $getBaseUrl() ?>/index.php" class="text-white hover:text-emerald-400 transition-colors">Home</a>
+        <a href="<?= $getBaseUrl() ?>/chat.php" class="hover:text-emerald-400 transition-colors">Chat Interface</a>
+        <a href="<?= $getAdminUrl() ?>" class="hover:text-emerald-400 transition-colors">Control Panel</a>
       </nav>
       <div>
-        <a href="/chat.php" class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/10 transition-all transform hover:-translate-y-0.5">
+        <a href="<?= $getBaseUrl() ?>/chat.php" class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/10 transition-all transform hover:-translate-y-0.5">
           Launch Chat
         </a>
       </div>
@@ -53,10 +53,10 @@ require_once __DIR__ . '/bootstrap.php';
       </p>
 
       <div class="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
-        <a href="/chat.php" class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl shadow-emerald-500/10 text-center transition-all transform hover:-translate-y-0.5">
+        <a href="<?= $getBaseUrl() ?>/chat.php" class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl shadow-emerald-500/10 text-center transition-all transform hover:-translate-y-0.5">
           Start Conversation
         </a>
-        <a href="/admin/index.php" class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold bg-[#11151c] hover:bg-[#171d26] text-white border border-[#1e2838] hover:border-emerald-500/30 text-center transition-all">
+        <a href="<?= $getAdminUrl() ?>" class="w-full sm:w-auto px-6 py-3.5 rounded-xl font-bold bg-[#11151c] hover:bg-[#171d26] text-white border border-[#1e2838] hover:border-emerald-500/30 text-center transition-all">
           Access Control Panel
         </a>
       </div>
