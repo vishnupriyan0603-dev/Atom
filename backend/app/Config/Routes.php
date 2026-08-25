@@ -495,10 +495,17 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('cron/lease/renew', 'Api\CronScheduler::renewLease');
     $routes->get('cron/cluster/status', 'Api\CronScheduler::clusterStatus');
     $routes->delete('cron/jobs/(:segment)', 'Api\CronScheduler::deleteJob/$1');
+
+    // Phase 50 — Autonomous Multi-Modal Platform Command Center Routes
+    $routes->get('command-center/platform-status', 'Api\CommandCenter::platformStatus');
+    $routes->post('command-center/dispatch', 'Api\CommandCenter::dispatch');
+    $routes->post('command-center/run-diagnostics', 'Api\CommandCenter::runDiagnostics');
+    $routes->post('command-center/heal', 'Api\CommandCenter::heal');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
