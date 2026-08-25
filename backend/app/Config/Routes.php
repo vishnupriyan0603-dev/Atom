@@ -613,10 +613,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 74 — API Schema Fuzzer & Vulnerability Scanner Routes
     $routes->post('testing/fuzzer/scan', 'Api\ApiFuzzer::scan');
     $routes->get('testing/fuzzer/payloads', 'Api\ApiFuzzer::payloads');
+
+    // Phase 75 — Edge IoT Telemetry Ingest & Watchdog Routes
+    $routes->get('network/iot/fleet-status', 'Api\IoTWatchdog::fleetStatus');
+    $routes->post('network/iot/ingest', 'Api\IoTWatchdog::ingest');
+    $routes->post('network/iot/register-device', 'Api\IoTWatchdog::registerDevice');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
