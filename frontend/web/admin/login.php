@@ -59,11 +59,11 @@ require_once __DIR__ . '/../bootstrap.php';
     </div>
 
     <p class="text-center text-[10px] text-gray-600 mt-6">
-      <a href="/" class="hover:text-gray-400">&#8592; Back to Atom Assistant</a>
+      <a href="<?= $getBaseUrl() ?>/index.php" class="hover:text-gray-400">&#8592; Back to Atom Assistant</a>
     </p>
   </div>
 
-  <script src="/admin/js/shared.js"></script>
+  <script src="<?= $getBaseUrl() ?>/admin/js/shared.js"></script>
   <script>
     var ATOM_API = 'http://localhost:8080/api';
     var mode = 'login';
@@ -108,7 +108,8 @@ require_once __DIR__ . '/../bootstrap.php';
         if (json.success && json.token) {
           setAuthToken(json.token, json.user && json.user.email);
           var next = new URLSearchParams(window.location.search).get('next');
-          window.location.href = next && next.indexOf('/login') === -1 ? next : '/admin/index.php';
+          var fallback = '<?= $getAdminUrl("index") ?>';
+          window.location.href = next && next.indexOf('/login') === -1 ? next : fallback;
         } else {
           showError(json.message || 'Authentication failed.');
         }

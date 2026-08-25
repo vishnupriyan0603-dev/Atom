@@ -82,7 +82,7 @@ require_once __DIR__ . '/../bootstrap.php';
     </main>
   </div>
 
-  <script src="/admin/js/shared.js"></script>
+  <script src="<?= $getBaseUrl() ?>/admin/js/shared.js"></script>
   <script>
     async function loadDocuments() {
       try {

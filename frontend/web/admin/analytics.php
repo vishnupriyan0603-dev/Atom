@@ -76,7 +76,7 @@ require_once __DIR__ . '/../bootstrap.php';
     </main>
   </div>
 
-  <script src="/admin/js/shared.js"></script>
+  <script src="<?= $getBaseUrl() ?>/admin/js/shared.js"></script>
   <script>
     // Response time + error charts driven by real atom_requests / atom_errors data.
     async function loadCharts() {

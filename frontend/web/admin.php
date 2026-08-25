@@ -1,4 +1,5 @@
 <?php
-// Main Admin Routing Gateway — Redirects directly to the new structured control panel.
-header('Location: /admin/index.php');
+// Main Admin Routing Gateway — Redirects directly to the structured control panel.
+require_once __DIR__ . '/bootstrap.php';
+header('Location: ' . $getAdminUrl('index'));
 exit;

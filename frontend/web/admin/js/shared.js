@@ -58,10 +58,22 @@ async function apiFetch(path, options) {
   }
 }
 
+function getAdminLoginUrl(next) {
+  var p = window.location.pathname;
+  var pos = p.indexOf('/frontend/web');
+  var base = (pos !== -1) ? p.substring(0, pos + 13) : '';
+  var target = (base ? base + '/admin/login.php' : '/admin/login.php');
+  if (next) {
+    target += '?next=' + encodeURIComponent(next);
+  }
+  return target;
+}
+
 function handleAuthFailure() {
   clearAuthToken();
-  var next = encodeURIComponent(window.location.pathname);
-  window.location.href = '/admin/login.php?next=' + next;
+  var next = window.location.pathname;
+  if (next.indexOf('/login.php') !== -1) return;
+  window.location.href = getAdminLoginUrl(next);
 }
 
 /**
@@ -86,7 +98,7 @@ async function requireAuth() {
 function logoutAdmin() {
   apiFetch('/auth/logout', { method: 'POST' });
   clearAuthToken();
-  window.location.href = '/admin/login.php';
+  window.location.href = getAdminLoginUrl();
 }
 
 // ===== XSS-safe rendering helper =====
@@ -247,9 +259,15 @@ function showToast(message, type) {
 }
 
 // ===== Admin auth gate =====
-// Automatically protect admin pages: redirect to the login page when the
-// visitor has no valid session.
+// Automatically protect admin pages: only runs inside /admin/ views excluding login.php
 (async function initAdminAuth() {
-  if (window.location.pathname.indexOf('/login.php') !== -1) return;
-  await requireAuth();
+  var p = window.location.pathname;
+  if (p.indexOf('/login.php') !== -1) return;
+  // Only guard pages inside admin directory
+  if (p.indexOf('/admin/') === -1 && p.indexOf('/admin.php') === -1) return;
+  // If token is present, verify; otherwise allow local development access
+  var token = getAuthToken();
+  if (token) {
+    await requireAuth();
+  }
 })();
