@@ -565,10 +565,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('security/geofence/evaluate', 'Api\GeoFirewall::evaluate');
     $routes->post('security/geofence/lookup', 'Api\GeoFirewall::lookup');
     $routes->get('security/geofence/policy', 'Api\GeoFirewall::policy');
+
+    // Phase 65 — Database Schema Drift Detector & Auto-Sync Routes
+    $routes->post('database/schema/detect-drift', 'Api\SchemaDrift::detectDrift');
+    $routes->post('database/schema/generate-migration', 'Api\SchemaDrift::generateMigration');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
