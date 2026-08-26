@@ -672,10 +672,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('network/proxy/upstreams', 'Api\ReverseProxy::upstreams');
     $routes->post('network/proxy/route', 'Api\ReverseProxy::route');
     $routes->post('network/proxy/configure', 'Api\ReverseProxy::configure');
+
+    // Phase 87 — Database Shard Router & Consistent Hashing Ring Routes
+    $routes->get('database/shards/nodes', 'Api\ShardRouter::nodes');
+    $routes->post('database/shards/locate', 'Api\ShardRouter::locate');
+    $routes->post('database/shards/manage', 'Api\ShardRouter::manage');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
