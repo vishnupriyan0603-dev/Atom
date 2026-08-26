@@ -681,10 +681,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 88 — Audio Dynamic Range Compressor & Peak Limiter Routes
     $routes->post('voice/compressor/process', 'Api\AudioCompressor::process');
     $routes->get('voice/compressor/presets', 'Api\AudioCompressor::presets');
+
+    // Phase 89 — AI Token Cost Governor & Budget Allocator Routes
+    $routes->get('ai/governor/budgets', 'Api\CostGovernor::budgets');
+    $routes->post('ai/governor/track', 'Api\CostGovernor::track');
+    $routes->post('ai/governor/set-budget', 'Api\CostGovernor::setBudget');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
