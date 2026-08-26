@@ -219,6 +219,9 @@ class LearningEngine
         }
     }
 
+    /** Directories skipped during the workspace scan — matches Atom\Project\ProjectScanner's ignore list. */
+    private const IGNORED_DIRS = ['.git', 'vendor', 'node_modules', 'cache', 'logs', 'uploads', 'obj', 'bin'];
+
     private function countWorkspaceReferences(string $topic): int
     {
         // Simple search for topic keyword in filenames or project structure
@@ -226,9 +229,14 @@ class LearningEngine
         $count = 0;
         try {
             $filesPath = $this->workspaceRoot;
-            // Scan directory contents for filenames containing topic (max 100)
             $dir = new \RecursiveDirectoryIterator($filesPath, \RecursiveDirectoryIterator::SKIP_DOTS);
-            $iterator = new \RecursiveIteratorIterator($dir);
+            $filtered = new \RecursiveCallbackFilterIterator($dir, function ($current) {
+                if ($current->isDir() && in_array($current->getFilename(), self::IGNORED_DIRS, true)) {
+                    return false;
+                }
+                return true;
+            });
+            $iterator = new \RecursiveIteratorIterator($filtered);
             foreach ($iterator as $file) {
                 if (stripos($file->getFilename(), $topic) !== false) {
                     $count++;

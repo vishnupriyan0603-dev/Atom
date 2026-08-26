@@ -71,35 +71,13 @@ class GeminiProvider implements LLMInterface
             'X-goog-api-key: ' . $this->apiKey
         ];
 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_TIMEOUT, $this->timeout);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $this->timeout);
-
         // Disable SSL verification if requested or if local/XAMPP environment
         $disableSsl = (getenv('ATOM_DISABLE_SSL_VERIFY') === 'true' || getenv('ATOM_DISABLE_SSL_VERIFY') === '1' || getenv('CURL_SSL_VERIFY') === 'false' || strpos($url, 'localhost') !== false || strpos($url, '127.0.0.1') !== false);
-        if ($disableSsl) {
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        }
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-
-        // Auto-retry with SSL verify disabled if OpenSSL certificate error occurs
-        if ($response === false && (strpos($error, 'unable to get local issuer certificate') !== false || strpos($error, 'SSL certificate') !== false || strpos($error, 'certificate') !== false)) {
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $error = curl_error($ch);
-        }
-
-        curl_close($ch);
+        $result = HttpClient::post($url, $body, $headers, $this->timeout, $disableSsl);
+        $response = $result['response'];
+        $httpCode = $result['http_code'];
+        $error = $result['error'];
 
         if ($response === false) {
             return [
@@ -162,36 +140,15 @@ class GeminiProvider implements LLMInterface
             $url = $this->apiUrl . '/models/' . $this->model;
         }
 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 3);
-        
         $headers = ['Content-Type: application/json'];
         if (strpos($this->apiUrl, 'generativelanguage.googleapis.com') === false) {
             $headers[] = 'X-goog-api-key: ' . $this->apiKey;
         }
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
         $disableSsl = (getenv('ATOM_DISABLE_SSL_VERIFY') === 'true' || getenv('ATOM_DISABLE_SSL_VERIFY') === '1' || getenv('CURL_SSL_VERIFY') === 'false' || strpos($url, 'localhost') !== false || strpos($url, '127.0.0.1') !== false);
-        if ($disableSsl) {
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        }
 
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
+        $result = HttpClient::get($url, $headers, 3, $disableSsl);
 
-        if ($httpCode !== 200 && (strpos($error, 'unable to get local issuer certificate') !== false || strpos($error, 'SSL certificate') !== false || strpos($error, 'certificate') !== false)) {
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        }
-
-        curl_close($ch);
-
-        return $httpCode === 200;
+        return $result['http_code'] === 200;
     }
 }

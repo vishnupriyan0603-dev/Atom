@@ -1,0 +1,41 @@
+{
+  "asset_name": "atom_robot_avatar",
+  "status": "PROCEDURAL_PLACEHOLDER — real .glb not yet authored/sourced",
+  "purpose": "Design base for a future 3D avatar representing ATOM visually during chat sessions. Not wired into any live UI yet — this manifest establishes the spec so a matching .glb can be authored/sourced later and dropped in with minimal code changes.",
+  "placeholder_preview": {
+    "file": "atom_avatar_preview.html",
+    "what_it_is": "Standalone Three.js scene, free/local/no external upload — a boxy procedural humanoid robot built only from this manifest's color_palette and rough proportions (gunmetal torso, bronze shin guards/gloves, glowing cyan eyes, green chest badge). Not a real model of the reference photos, just a themed stand-in.",
+    "how_to_view": "Open directly in a browser, or serve over the project's local Apache (XAMPP) at /model%20file/atom_avatar_preview.html",
+    "replace_when_ready": "Once a real atom_robot_avatar.glb exists, load it with THREE.GLTFLoader instead of the procedural group in this file."
+  },
+  "reference_images": [
+    { "file": "abassi-ali-atom-new-front.jpg", "view": "three-pose turnaround: front, front, 3/4 back" },
+    { "file": "image_0.png", "view": "front, isolated on plain background" }
+  ],
+  "design_spec": {
+    "style": "hard-surface weathered sci-fi humanoid robot, realistic bipedal proportions (not chibi/stylized)",
+    "head": "rounded helmet-shaped head, two glowing oval eyes, worn tan headband-style plate across the forehead, small ridged vent on top",
+    "torso": "broad angular shoulder pauldrons, ribbed segmented chest plating, small chest badge reading 'Atom' in green script on the right panel",
+    "arms": "articulated segmented arms, tan/bronze gloved hands with exposed knuckle joints",
+    "legs": "robotic legs with tan/bronze shin guards carrying a triangular zigzag cutout pattern, dark heavy boots",
+    "color_palette": {
+      "primary_gunmetal": "#4a4d52",
+      "secondary_worn_bronze": "#8f7a5a",
+      "eye_glow_cyan": "#2ee6c8",
+      "badge_green": "#3fae54"
+    },
+    "material_notes": "matte worn metal with visible scratches/grime weathering, low-to-mid metalness, high roughness variance, no glossy/clean surfaces"
+  },
+  "existing_assets_in_this_folder": {
+    "pixellabs-chibi-reaper-5295.glb": "Not a style match for this spec (chibi proportions) — pre-existing asset, unrelated to this design, left as-is",
+    "tiny_planet_friends_3d-chibi3d-2886.glb": "Not a style match for this spec (chibi proportions) — pre-existing asset, unrelated to this design, left as-is"
+  },
+  "target_file_when_ready": "model file/atom_robot_avatar.glb",
+  "future_integration_plan_not_started": [
+    "Web chat (frontend/web/chat.php): small avatar viewer panel near the chat header, loaded with Three.js GLTFLoader — same rendering approach already used for the admin dashboard's 3D Neural Brain Model (frontend/web/admin/index.php).",
+    "Idle animation: gentle rotation/breathing loop; eye-glow pulses while ATOM is composing or speaking a reply.",
+    "Desktop WPF (src/PersonalAIAssistant/): optional matching avatar viewport if a WPF-compatible 3D control is added later.",
+    "None of this is built yet — per instruction, this task only creates the design base for future use."
+  ],
+  "created": "2026-08-26"
+}

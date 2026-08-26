@@ -188,6 +188,14 @@ class MemoryManager
     }
 
     /**
+     * Returns the underlying database connection, or null if unavailable.
+     */
+    public function getConnection(): ?Connection
+    {
+        return $this->connection;
+    }
+
+    /**
      * Returns connection error details if failed.
      */
     public function getDbError(): ?string

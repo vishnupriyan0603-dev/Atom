@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ATOM Avatar Placeholder Preview</title>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b0d11; overflow: hidden; font-family: ui-sans-serif, system-ui, sans-serif; }
+  #overlay {
+    position: fixed; top: 14px; left: 14px; z-index: 10;
+    color: #d7dce3; background: rgba(15,17,22,0.72); border: 1px solid #2a3140;
+    border-radius: 10px; padding: 12px 16px; font-size: 12px; line-height: 1.5; max-width: 360px;
+  }
+  #overlay b { color: #2ee6c8; }
+  #overlay code { color: #8f7a5a; }
+</style>
+</head>
+<body>
+<div id="overlay">
+  <b>PROCEDURAL PLACEHOLDER</b> — not the real avatar.<br>
+  Built from the design spec in <code>atom_avatar_manifest.json</code> (colors + rough proportions only).
+  Swap in <code>atom_robot_avatar.glb</code> via a <code>GLTFLoader</code> when the real model exists — no other
+  code here needs to change.
+</div>
+<canvas id="c"></canvas>
+<script>
+  const PALETTE = {
+    gunmetal: 0x4a4d52,
+    bronze:   0x8f7a5a,
+    eyeCyan:  0x2ee6c8,
+    badgeGreen: 0x3fae54,
+    boot:     0x1c1d20,
+  };
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0b0d11);
+
+  const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 1.1, 6.5);
+
+  const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const key = new THREE.DirectionalLight(0xffffff, 0.9);
+  key.position.set(3, 5, 4);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0x6fa8ff, 0.35);
+  rim.position.set(-4, 2, -3);
+  scene.add(rim);
+
+  function matte(color, metalness = 0.35, roughness = 0.75) {
+    return new THREE.MeshStandardMaterial({ color, metalness, roughness });
+  }
+  const gunmetalMat = matte(PALETTE.gunmetal);
+  const bronzeMat = matte(PALETTE.bronze, 0.45, 0.65);
+  const bootMat = matte(PALETTE.boot, 0.2, 0.85);
+  const eyeMat = new THREE.MeshStandardMaterial({ color: PALETTE.eyeCyan, emissive: PALETTE.eyeCyan, emissiveIntensity: 1.6, roughness: 0.3 });
+  const badgeMat = new THREE.MeshStandardMaterial({ color: PALETTE.badgeGreen, emissive: PALETTE.badgeGreen, emissiveIntensity: 0.4, roughness: 0.5 });
+
+  const avatar = new THREE.Group();
+
+  // Torso — ribbed chest over a narrower waist
+  const chest = new THREE.Mesh(new THREE.BoxGeometry(1.5, 1.15, 0.75), gunmetalMat);
+  chest.position.y = 1.55;
+  avatar.add(chest);
+
+  const waist = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, 0.55, 8), gunmetalMat);
+  waist.position.y = 0.85;
+  avatar.add(waist);
+
+  // Chest badge ("Atom")
+  const badge = new THREE.Mesh(new THREE.PlaneGeometry(0.32, 0.14), badgeMat);
+  badge.position.set(0.35, 1.65, 0.38);
+  avatar.add(badge);
+
+  // Shoulder pauldrons
+  [-1, 1].forEach((side) => {
+    const pauldron = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.5, 0.6), gunmetalMat);
+    pauldron.position.set(side * 0.98, 1.95, 0);
+    pauldron.rotation.z = side * 0.12;
+    avatar.add(pauldron);
+  });
+
+  // Head — rounded helmet with headband and glowing eyes
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.42, 16, 16), gunmetalMat);
+  head.position.y = 2.55;
+  head.scale.set(1, 1.08, 0.92);
+  avatar.add(head);
+
+  const headband = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.16, 0.9), bronzeMat);
+  headband.position.y = 2.62;
+  avatar.add(headband);
+
+  [-1, 1].forEach((side) => {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 10), eyeMat);
+    eye.position.set(side * 0.16, 2.5, 0.38);
+    avatar.add(eye);
+  });
+
+  // Top vent ridges
+  for (let i = -2; i <= 2; i++) {
+    const ridge = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.06, 0.3), bootMat);
+    ridge.position.set(i * 0.08, 2.92, 0);
+    avatar.add(ridge);
+  }
+
+  // Arms: upper arm, forearm, gloved hand with knuckle detail
+  function buildArm(side) {
+    const arm = new THREE.Group();
+
+    const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.14, 0.6, 8), gunmetalMat);
+    upper.position.set(side * 1.05, 1.55, 0);
+    arm.add(upper);
+
+    const fore = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.12, 0.55, 8), gunmetalMat);
+    fore.position.set(side * 1.05, 1.02, 0.05);
+    fore.rotation.x = 0.15;
+    arm.add(fore);
+
+    const hand = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.26, 0.2), bronzeMat);
+    hand.position.set(side * 1.05, 0.68, 0.1);
+    arm.add(hand);
+
+    for (let i = -1; i <= 1; i++) {
+      const knuckle = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), gunmetalMat);
+      knuckle.position.set(side * 1.05 + i * 0.06, 0.78, 0.2);
+      arm.add(knuckle);
+    }
+
+    return arm;
+  }
+  avatar.add(buildArm(-1));
+  avatar.add(buildArm(1));
+
+  // Legs: upper leg, shin guard (bronze w/ dark inset), boot
+  function buildLeg(side) {
+    const leg = new THREE.Group();
+
+    const upper = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.17, 0.65, 8), gunmetalMat);
+    upper.position.set(side * 0.28, 0.35, 0);
+    leg.add(upper);
+
+    const shin = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.55, 0.24), bronzeMat);
+    shin.position.set(side * 0.28, -0.2, 0.03);
+    leg.add(shin);
+
+    const shinInset = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.4, 4), bootMat);
+    shinInset.position.set(side * 0.28, -0.2, 0.15);
+    shinInset.rotation.x = Math.PI;
+    leg.add(shinInset);
+
+    const boot = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.18, 0.4), bootMat);
+    boot.position.set(side * 0.28, -0.56, 0.08);
+    leg.add(boot);
+
+    return leg;
+  }
+  avatar.add(buildLeg(-1));
+  avatar.add(buildLeg(1));
+
+  avatar.position.y = -0.6;
+  scene.add(avatar);
+
+  let t = 0;
+  function animate() {
+    t += 0.01;
+    avatar.rotation.y = Math.sin(t * 0.4) * 0.5 + t * 0.15;
+    avatar.position.y = -0.6 + Math.sin(t * 1.2) * 0.03;
+    renderer.render(scene, camera);
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
+</body>
+</html>

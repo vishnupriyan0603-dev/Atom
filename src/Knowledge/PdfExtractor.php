@@ -181,8 +181,38 @@ class PdfExtractor
             }
         }
 
-        // Clean up basic PDF escape characters
-        return str_replace(['\\(', '\\)', '\\\\'], ['(', ')', '\\'], $text);
+        return $this->decodePdfStringEscapes($text);
+    }
+
+    /**
+     * Decodes PDF string escape sequences (PDF spec §7.3.4.2): \n \r \t \b \f,
+     * literal \( \) \\, and \ddd octal byte codes. Octal codes above ASCII are
+     * assumed WinAnsiEncoding (the common case for text from Word/LaTeX PDFs,
+     * e.g. \223/\224 are curly quotes) and converted to UTF-8; left undecoded
+     * (raw byte) codes fall through unless conversion fails.
+     */
+    private function decodePdfStringEscapes(string $text): string
+    {
+        return preg_replace_callback('/\\\\([0-7]{1,3}|[nrtbf()\\\\])/', function (array $m): string {
+            $esc = $m[1];
+            switch ($esc) {
+                case 'n': return "\n";
+                case 'r': return "\r";
+                case 't': return "\t";
+                case 'b': return "\x08";
+                case 'f': return "\x0C";
+                case '(': return '(';
+                case ')': return ')';
+                case '\\': return '\\';
+            }
+
+            $byte = octdec($esc) & 0xFF;
+            if ($byte < 128) {
+                return chr($byte);
+            }
+            $decoded = @iconv('Windows-1252', 'UTF-8//IGNORE', chr($byte));
+            return ($decoded !== false && $decoded !== '') ? $decoded : '';
+        }, $text);
     }
 
     /**

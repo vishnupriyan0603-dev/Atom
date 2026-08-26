@@ -131,13 +131,26 @@ class DocumentImporter
                 $documentId = (int)$pdo->lastInsertId();
             }
 
-            // Slice pages into overlapping chunks and insert
+            // Slice pages into chunks and insert. NeuralDocumentChunker splits on Markdown
+            // header / code function-class boundaries first, falling back to the same
+            // sliding-window Chunker (same defaults: 800/150) for plain prose — so this is
+            // behavior-equivalent for prose PDFs and strictly better for code/markdown docs.
             $chunksCount = 0;
             $stmt = $pdo->prepare("INSERT INTO atom_document_chunks (document_id, page_number, chunk_text) VALUES (?, ?, ?)");
+            $neuralChunker = new NeuralDocumentChunker();
 
             foreach ($pages as $pageNo => $text) {
-                $chunks = $this->chunker->chunk($text);
-                foreach ($chunks as $chunk) {
+                $result = $neuralChunker->chunkDocument($text, [
+                    'chunk_size' => 800,
+                    'overlap'    => 150,
+                    'doc_title'  => $title,
+                ]);
+
+                $chunkTexts = !empty($result['chunks'])
+                    ? array_column($result['chunks'], 'content')
+                    : $this->chunker->chunk($text);
+
+                foreach ($chunkTexts as $chunk) {
                     $stmt->execute([$documentId, $pageNo, $chunk]);
                     $chunksCount++;
                 }

@@ -24,6 +24,7 @@ class VoiceEngine
     public const BACKENDS = ['none', 'google_tts', 'browser_web_speech', 'local_tts'];
 
     /** Current backend — 'none' in Phase 23. */
+    private string $backend;
     private SpeechSynthesizer $synthesizer;
     private AudioTranscriber $transcriber;
 

@@ -9,6 +9,7 @@ require_once __DIR__ . '/../bootstrap.php';
   <title>ATOM Control — Dashboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
   <style>
     body {
       background-color: #080a0d;
@@ -111,6 +112,28 @@ require_once __DIR__ . '/../bootstrap.php';
           </div>
           <div class="flex-1 overflow-y-auto space-y-3 pr-2 text-xs" id="selfLearningLogs">
             <div class="text-center py-8 text-gray-500 text-[10px]">No learning history logged. Waiting for cross-model training cycles...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ATOM 3D NEURAL BRAIN MODEL -->
+      <div class="bg-[#11151c] border border-[#1e2838] rounded-2xl p-6 shadow-lg">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1e2838] pb-4 mb-4">
+          <div>
+            <h3 class="font-bold text-white text-sm flex items-center gap-2"><span>🧠</span> ATOM Neural Brain Model</h3>
+            <p class="text-[10px] text-gray-500 mt-1">Live 3D visualization of the learning state — color reflects brain health, pulses reflect active recall.</p>
+          </div>
+          <div class="flex items-center gap-3 text-[10px]">
+            <span class="flex items-center gap-1 text-gray-400"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span> Healthy</span>
+            <span class="flex items-center gap-1 text-gray-400"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> Learning</span>
+            <span class="flex items-center gap-1 text-gray-400"><span class="w-2.5 h-2.5 rounded-full bg-rose-400 inline-block"></span> Needs Review</span>
+          </div>
+        </div>
+        <div id="brainModelContainer" class="relative w-full h-80 rounded-xl overflow-hidden bg-[#080a0d]">
+          <canvas id="brainCanvas" class="w-full h-full block"></canvas>
+          <div class="absolute bottom-3 left-3 flex gap-4 text-[10px] text-gray-400">
+            <span>Neurons: <span class="text-white font-bold" id="brainNeuronCount">0</span></span>
+            <span>Synapses Firing: <span class="text-emerald-400 font-bold" id="brainSynapseCount">0</span></span>
           </div>
         </div>
       </div>
@@ -307,6 +330,176 @@ require_once __DIR__ . '/../bootstrap.php';
     }
 
     loadSafetyGateData();
+
+    // ── ATOM 3D Neural Brain Model ─────────────────────────────────────────
+    // Procedurally generated particle brain — no external 3D asset required.
+    // Color = learning health (red → amber → green). Pulse = simulated recall.
+    (function initBrainModel() {
+      const container = document.getElementById('brainModelContainer');
+      const canvas = document.getElementById('brainCanvas');
+      if (!container || !canvas || typeof THREE === 'undefined') return;
+
+      const healthScore = <?php echo (int)$stats['health_score']; ?>;
+      const knowledgeCount = <?php echo (int)$stats['knowledge_count']; ?>;
+
+      const pointCount = Math.min(3000, Math.max(700, knowledgeCount || 700));
+      document.getElementById('brainNeuronCount').textContent = pointCount.toLocaleString();
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 100);
+      camera.position.set(0, 0, 7);
+
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(container.clientWidth, container.clientHeight);
+
+      // 0% health → red (hue 0); 100% health → green (hue 140)
+      const baseHue = Math.max(0, Math.min(140, ((healthScore - 50) / 50) * 140));
+
+      const positions = new Float32Array(pointCount * 3);
+      const colors = new Float32Array(pointCount * 3);
+      const phases = new Float32Array(pointCount);
+      const tmpColor = new THREE.Color();
+
+      const R = 2.1;
+      for (let i = 0; i < pointCount; i++) {
+        const theta = 2 * Math.PI * Math.random();
+        const phi = Math.acos(1 - 2 * Math.random());
+
+        let x = Math.sin(phi) * Math.cos(theta);
+        let y = Math.cos(phi);
+        let z = Math.sin(phi) * Math.sin(theta);
+
+        // Cortex fold displacement — layered sine waves stand in for gyri/sulci noise
+        const fold = Math.sin(theta * 6 + phi * 5) * Math.cos(phi * 8 - theta * 3) * 0.09
+                   + Math.sin(theta * 3 - phi * 7) * 0.05;
+        const r = R * (1 + fold);
+
+        x *= r; y *= r * 0.92; z *= r * 0.82;
+
+        // Split into two hemispheres around a central longitudinal fissure
+        const gap = 0.12;
+        x += x >= 0 ? gap : -gap;
+
+        // Taper the lower region into a brain-stem cluster
+        if (y < -R * 0.55) { x *= 0.35; z *= 0.35; }
+
+        positions[i * 3] = x;
+        positions[i * 3 + 1] = y;
+        positions[i * 3 + 2] = z;
+
+        const lightness = Math.min(0.75, Math.max(0.25, 0.35 + Math.max(0, fold) * 2.2));
+        const hue = (baseHue + fold * 40 + 360) % 360;
+        tmpColor.setHSL(hue / 360, 0.75, lightness);
+        colors[i * 3] = tmpColor.r;
+        colors[i * 3 + 1] = tmpColor.g;
+        colors[i * 3 + 2] = tmpColor.b;
+
+        phases[i] = Math.random() * Math.PI * 2;
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+      const material = new THREE.PointsMaterial({
+        size: 0.045,
+        vertexColors: true,
+        transparent: true,
+        opacity: 0.9,
+        sizeAttenuation: true,
+        depthWrite: false,
+      });
+
+      const brainPoints = new THREE.Points(geometry, material);
+
+      // Synaptic connection lines — each hub neuron joins its 2 nearest neighbors.
+      // Warm (pink) = close/strong bond, cool (blue) = far/weak bond.
+      const maxConnectDist = 0.55;
+      const hubStep = Math.max(1, Math.floor(pointCount / 380));
+      const linePositions = [];
+      const lineColors = [];
+      const lineColor = new THREE.Color();
+
+      for (let hub = 0; hub < pointCount; hub += hubStep) {
+        const hx = positions[hub * 3], hy = positions[hub * 3 + 1], hz = positions[hub * 3 + 2];
+        let bestIdx = -1, bestDist = maxConnectDist;
+        let bestIdx2 = -1, bestDist2 = maxConnectDist;
+        for (let j = 0; j < pointCount; j++) {
+          if (j === hub) continue;
+          const dx = positions[j * 3] - hx, dy = positions[j * 3 + 1] - hy, dz = positions[j * 3 + 2] - hz;
+          const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+          if (d < bestDist) { bestDist2 = bestDist; bestIdx2 = bestIdx; bestDist = d; bestIdx = j; }
+          else if (d < bestDist2) { bestDist2 = d; bestIdx2 = j; }
+        }
+        [[bestIdx, bestDist], [bestIdx2, bestDist2]].forEach(([idx, dist]) => {
+          if (idx === -1) return;
+          const t = Math.min(1, dist / maxConnectDist); // 0 = close/warm, 1 = far/cool
+          const hue = 340 - t * 130; // 340 warm pink → 210 cool blue
+          const lightness = Math.max(0.22, 0.62 - t * 0.28);
+          lineColor.setHSL(((hue % 360) + 360) % 360 / 360, 0.7, lightness);
+
+          linePositions.push(hx, hy, hz, positions[idx * 3], positions[idx * 3 + 1], positions[idx * 3 + 2]);
+          lineColors.push(lineColor.r, lineColor.g, lineColor.b, lineColor.r, lineColor.g, lineColor.b);
+        });
+      }
+
+      const lineGeometry = new THREE.BufferGeometry();
+      lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+      lineGeometry.setAttribute('color', new THREE.Float32BufferAttribute(lineColors, 3));
+      const lineMaterial = new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.45 });
+      const synapseLines = new THREE.LineSegments(lineGeometry, lineMaterial);
+
+      const brainGroup = new THREE.Group();
+      brainGroup.add(brainPoints);
+      brainGroup.add(synapseLines);
+      scene.add(brainGroup);
+
+      const light = new THREE.PointLight(0xffffff, 0.6);
+      light.position.set(3, 3, 5);
+      scene.add(light);
+
+      // A subset of points act as "firing synapses" — brighter pulsing flashes
+      const synapseCount = Math.min(120, Math.floor(pointCount * 0.06));
+      document.getElementById('brainSynapseCount').textContent = synapseCount;
+      const synapseIndices = [];
+      for (let i = 0; i < synapseCount; i++) {
+        synapseIndices.push(Math.floor(Math.random() * pointCount));
+      }
+
+      const colorAttr = geometry.getAttribute('color');
+      const baseColors = colors.slice();
+
+      let frame = 0;
+      function animate() {
+        frame++;
+        const t = frame * 0.02;
+
+        brainGroup.rotation.y += 0.0022;
+        brainGroup.rotation.x = Math.sin(t * 0.15) * 0.08;
+
+        for (let k = 0; k < synapseIndices.length; k++) {
+          const idx = synapseIndices[k];
+          const pulse = (Math.sin(t * 2 + phases[idx]) + 1) / 2;
+          const boost = 1 + pulse * 1.6;
+          colorAttr.array[idx * 3]     = Math.min(1, baseColors[idx * 3] * boost);
+          colorAttr.array[idx * 3 + 1] = Math.min(1, baseColors[idx * 3 + 1] * boost);
+          colorAttr.array[idx * 3 + 2] = Math.min(1, baseColors[idx * 3 + 2] * boost);
+        }
+        colorAttr.needsUpdate = true;
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+      }
+      animate();
+
+      window.addEventListener('resize', () => {
+        if (!container.clientWidth || !container.clientHeight) return;
+        camera.aspect = container.clientWidth / container.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(container.clientWidth, container.clientHeight);
+      });
+    })();
   </script>
 </body>
 </html>

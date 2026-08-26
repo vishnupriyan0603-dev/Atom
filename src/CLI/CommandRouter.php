@@ -30,6 +30,13 @@ class CommandRouter
     private KnowledgeSearch $kSearch;
     private array $history = [];
 
+    /**
+     * Active session provider alias (null = Atom Universal Brain / auto-routed,
+     * matching the web chat page's default). Switched via `/provider set` or `/model`.
+     */
+    private ?string $activeProviderAlias = null;
+    private string $activeProviderLabel = 'Atom Universal Brain (auto-routed)';
+
     public function __construct(
         TerminalUI $ui,
         string $workspaceRoot,
@@ -128,6 +135,13 @@ class CommandRouter
                     $this->handleProvider($args);
                     return true;
 
+                case '/model':
+                    // Short alias matching the web chat page's model dropdown:
+                    // /model                -> show active provider
+                    // /model <groq|gemini|atom> -> switch it
+                    $this->handleProvider(trim($args) === '' ? '' : 'set ' . $args);
+                    return true;
+
                 case '/profile':
                     $this->handleProfile();
                     return true;
@@ -141,7 +155,7 @@ class CommandRouter
                 case '/good':
                 case '/bad':
                 case '/correct':
-                    $response = $this->brain->process($input, $this->history);
+                    $response = $this->brain->process($input, $this->history, $this->activeProviderAlias);
                     if (strpos($response, 'ATOM:') === 0) {
                         $this->ui->writeLine($response);
                     } else {
@@ -489,7 +503,7 @@ class CommandRouter
         }
 
         // If it's general conversational input, process through AtomBrain pipeline
-        $response = $this->brain->process($input, $this->history);
+        $response = $this->brain->process($input, $this->history, $this->activeProviderAlias);
         
         // Print the response nicely
         if (strpos($response, 'ATOM:') === 0) {
@@ -515,6 +529,8 @@ class CommandRouter
         $this->ui->writeLine("  /php-lint <file>          Run a syntax compile test on a PHP file.");
         $this->ui->writeLine("  /create <file>; <text>    Create a new file with target contents.");
         $this->ui->writeLine("  /patch <file>; <find>; <rep>  Safely apply a code replacement patch.");
+        $this->ui->writeLine("  /model [groq|gemini|atom] Show or switch the active AI provider for this session.");
+        $this->ui->writeLine("  /provider set <name>      Same as /model — switch active provider (groq|gemini|atom).");
         $this->ui->writeLine("  /memory                   View saved long-term personal settings/decisions.");
         $this->ui->writeLine("  /profile                  Display owner profile configuration.");
         $this->ui->writeLine("  /history                  View recent conversational inputs and outputs.");
@@ -539,27 +555,24 @@ class CommandRouter
         $stats = $this->scanner->getStats($files);
 
         $dbConnected = $this->memory->isDbConnected();
-        
+
         $memoriesCount = 0;
-        $docsCount = 0;
         $pdfDocsCount = 0;
-        $chunksCount = 0;
+
+        // Shared with the Web/Admin dashboards via Atom\Knowledge\KnowledgeHealthReport
+        // so the Brain Health Score and knowledge counts always match across viewers.
+        $health = \Atom\Knowledge\KnowledgeHealthReport::compute(
+            $dbConnected ? $this->memory->getConnection()->getPdo() : null
+        );
+        $docsCount = $health['document_count'];
+        $chunksCount = $health['knowledge_count'];
 
         if ($dbConnected) {
             $memoriesCount = count($this->memory->getMemories());
             try {
-                $refPdo = null;
-                $ref = new \ReflectionProperty($this->memory, 'connection');
-                $ref->setAccessible(true);
-                $connObj = $ref->getValue($this->memory);
-                if ($connObj) {
-                    $refPdo = $connObj->getPdo();
-                }
-                
+                $refPdo = $this->memory->getConnection()->getPdo();
                 if ($refPdo) {
-                    $docsCount = (int)$refPdo->query("SELECT COUNT(*) FROM atom_documents")->fetchColumn();
                     $pdfDocsCount = (int)$refPdo->query("SELECT COUNT(*) FROM atom_documents WHERE filename LIKE '%.pdf'")->fetchColumn();
-                    $chunksCount = (int)$refPdo->query("SELECT COUNT(*) FROM atom_document_chunks")->fetchColumn();
                 }
             } catch (\Exception $e) {}
         }
@@ -610,6 +623,7 @@ class CommandRouter
         $this->ui->writeLine("  Documents           " . $docsCount);
         $this->ui->writeLine("  PDF Documents       " . $pdfDocsCount);
         $this->ui->writeLine("  Indexed Chunks      " . $chunksCount);
+        $this->ui->writeLine("  Brain Health Score  " . $health['health_score'] . "/100");
         $this->ui->writeLine();
 
         $this->ui->writeLine("Workspace");
@@ -903,6 +917,21 @@ class CommandRouter
             } else {
                 $this->ui->error("Database connection offline. Mode change aborted.");
             }
+        } elseif ($sub === 'set') {
+            // Switch which provider answers the next messages this session —
+            // mirrors the model dropdown on the web chat page.
+            $providerAliasMap = [
+                'groq'   => 'groq',
+                'gemini' => 'gemini',
+                'atom'   => null, // Atom Universal Brain: let AtomBrain's own routing decide
+            ];
+            if (!array_key_exists($val, $providerAliasMap)) {
+                $this->ui->error("Usage: /provider set <groq|gemini|atom>");
+                return;
+            }
+            $this->activeProviderAlias = $providerAliasMap[$val];
+            $this->activeProviderLabel = ($val === 'atom') ? 'Atom Universal Brain (auto-routed)' : strtoupper($val);
+            $this->ui->success("Active session provider switched to: " . $this->activeProviderLabel);
         } else {
             // Default and status subcommand
             $colMode = 'balanced';
@@ -934,7 +963,8 @@ class CommandRouter
             }
 
             $this->ui->highlight("AI PROVIDER STATUS");
-            $this->ui->writeLine("  Collab Mode : " . strtoupper($colMode));
+            $this->ui->writeLine("  Collab Mode      : " . strtoupper($colMode));
+            $this->ui->writeLine("  Active Session AI: " . $this->activeProviderLabel . "  (switch with /provider set <groq|gemini|atom>)");
             $this->ui->writeLine();
 
             if (empty($cloudProviders)) {
@@ -1717,6 +1747,9 @@ class CommandRouter
             } catch (\Throwable $e) {
                 $this->ui->error("Vision analysis failed: " . $e->getMessage());
             }
+        }
+    }
+
     // ── Phase 25 — Proactive Daemon CLI Handlers ─────────────────────────────
 
     private function handleDaemon(string $command, string $args = ''): void
@@ -1749,6 +1782,10 @@ class CommandRouter
             $this->ui->writeLine("  Commands:");
             $this->ui->writeLine("    /daemon:status          Inspect live daemon health & uptime");
             $this->ui->writeLine("    /daemon:pulse           Trigger an immediate life-cycle pulse");
+        }
+        $this->ui->writeLine();
+    }
+
     // ── Phase 26 — Developer IDE Protocol (LSP) CLI Handlers ─────────────────
 
     private function handleLsp(string $command, string $args = ''): void
@@ -1779,6 +1816,10 @@ class CommandRouter
             $this->ui->writeLine("  Triggers         : " . implode(', ', $caps['completionProvider']['triggerCharacters']));
             $this->ui->writeLine("  Commands:");
             $this->ui->writeLine("    /lsp:status             Inspect server capabilities and protocol version");
+        }
+        $this->ui->writeLine();
+    }
+
     // ── Phase 27 — Desktop Automation CLI Handlers ───────────────────────────
 
     private function handleDesktop(string $command, string $args = ''): void
@@ -1816,6 +1857,10 @@ class CommandRouter
             $this->ui->writeLine("  Commands:");
             $this->ui->writeLine("    /desktop:status         Inspect active window and OS telemetry");
             $this->ui->writeLine("    /desktop:clipboard      Inspect and analyze clipboard buffer");
+        }
+        $this->ui->writeLine();
+    }
+
     // ── Phase 28 — Real-Time WebSocket & Sync CLI Handlers ───────────────────
 
     private function handleSync(string $command, string $args = ''): void
@@ -1848,6 +1893,10 @@ class CommandRouter
                 $this->ui->writeLine("    • " . $p['device_name'] . " (" . $p['client_type'] . " @ " . $p['ip_address'] . ") — " . strtoupper($p['status']));
             }
             $this->ui->writeLine("  Commands:");
+        }
+        $this->ui->writeLine();
+    }
+
     // ── Phase 29 — Autonomous Testing & CI/CD CLI Handlers ───────────────────
 
     private function handleCicd(string $command, string $args = ''): void
