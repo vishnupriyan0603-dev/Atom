@@ -762,6 +762,9 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('brain/voice/synthesize', 'Api\Brain::synthesizeVoice');
     $routes->get('brain/voice/profiles', 'Api\Brain::voiceProfiles');
     $routes->post('brain/voice/stream', 'Api\Brain::voiceStream');
+    $routes->post('brain/planner/create', 'Api\Brain::createPlan');
+    $routes->post('brain/planner/step', 'Api\Brain::stepPlan');
+    $routes->get('brain/planner/templates', 'Api\Brain::planTemplates');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)

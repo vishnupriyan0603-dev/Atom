@@ -560,6 +560,50 @@ include_once __DIR__ . '/components/header.php';
                     </div>
                 </div>
             </div>
+<!-- ATOM Brain Phase 5: Autonomous Multi-Step Goal Planner & Self-Correction Studio -->
+<div class="card bg-dark border-secondary text-white mb-4 shadow">
+    <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+        <span class="fw-bold text-amber-400"><i class="bi bi-diagram-2-fill me-2"></i>Autonomous Multi-Step Goal Planner &amp; Self-Correction Studio</span>
+        <span class="badge bg-amber-950 text-amber-300 border border-amber-500/40">AUTONOMOUS DAG &amp; ERROR RECOVERY</span>
+    </div>
+    <div class="card-body p-3">
+        <div class="row g-3 mb-3">
+            <div class="col-md-7">
+                <label class="form-label text-muted text-xs fw-bold">HIGH-LEVEL GOAL DIRECTIVE</label>
+                <div class="input-group input-group-sm mb-2">
+                    <input type="text" id="plannerGoalInput" class="form-control bg-black text-white border-secondary" placeholder="e.g. Migrate database to MySQL 8.0, generate OpenAPI docs, and deploy health check cron">
+                    <button class="btn btn-amber btn-sm text-dark fw-bold" style="background:#F59E0B;" onclick="createGoalPlan()">
+                        <i class="bi bi-lightning-charge me-1"></i> Decompose Goal (DAG)
+                    </button>
+                </div>
+                <div class="d-flex gap-1.5 flex-wrap">
+                    <span class="text-[11px] text-muted me-1">Preset Templates:</span>
+                    <button class="btn btn-outline-secondary btn-sm py-0 px-2 text-[11px]" onclick="loadPlanTemplate('db_migration')">📦 DB Migration</button>
+                    <button class="btn btn-outline-secondary btn-sm py-0 px-2 text-[11px]" onclick="loadPlanTemplate('security_audit')">🛡️ Security Audit</button>
+                    <button class="btn btn-outline-secondary btn-sm py-0 px-2 text-[11px]" onclick="loadPlanTemplate('test_coverage')">🧪 Test Coverage</button>
+                    <button class="btn btn-outline-secondary btn-sm py-0 px-2 text-[11px]" onclick="loadPlanTemplate('cicd_deploy')">🚀 CI/CD Deploy</button>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label text-muted text-xs fw-bold">PLAN EXECUTION PROGRESS</label>
+                <div class="p-2 rounded bg-black border border-secondary">
+                    <div class="d-flex justify-content-between text-xs mb-1">
+                        <span id="planStatusBadge" class="badge bg-secondary">NO PLAN INITIALIZED</span>
+                        <span id="planProgressPercent" class="font-monospace text-amber-400 font-bold">0%</span>
+                    </div>
+                    <div class="progress bg-dark" style="height: 6px;">
+                        <div id="planProgressBar" class="progress-bar bg-amber-400" role="progressbar" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task DAG Stepper Container -->
+        <div id="plannerTasksContainer" class="p-3 rounded bg-black border border-secondary" style="min-height: 120px;">
+            <div class="text-center text-muted text-xs p-4">
+                <i class="bi bi-diagram-2 fs-3 text-secondary d-block mb-2"></i>
+                Submit a goal above or select a preset template to generate a multi-step DAG execution plan.
+            </div>
         </div>
     </div>
 </div>
@@ -1135,6 +1179,131 @@ function stopSpeech() {
     }
 }
 
+let activeGoalPlan = null;
+
+function loadPlanTemplate(templateKey) {
+    apiFetch('/brain/planner/create', {
+        method: 'POST',
+        body: JSON.stringify({ template: templateKey })
+    }).then(res => {
+        if (res.success && res.data) {
+            activeGoalPlan = res.data;
+            document.getElementById('plannerGoalInput').value = res.data.goal || '';
+            renderPlanTasks();
+        }
+    }).catch(e => alert('Template error: ' + e.message));
+}
+
+function createGoalPlan() {
+    const goal = document.getElementById('plannerGoalInput').value.trim();
+    if (!goal) {
+        alert('Please enter a goal description.');
+        return;
+    }
+
+    apiFetch('/brain/planner/create', {
+        method: 'POST',
+        body: JSON.stringify({ goal: goal })
+    }).then(res => {
+        if (res.success && res.data) {
+            activeGoalPlan = res.data;
+            renderPlanTasks();
+        }
+    }).catch(e => alert('Planner error: ' + e.message));
+}
+
+function renderPlanTasks() {
+    if (!activeGoalPlan) return;
+
+    const p = activeGoalPlan;
+    const badge = document.getElementById('planStatusBadge');
+    badge.innerText = p.status.toUpperCase();
+    badge.className = p.status === 'completed' ? 'badge bg-success text-dark font-bold' : (p.status === 'in_progress' ? 'badge bg-warning text-dark font-bold' : 'badge bg-secondary');
+
+    const percent = `${p.progress_percent || 0}%`;
+    document.getElementById('planProgressPercent').innerText = percent;
+    document.getElementById('planProgressBar').style.width = percent;
+
+    const container = document.getElementById('plannerTasksContainer');
+    const tasks = p.tasks || [];
+
+    if (!tasks.length) {
+        container.innerHTML = '<div class="text-muted text-xs text-center p-3">No tasks in current plan.</div>';
+        return;
+    }
+
+    container.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-b border-secondary/50">
+            <div>
+                <span class="text-white fw-bold text-xs"><i class="bi bi-diagram-3 text-amber-400 me-1"></i>${escapeHtml(p.goal)}</span>
+                <span class="badge bg-dark border border-secondary text-muted ms-2 text-[10px]">${p.template_used}</span>
+            </div>
+            <span class="text-xs text-muted font-monospace">${p.completed_tasks} / ${p.total_tasks} Tasks Done</span>
+        </div>
+        <div class="space-y-2">
+            ${tasks.map((t, idx) => {
+                const statusColor = t.status === 'completed' ? 'text-success' : (t.status === 'self_correcting' ? 'text-warning' : (t.status === 'failed_unrecoverable' ? 'text-danger' : 'text-muted'));
+                const icon = t.status === 'completed' ? 'bi-check-circle-fill text-success' : (t.status === 'self_correcting' ? 'bi-arrow-repeat text-warning' : 'bi-circle');
+                const isReady = (t.dependencies || []).every(depId => (tasks.find(x => x.id === depId) || {}).status === 'completed');
+
+                return `
+                    <div class="p-2.5 rounded bg-[#0b0e14] border border-secondary/60 text-xs">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi ${icon}"></i>
+                                <span class="fw-bold text-white">${idx + 1}. ${escapeHtml(t.title)}</span>
+                                <span class="badge bg-black border border-secondary text-[10px] text-muted">${t.action}</span>
+                            </div>
+                            <div class="d-flex gap-1">
+                                ${t.status !== 'completed' ? `
+                                    <button class="btn btn-outline-success btn-sm py-0 px-2 text-[11px]" onclick="executePlanStep('${t.id}', true)" ${!isReady ? 'disabled' : ''}>
+                                        <i class="bi bi-play"></i> Execute
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm py-0 px-1.5 text-[11px]" onclick="executePlanStep('${t.id}', false)" ${!isReady ? 'disabled' : ''} title="Simulate Failure & Trigger Self-Correction">
+                                        <i class="bi bi-bug"></i> Test Fail
+                                    </button>
+                                ` : '<span class="badge bg-success/20 text-success border border-success/40">COMPLETED</span>'}
+                            </div>
+                        </div>
+                        ${t.error ? `
+                            <div class="p-1.5 rounded bg-red-950/40 border border-red-500/40 text-danger text-[11px] mt-1">
+                                <strong>Error:</strong> ${escapeHtml(t.error)}
+                                ${t.recovery_strategy ? `
+                                    <div class="text-warning mt-1">
+                                        <i class="bi bi-tools me-1"></i><strong>Self-Correction:</strong> ${escapeHtml(t.recovery_strategy.remediation_plan)}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                        ${t.output ? `<div class="text-emerald-400 text-[11px] mt-1 font-mono"><i class="bi bi-check me-1"></i>${escapeHtml(t.output)}</div>` : ''}
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+function executePlanStep(taskId, simulateSuccess) {
+    if (!activeGoalPlan) return;
+
+    apiFetch('/brain/planner/step', {
+        method: 'POST',
+        body: JSON.stringify({
+            plan: activeGoalPlan,
+            task_id: taskId,
+            success: simulateSuccess,
+            error: simulateSuccess ? null : 'Simulated execution lock / timeout failure'
+        })
+    }).then(res => {
+        if (res.success && res.data && res.data.plan) {
+            activeGoalPlan = res.data.plan;
+            renderPlanTasks();
+        } else {
+            alert(res.message || res.error || 'Step execution failed.');
+        }
+    }).catch(e => alert('Step execution error: ' + e.message));
+}
+
 // Load on page ready
 document.addEventListener('DOMContentLoaded', function () {
     loadBrainStatus();
@@ -1142,8 +1311,10 @@ document.addEventListener('DOMContentLoaded', function () {
     loadLearningGraph();
     loadBrainMemory();
     generateVoiceProsody();
+    loadPlanTemplate('db_migration');
     setInterval(loadBrainStatus, 15000);
 });
+
 </script>
 
 <?php include_once __DIR__ . '/components/footer.php'; ?>

@@ -319,7 +319,70 @@ class Brain extends BaseApiController
 
         return $this->respondError($res['error'] ?? 'Stream event failed', 400);
     }
+
+    /**
+     * POST /api/v1/brain/planner/create
+     * Decomposes a user goal into an autonomous multi-step DAG plan.
+     */
+    public function createPlan()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $goal = trim($json['goal'] ?? ($json['text'] ?? ''));
+        $templateKey = $json['template'] ?? null;
+
+        if (empty($goal) && empty($templateKey)) {
+            return $this->respondError('Goal description or template is required', 400);
+        }
+
+        $planner = new \Atom\Brain\AtomGoalPlannerEngine();
+        $res = $planner->createPlan($goal ?: 'Execute Plan Preset', $templateKey);
+
+        if (!empty($res['success'])) {
+            return $this->respondSuccess($res, 'Goal decomposed into actionable multi-step plan');
+        }
+
+        return $this->respondError($res['error'] ?? 'Failed to create plan', 400);
+    }
+
+    /**
+     * POST /api/v1/brain/planner/step
+     * Advances a plan step with automated self-correction upon error.
+     */
+    public function stepPlan()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $plan = $json['plan'] ?? [];
+        $taskId = $json['task_id'] ?? '';
+        $simulateSuccess = $json['success'] ?? true;
+        $simulatedError = $json['error'] ?? null;
+
+        if (empty($plan) || empty($taskId)) {
+            return $this->respondError('Plan payload and task_id are required', 400);
+        }
+
+        $planner = new \Atom\Brain\AtomGoalPlannerEngine();
+        $res = $planner->advanceStep($plan, $taskId, (bool) $simulateSuccess, $simulatedError);
+
+        if (!empty($res['success'])) {
+            return $this->respondSuccess($res, "Step {$taskId} processed");
+        }
+
+        return $this->respondError($res['error'] ?? 'Failed to advance step', 400, $res);
+    }
+
+    /**
+     * GET /api/v1/brain/planner/templates
+     * Returns preset multi-step goal plan templates.
+     */
+    public function planTemplates()
+    {
+        $planner = new \Atom\Brain\AtomGoalPlannerEngine();
+        return $this->respondSuccess([
+            'templates' => $planner->getTemplates()
+        ], 'Goal Plan Templates');
+    }
 }
+
 
 
 
