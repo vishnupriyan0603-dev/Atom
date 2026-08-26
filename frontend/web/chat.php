@@ -442,12 +442,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
           <option value="fast_briefing">⚡ Ultra-Fast Briefing</option>
         </select>
 
+        <!-- Robot-to-Human Persona Spectrum -->
+        <div class="hidden sm:flex items-center bg-[#11151c] border border-emerald-500/30 rounded-xl p-0.5" title="Atom Evolution Spectrum: Robot (Literal) to Human (Empathetic)">
+          <button type="button" onclick="setPersonaLevel(1)" id="btnPersona1" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition text-gray-400 hover:text-white" title="Level 1: Robot — Literal, ultra-concise & deterministic">🤖 Robot</button>
+          <button type="button" onclick="setPersonaLevel(2)" id="btnPersona2" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition text-emerald-300 bg-emerald-950/60 border border-emerald-500/40" title="Level 2: Assistant — Balanced, adaptive & helpful">🧠 Assistant</button>
+          <button type="button" onclick="setPersonaLevel(3)" id="btnPersona3" class="px-2.5 py-1 rounded-lg text-[11px] font-bold transition text-gray-400 hover:text-pink-300" title="Level 3: Human — Warm, deeply empathetic & conversational">🌱 Human</button>
+        </div>
+
         <!-- LLM / Brain Selector -->
         <select id="chatModel" onchange="onModelChange()" class="h-9 px-3 rounded-xl bg-[#11151c] border border-purple-500/40 text-xs text-purple-300 focus:outline-none focus:border-purple-500 font-mono font-semibold">
           <optgroup label="🧠 ATOM PERSONAL BRAIN">
-            <option value="atom-brain-assistant" selected>🧠 Atom Brain (Personal Assistant)</option>
-            <option value="atom-brain-teach">🎓 Atom Brain — Teach / Learn Mode</option>
-            <option value="atom-brain-level">📊 Atom Brain — Knowledge &amp; Level Inspector</option>
+            <option value="atom-core" selected>🧠 Atom Universal Brain</option>
           </optgroup>
           <optgroup label="⚡ CLOUD &amp; LOCAL LLMS">
             <option value="openai/gpt-oss-120b">Groq / GPT-OSS 120B</option>
@@ -964,6 +969,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             chat_id: activeChatId,
             message: text,
             model: model,
+            persona_level: currentPersonaLevel,
             provider: 'Groq'
           })
         });
@@ -990,6 +996,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         sendBtn.disabled = false;
         input.focus();
       }
+    }
+
+    let currentPersonaLevel = 2;
+    function setPersonaLevel(lvl) {
+      currentPersonaLevel = lvl;
+      const b1 = document.getElementById('btnPersona1');
+      const b2 = document.getElementById('btnPersona2');
+      const b3 = document.getElementById('btnPersona3');
+      if (!b1 || !b2 || !b3) return;
+
+      b1.className = (lvl === 1) ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold transition text-cyan-300 bg-cyan-950/60 border border-cyan-500/40' : 'px-2.5 py-1 rounded-lg text-[11px] font-bold transition text-gray-400 hover:text-white';
+      b2.className = (lvl === 2) ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold transition text-emerald-300 bg-emerald-950/60 border border-emerald-500/40' : 'px-2.5 py-1 rounded-lg text-[11px] font-bold transition text-gray-400 hover:text-white';
+      b3.className = (lvl === 3) ? 'px-2.5 py-1 rounded-lg text-[11px] font-bold transition text-pink-300 bg-pink-950/60 border border-pink-500/40' : 'px-2.5 py-1 rounded-lg text-[11px] font-bold transition text-gray-400 hover:text-pink-300';
+
+      const labels = { 1: 'Level 1: Robot (Deterministic & Concise)', 2: 'Level 2: Assistant (Balanced & Proactive)', 3: 'Level 3: Human (Empathetic & Conversational)' };
+      showToast('Atom Persona set to: ' + labels[lvl], 'info');
     }
 
     function onModelChange() {

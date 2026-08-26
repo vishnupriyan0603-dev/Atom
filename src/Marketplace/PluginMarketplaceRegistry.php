@@ -38,6 +38,7 @@ class PluginMarketplaceRegistry
                 'rating'           => 4.9,
                 'downloads'        => 3420,
                 'verified'         => true,
+                'is_free'          => true,
                 'permissions'      => ['allow_database'],
                 'capabilities'     => ['explain_query', 'suggest_indexes', 'bench_query'],
                 'min_core_version' => '1.0.0',
@@ -52,8 +53,69 @@ class PluginMarketplaceRegistry
                 'rating'           => 5.0,
                 'downloads'        => 8920,
                 'verified'         => true,
+                'is_free'          => true,
                 'permissions'      => ['allow_filesystem', 'allow_network'],
                 'capabilities'     => ['scan_dependencies', 'audit_cve', 'generate_sbom'],
+                'min_core_version' => '1.0.0',
+            ],
+            [
+                'id'               => 'google_search_planner',
+                'name'             => 'Google Search & Live Web Information Harvester',
+                'version'          => '1.0.0',
+                'author'           => 'ATOM Autonomous Research',
+                'category'         => 'free',
+                'description'      => 'Dispatches Google searches, harvests live internet sources, and grounds goal plans with verified references.',
+                'rating'           => 5.0,
+                'downloads'        => 12400,
+                'verified'         => true,
+                'is_free'          => true,
+                'permissions'      => ['allow_network'],
+                'capabilities'     => ['google_search', 'harvest_web_facts', 'synthesize_research'],
+                'min_core_version' => '1.0.0',
+            ],
+            [
+                'id'               => 'github_repo_syncer',
+                'name'             => 'GitHub Repository & Release Automation Syncer',
+                'version'          => '1.1.2',
+                'author'           => 'OpenSource DevOps Mesh',
+                'category'         => 'free',
+                'description'      => 'Syncs GitHub issues, automates PR validation hooks, and drafts changelogs.',
+                'rating'           => 4.8,
+                'downloads'        => 7310,
+                'verified'         => true,
+                'is_free'          => true,
+                'permissions'      => ['allow_network', 'allow_filesystem'],
+                'capabilities'     => ['sync_repo', 'draft_release', 'track_issues'],
+                'min_core_version' => '1.0.0',
+            ],
+            [
+                'id'               => 'system_resource_watcher',
+                'name'             => 'System Hardware & Core Performance Watchdog',
+                'version'          => '1.0.3',
+                'author'           => 'ATOM Core Labs',
+                'category'         => 'free',
+                'description'      => 'Monitors CPU, RAM, Disk I/O, and Apache/PHP socket pools in real time.',
+                'rating'           => 4.9,
+                'downloads'        => 9520,
+                'verified'         => true,
+                'is_free'          => true,
+                'permissions'      => ['allow_process'],
+                'capabilities'     => ['inspect_resources', 'check_socket_health', 'alert_thresholds'],
+                'min_core_version' => '1.0.0',
+            ],
+            [
+                'id'               => 'dev_doc_generator',
+                'name'             => 'Developer API Documentation & OpenAPI 3.0 Synthesizer',
+                'version'          => '1.0.1',
+                'author'           => 'API Engineering Group',
+                'category'         => 'free',
+                'description'      => 'Generates clean Markdown & interactive Swagger documentation from PHP docblocks.',
+                'rating'           => 4.8,
+                'downloads'        => 6430,
+                'verified'         => true,
+                'is_free'          => true,
+                'permissions'      => ['allow_filesystem'],
+                'capabilities'     => ['generate_openapi', 'build_markdown_docs', 'lint_api_spec'],
                 'min_core_version' => '1.0.0',
             ],
             [
@@ -66,6 +128,7 @@ class PluginMarketplaceRegistry
                 'rating'           => 4.8,
                 'downloads'        => 1850,
                 'verified'         => true,
+                'is_free'          => false,
                 'permissions'      => ['allow_network', 'allow_filesystem'],
                 'capabilities'     => ['upload_vault', 'download_vault', 'list_snapshots'],
                 'min_core_version' => '1.0.0',
@@ -80,6 +143,7 @@ class PluginMarketplaceRegistry
                 'rating'           => 4.7,
                 'downloads'        => 2110,
                 'verified'         => true,
+                'is_free'          => true,
                 'permissions'      => [],
                 'capabilities'     => ['render_latex', 'synthesize_svg', 'format_equation'],
                 'min_core_version' => '1.0.0',
@@ -94,6 +158,7 @@ class PluginMarketplaceRegistry
                 'rating'           => 4.9,
                 'downloads'        => 5640,
                 'verified'         => true,
+                'is_free'          => false,
                 'permissions'      => ['allow_process', 'allow_network'],
                 'capabilities'     => ['inspect_containers', 'restart_service', 'tail_logs'],
                 'min_core_version' => '1.0.0',
@@ -168,6 +233,29 @@ class PluginMarketplaceRegistry
     }
 
     /**
+     * Batch installs all free verified plugins.
+     */
+    public function installAllFree(): array
+    {
+        $catalog = $this->getCatalog();
+        $installed = [];
+
+        foreach ($catalog as $plugin) {
+            if (!empty($plugin['is_free']) || $plugin['category'] === 'free') {
+                $res = $this->install($plugin);
+                $installed[] = $res['plugin'];
+            }
+        }
+
+        return [
+            'success' => true,
+            'installed_count' => count($installed),
+            'plugins' => $installed,
+            'message' => "Successfully installed " . count($installed) . " free plugins!",
+        ];
+    }
+
+    /**
      * Toggles plugin enabled / disabled status.
      */
     public function toggle(string $pluginId, ?bool $enabled = null): array
@@ -182,6 +270,7 @@ class PluginMarketplaceRegistry
         self::$installedPlugins[$pluginId]['status'] = $newStatus;
 
         return [
+            'success' => true,
             'id'      => $pluginId,
             'status'  => $newStatus,
             'enabled' => ($newStatus === 'enabled'),

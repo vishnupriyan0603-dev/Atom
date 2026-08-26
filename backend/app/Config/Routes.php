@@ -500,6 +500,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('cron/cluster/status', 'Api\CronScheduler::clusterStatus');
     $routes->delete('cron/jobs/(:segment)', 'Api\CronScheduler::deleteJob/$1');
 
+    // Phase 32 — Enterprise Plugin Marketplace & Free Plugins
+    $routes->get('marketplace/plugins', 'Api\Marketplace::catalog');
+    $routes->post('marketplace/install', 'Api\Marketplace::install');
+    $routes->post('marketplace/install-free', 'Api\Marketplace::installFree');
+    $routes->post('marketplace/uninstall', 'Api\Marketplace::uninstall');
+    $routes->post('marketplace/toggle', 'Api\Marketplace::toggle');
+
     // Phase 50 — Autonomous Multi-Modal Platform Command Center Routes
     $routes->get('command-center/platform-status', 'Api\CommandCenter::platformStatus');
     $routes->post('command-center/dispatch', 'Api\CommandCenter::dispatch');
@@ -772,6 +779,7 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('brain/planner/create', 'Api\Brain::createPlan');
     $routes->post('brain/planner/step', 'Api\Brain::stepPlan');
     $routes->get('brain/planner/templates', 'Api\Brain::planTemplates');
+    $routes->post('brain/planner/google-search', 'Api\Brain::googleSearchPlanner');
     $routes->get('brain/meta/telemetry', 'Api\Brain::metaTelemetry');
     $routes->post('brain/meta/evaluate', 'Api\Brain::evaluateMetaCognition');
     $routes->post('brain/meta/evolve', 'Api\Brain::evolveMetaCognition');

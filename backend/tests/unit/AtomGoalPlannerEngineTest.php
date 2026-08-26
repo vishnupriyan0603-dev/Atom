@@ -88,5 +88,29 @@ class AtomGoalPlannerEngineTest extends TestCase
         $this->assertArrayHasKey('security_audit', $templates);
         $this->assertArrayHasKey('test_coverage', $templates);
         $this->assertArrayHasKey('cicd_deploy', $templates);
+        $this->assertArrayHasKey('google_internet_research', $templates);
+    }
+
+    public function testGoogleInternetResearchTemplate(): void
+    {
+        $res = $this->engine->createPlan('Internet Research on Vector Embeddings', 'google_internet_research');
+        $this->assertTrue($res['success']);
+        $this->assertEquals('Google Search & Live Internet Information Harvester', $res['template_used']);
+        $this->assertCount(4, $res['tasks']);
+        $this->assertEquals('step_1', $res['tasks'][0]['id']);
+        $this->assertEquals('google_auth_check', $res['tasks'][0]['action']);
+        $this->assertEquals(['step_1'], $res['tasks'][1]['dependencies']);
+    }
+
+    public function testExecuteGoogleSearchHarvest(): void
+    {
+        $harvest = $this->engine->executeGoogleSearchHarvest('PHP 8.4 benchmark and features');
+        $this->assertTrue($harvest['success']);
+        $this->assertEquals('PHP 8.4 benchmark and features', $harvest['query']);
+        $this->assertGreaterThanOrEqual(1, $harvest['total_results']);
+        $this->assertNotEmpty($harvest['results']);
+        $this->assertArrayHasKey('title', $harvest['results'][0]);
+        $this->assertArrayHasKey('link', $harvest['results'][0]);
+        $this->assertArrayHasKey('snippet', $harvest['results'][0]);
     }
 }

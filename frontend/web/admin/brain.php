@@ -153,19 +153,26 @@ include_once __DIR__ . '/components/header.php';
 
 <!-- ATOM Brain Knowledge & Level Learning Graph (Phase 1 AI Assistant) -->
 <div class="row g-4 mt-1 mb-4">
-    <!-- Learning & Concept Synapse Graph -->
+    <!-- Learning & Concept 3D Synapse Brain Model -->
     <div class="col-md-7">
         <div class="card bg-dark border-secondary text-white h-100 shadow">
             <div class="card-header border-secondary d-flex justify-content-between align-items-center">
-                <span class="fw-bold text-purple-400"><i class="bi bi-diagram-2-fill me-2"></i>Atom Brain Knowledge &amp; Synapse Graph</span>
-                <span class="badge bg-purple-900 text-purple-200 border border-purple-500/40" id="graphTopicCountBadge">6 TOPIC CLUSTERS</span>
+                <span class="fw-bold text-purple-400"><i class="bi bi-cpu-fill me-2"></i>3D Neural Brain Model &amp; Synapse Learning Mesh</span>
+                <div class="d-flex gap-1.5 align-items-center">
+                    <span class="badge bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[10px]" id="brainMeshModeBadge">3D ORBIT ACTIVE</span>
+                    <span class="badge bg-purple-900 text-purple-200 border border-purple-500/40 text-[10px]" id="graphTopicCountBadge">6 TOPIC CLUSTERS</span>
+                </div>
             </div>
-            <div class="card-body p-3">
-                <canvas id="synapseCanvas" class="w-100 bg-black rounded border border-secondary" style="height: 280px; display: block;"></canvas>
-                <div class="d-flex justify-content-between align-items-center mt-2 text-xs text-muted">
+            <div class="card-body p-3 position-relative">
+                <div class="position-absolute top-3 start-3 z-10 d-flex gap-1" style="z-index: 5;">
+                    <button class="btn btn-xs btn-outline-secondary text-[10px] py-0 px-1.5 bg-black/60 backdrop-blur" onclick="reset3DBrainView()" title="Reset 3D Camera View"><i class="bi bi-arrows-fullscreen"></i> Reset 3D</button>
+                </div>
+                <canvas id="synapseCanvas" class="w-100 bg-black rounded border border-secondary" style="height: 300px; display: block; cursor: grab;"></canvas>
+                <div class="d-flex justify-content-between align-items-center mt-2 text-xs text-muted flex-wrap gap-1">
                     <span><i class="bi bi-circle-fill text-purple-400 me-1"></i> Core Knowledge</span>
-                    <span><i class="bi bi-circle-fill text-emerald-400 me-1"></i> Learned Corrections</span>
+                    <span><i class="bi bi-circle-fill text-emerald-400 me-1"></i> Learned Process (High Score)</span>
                     <span><i class="bi bi-circle-fill text-cyan-400 me-1"></i> Real-World Concepts</span>
+                    <span class="text-[10px] text-muted"><i class="bi bi-mouse me-1"></i> Drag to orbit in 3D</span>
                 </div>
             </div>
         </div>
@@ -582,6 +589,7 @@ include_once __DIR__ . '/components/header.php';
                     <button class="btn btn-outline-secondary btn-sm py-0 px-2 text-[11px]" onclick="loadPlanTemplate('security_audit')">🛡️ Security Audit</button>
                     <button class="btn btn-outline-secondary btn-sm py-0 px-2 text-[11px]" onclick="loadPlanTemplate('test_coverage')">🧪 Test Coverage</button>
                     <button class="btn btn-outline-secondary btn-sm py-0 px-2 text-[11px]" onclick="loadPlanTemplate('cicd_deploy')">🚀 CI/CD Deploy</button>
+                    <button class="btn btn-outline-success btn-sm py-0 px-2 text-[11px]" onclick="loadPlanTemplate('google_internet_research')"><i class="bi bi-google me-1"></i>🌐 Google Search Plan</button>
                 </div>
             </div>
             <div class="col-md-5">
@@ -598,12 +606,38 @@ include_once __DIR__ . '/components/header.php';
             </div>
         </div>
 
+        <!-- Google Account & Live Internet Information Harvester Sub-Panel -->
+        <div class="p-2.5 rounded bg-black border border-success/30 mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-xs text-emerald-400 fw-bold"><i class="bi bi-google me-1"></i>Google Account / Custom Search Harvester (Live Internet Context)</span>
+                <span class="badge bg-emerald-950 text-emerald-300 border border-emerald-500/40 text-[10px]">REAL-TIME WEB RESEARCH</span>
+            </div>
+            <div class="row g-2">
+                <div class="col-md-7">
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="googleSearchQuery" class="form-control bg-[#0a0d13] text-white border-secondary text-xs" placeholder="Enter topic to search Google (e.g. PHP 8.4 performance benchmarks, MySQL 8.0 sharding best practices)">
+                        <button class="btn btn-sm btn-success text-dark fw-bold" onclick="harvestGoogleInfo()">
+                            <i class="bi bi-search me-1"></i> Harvest Info
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="d-flex gap-1">
+                        <input type="password" id="googleApiKeyInput" class="form-control form-control-sm bg-[#0a0d13] text-white border-secondary text-[11px]" placeholder="Google API Key (Optional)">
+                        <input type="text" id="googleCxInput" class="form-control form-control-sm bg-[#0a0d13] text-white border-secondary text-[11px]" placeholder="Search Engine CX ID">
+                    </div>
+                </div>
+            </div>
+            <div id="googleSearchResultsBox" class="mt-2 text-xs" style="display:none;"></div>
+        </div>
+
         <!-- Task DAG Stepper Container -->
         <div id="plannerTasksContainer" class="p-3 rounded bg-black border border-secondary" style="min-height: 120px;">
             <div class="text-center text-muted text-xs p-4">
                 <i class="bi bi-diagram-2 fs-3 text-secondary d-block mb-2"></i>
                 Submit a goal above or select a preset template to generate a multi-step DAG execution plan.
             </div>
+        </div>
 <!-- ATOM Brain Phase 6: Meta-Cognition, Self-Evolution & 6-Phase Master Hub -->
 <div class="card bg-dark border-secondary text-white mb-4 shadow">
     <div class="card-header border-secondary d-flex justify-content-between align-items-center">
@@ -840,69 +874,377 @@ function loadLearningGraph() {
     }).catch(() => {});
 }
 
+let brain3D = {
+    rotX: 0.25,
+    rotY: 0.0,
+    isDragging: false,
+    lastMouseX: 0,
+    lastMouseY: 0,
+    topics: [],
+    particles: [],
+    animId: null,
+    pulseEnergy: 1.0,
+    initialized: false
+};
+
+function reset3DBrainView() {
+    brain3D.rotX = 0.25;
+    brain3D.rotY = 0.0;
+    brain3D.pulseEnergy = 2.0;
+}
+
 function drawSynapseGraph(topics) {
+    brain3D.topics = topics || [];
+    init3DBrainMesh();
+}
+
+function init3DBrainMesh() {
     const canvas = document.getElementById('synapseCanvas');
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    canvas.width = canvas.parentElement.clientWidth;
-    canvas.height = 280;
 
-    const w = canvas.width;
-    const h = canvas.height;
-    const cx = w / 2;
-    const cy = h / 2;
+    if (!brain3D.initialized) {
+        brain3D.initialized = true;
 
-    ctx.clearRect(0, 0, w, h);
+        // Generate 3D synapse spark particles
+        brain3D.particles = [];
+        for (let i = 0; i < 40; i++) {
+            brain3D.particles.push({
+                u: Math.random(),
+                speed: 0.005 + Math.random() * 0.01,
+                sourceIdx: Math.floor(Math.random() * 6),
+                targetIdx: Math.floor(Math.random() * 6),
+                size: 1.5 + Math.random() * 2
+            });
+        }
 
-    // Center Node (Atom Brain Core)
-    ctx.beginPath();
-    ctx.arc(cx, cy, 28, 0, Math.PI * 2);
-    ctx.fillStyle = '#7C3AED';
-    ctx.fill();
-    ctx.strokeStyle = '#A78BFA';
-    ctx.lineWidth = 3;
-    ctx.stroke();
+        // Mouse Drag 3D Orbit Controls
+        canvas.addEventListener('mousedown', (e) => {
+            brain3D.isDragging = true;
+            brain3D.lastMouseX = e.clientX;
+            brain3D.lastMouseY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        });
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 11px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('ATOM', cx, cy - 4);
-    ctx.font = '9px sans-serif';
-    ctx.fillText('BRAIN', cx, cy + 8);
+        window.addEventListener('mousemove', (e) => {
+            if (!brain3D.isDragging) return;
+            const dx = e.clientX - brain3D.lastMouseX;
+            const dy = e.clientY - brain3D.lastMouseY;
+            brain3D.rotY += dx * 0.008;
+            brain3D.rotX += dy * 0.008;
+            brain3D.lastMouseX = e.clientX;
+            brain3D.lastMouseY = e.clientY;
+        });
 
-    // Satellites
-    const count = topics.length || 6;
-    const radius = Math.min(cx, cy) - 45;
+        window.addEventListener('mouseup', () => {
+            brain3D.isDragging = false;
+            if (canvas) canvas.style.cursor = 'grab';
+        });
 
-    topics.forEach((t, i) => {
-        const angle = (i / count) * Math.PI * 2 - (Math.PI / 2);
-        const sx = cx + Math.cos(angle) * radius;
-        const sy = cy + Math.sin(angle) * radius;
+        // Touch support
+        canvas.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                brain3D.isDragging = true;
+                brain3D.lastMouseX = e.touches[0].clientX;
+                brain3D.lastMouseY = e.touches[0].clientY;
+            }
+        });
 
-        // Line to center
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(sx, sy);
-        ctx.strokeStyle = 'rgba(167, 139, 250, 0.35)';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+        canvas.addEventListener('touchmove', (e) => {
+            if (brain3D.isDragging && e.touches.length === 1) {
+                const dx = e.touches[0].clientX - brain3D.lastMouseX;
+                const dy = e.touches[0].clientY - brain3D.lastMouseY;
+                brain3D.rotY += dx * 0.01;
+                brain3D.rotX += dy * 0.01;
+                brain3D.lastMouseX = e.touches[0].clientX;
+                brain3D.lastMouseY = e.touches[0].clientY;
+                e.preventDefault();
+            }
+        });
 
-        // Node
-        ctx.beginPath();
-        ctx.arc(sx, sy, 18, 0, Math.PI * 2);
-        ctx.fillStyle = '#111827';
-        ctx.fill();
-        ctx.strokeStyle = (parseInt(t.score) >= 85) ? '#10B981' : '#F59E0B';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        canvas.addEventListener('touchend', () => {
+            brain3D.isDragging = false;
+        });
 
-        // Topic short name
-        ctx.fillStyle = '#E5E7EB';
-        ctx.font = '10px sans-serif';
-        const label = t.topic.split(' ')[0];
-        ctx.fillText(label, sx, sy + 28);
-    });
+        // Resize handler
+        window.addEventListener('resize', () => {
+            if (canvas && canvas.parentElement) {
+                canvas.width = canvas.parentElement.clientWidth;
+                canvas.height = 300;
+            }
+        });
+    }
+
+    if (brain3D.animId) cancelAnimationFrame(brain3D.animId);
+
+    function render3DFrame() {
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = 300;
+
+        const w = canvas.width;
+        const h = canvas.height;
+        const cx = w / 2;
+        const cy = h / 2;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Auto rotation when not dragging
+        if (!brain3D.isDragging) {
+            brain3D.rotY += 0.006;
+        }
+
+        // Decay pulse energy
+        brain3D.pulseEnergy = Math.max(1.0, brain3D.pulseEnergy * 0.98);
+
+        // 3D Nodes based on active knowledge topics & lobes
+        const rawNodes = [
+            { name: 'Core Cortex', x: 0, y: 0, z: 0, score: 98, isCore: true, color: '#A78BFA' }
+        ];
+
+        const lobes = [
+            { name: 'Frontal (Logic)', phi: 0.3, theta: 0.5 },
+            { name: 'Temporal (Audio)', phi: 1.4, theta: 1.2 },
+            { name: 'Parietal (Sensory)', phi: -0.7, theta: 2.1 },
+            { name: 'Occipital (Vision)', phi: 2.2, theta: 0.8 },
+            { name: 'Limbic (Emotion)', phi: -1.8, theta: 1.6 },
+            { name: 'Synapse Engine', phi: 0.9, theta: 2.8 }
+        ];
+
+        const sphereR = Math.min(cx, cy) * 0.72;
+        const topicList = brain3D.topics.length ? brain3D.topics : [
+            { topic: 'PHP 8.3 & Architecture', score: 95, level: 'EXPERT' },
+            { topic: 'CodeIgniter 4 Active-Record', score: 90, level: 'PROFICIENT' },
+            { topic: 'MySQL & Query Optimization', score: 88, level: 'PROFICIENT' },
+            { topic: 'WebRTC Mesh & Streaming', score: 82, level: 'INTERMEDIATE' },
+            { topic: 'Voice Prosody & Audio SSML', score: 85, level: 'PROFICIENT' },
+            { topic: 'CQRS & Event Ledger', score: 92, level: 'EXPERT' }
+        ];
+
+        topicList.forEach((t, i) => {
+            const lobe = lobes[i % lobes.length];
+            const r = sphereR * (0.85 + (parseInt(t.score) || 50) * 0.002);
+            rawNodes.push({
+                name: t.topic.split(' ')[0],
+                full: t.topic,
+                score: parseInt(t.score) || 50,
+                level: t.level || 'LEARNED',
+                x: r * Math.cos(lobe.phi) * Math.sin(lobe.theta),
+                y: r * Math.sin(lobe.phi) * (0.7),
+                z: r * Math.cos(lobe.phi) * Math.cos(lobe.theta),
+                isCore: false
+            });
+        });
+
+        // 3D Projection Matrix
+        const cosY = Math.cos(brain3D.rotY);
+        const sinY = Math.sin(brain3D.rotY);
+        const cosX = Math.cos(brain3D.rotX);
+        const sinX = Math.sin(brain3D.rotX);
+
+        const projectedNodes = rawNodes.map(node => {
+            // Rotate around Y
+            const x1 = node.x * cosY + node.z * sinY;
+            const z1 = -node.x * sinY + node.z * cosY;
+            // Rotate around X
+            const y2 = node.y * cosX - z1 * sinX;
+            const z2 = node.y * sinX + z1 * cosX;
+
+            const fov = 340;
+            const scale = fov / (fov + z2);
+            return {
+                ...node,
+                projX: cx + x1 * scale,
+                projY: cy + y2 * scale,
+                projScale: scale,
+                projZ: z2
+            };
+        });
+
+        // Sort by Z for proper 3D depth rendering
+        projectedNodes.sort((a, b) => b.projZ - a.projZ);
+
+        // Draw 3D Synaptic Mesh Connections
+        const coreNode = projectedNodes.find(n => n.isCore) || projectedNodes[0];
+        projectedNodes.forEach((node, i) => {
+            if (node.isCore) return;
+
+            // Core connection line
+            const alpha = Math.max(0.15, Math.min(0.85, (node.projScale - 0.4) * 0.9));
+            ctx.beginPath();
+            ctx.moveTo(coreNode.projX, coreNode.projY);
+            ctx.lineTo(node.projX, node.projY);
+            ctx.strokeStyle = (node.score >= 85) 
+                ? `rgba(16, 185, 129, ${alpha})`
+                : `rgba(167, 139, 250, ${alpha})`;
+            ctx.lineWidth = Math.max(1, 1.8 * node.projScale * brain3D.pulseEnergy);
+            ctx.stroke();
+
+            // Inter-node lattice connections
+            const nextNode = projectedNodes[(i + 1) % projectedNodes.length];
+            if (!nextNode.isCore) {
+                ctx.beginPath();
+                ctx.moveTo(node.projX, node.projY);
+                ctx.lineTo(nextNode.projX, nextNode.projY);
+                ctx.strokeStyle = `rgba(6, 182, 212, ${alpha * 0.45})`;
+                ctx.lineWidth = Math.max(0.6, 1.0 * node.projScale);
+                ctx.stroke();
+            }
+        });
+
+        // Draw 3D Travelling Synaptic Particles (Neural Sparks)
+        brain3D.particles.forEach(p => {
+            p.u += p.speed * brain3D.pulseEnergy;
+            if (p.u > 1.0) {
+                p.u = 0;
+                p.sourceIdx = Math.floor(Math.random() * projectedNodes.length);
+                p.targetIdx = Math.floor(Math.random() * projectedNodes.length);
+            }
+            const src = projectedNodes[p.sourceIdx % projectedNodes.length];
+            const tgt = projectedNodes[p.targetIdx % projectedNodes.length];
+            if (src && tgt) {
+                const px = src.projX + (tgt.projX - src.projX) * p.u;
+                const py = src.projY + (tgt.projY - src.projY) * p.u;
+                const avgScale = (src.projScale + tgt.projScale) / 2;
+
+                ctx.beginPath();
+                ctx.arc(px, py, p.size * avgScale, 0, Math.PI * 2);
+                ctx.fillStyle = '#34D399';
+                ctx.shadowColor = '#10B981';
+                ctx.shadowBlur = 8;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        });
+
+        // Draw 3D Nodes
+        projectedNodes.forEach(node => {
+            const baseRadius = node.isCore ? 24 : (10 + (node.score / 100) * 8);
+            const radius = Math.max(4, baseRadius * node.projScale * brain3D.pulseEnergy);
+
+            // Glow Aura for Learned High Score nodes
+            ctx.beginPath();
+            ctx.arc(node.projX, node.projY, radius * 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = (node.isCore)
+                ? 'rgba(167, 139, 250, 0.15)'
+                : (node.score >= 85 ? 'rgba(16, 185, 129, 0.18)' : 'rgba(245, 158, 11, 0.15)');
+            ctx.fill();
+
+            // Node Circle
+            ctx.beginPath();
+            ctx.arc(node.projX, node.projY, radius, 0, Math.PI * 2);
+            if (node.isCore) {
+                ctx.fillStyle = '#7C3AED';
+                ctx.strokeStyle = '#C4B5FD';
+            } else if (node.score >= 85) {
+                ctx.fillStyle = '#064E3B';
+                ctx.strokeStyle = '#34D399';
+            } else if (node.score >= 65) {
+                ctx.fillStyle = '#083344';
+                ctx.strokeStyle = '#22D3EE';
+            } else {
+                ctx.fillStyle = '#451A03';
+                ctx.strokeStyle = '#FBBF24';
+            }
+            ctx.lineWidth = Math.max(1.5, 2.5 * node.projScale);
+            ctx.fill();
+            ctx.stroke();
+
+            // Label
+            if (node.projScale > 0.65 || node.isCore) {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = node.isCore ? 'bold 11px sans-serif' : 'bold 9.5px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.name, node.projX, node.isCore ? node.projY : node.projY + radius + 10);
+
+                if (!node.isCore && node.projScale > 0.8) {
+                    ctx.fillStyle = '#34D399';
+                    ctx.font = '8.5px monospace';
+                    ctx.fillText(`${node.score}%`, node.projX, node.projY + radius + 20);
+                }
+            }
+        });
+
+        // 3D HUD Watermark
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.font = '9px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`3D SYNAPSE MESH • ${topicList.length} ACTIVE LOBES`, 12, h - 12);
+
+        brain3D.animId = requestAnimationFrame(render3DFrame);
+    }
+
+    render3DFrame();
+}
+
+async function harvestGoogleInfo() {
+    const q = document.getElementById('googleSearchQuery').value.trim();
+    const apiKey = document.getElementById('googleApiKeyInput').value.trim();
+    const cx = document.getElementById('googleCxInput').value.trim();
+    const box = document.getElementById('googleSearchResultsBox');
+
+    if (!q) {
+        alert('Please enter a query to search Google.');
+        return;
+    }
+
+    box.style.display = 'block';
+    box.innerHTML = '<div class="text-center text-muted py-2"><span class="spinner-border spinner-border-sm text-success me-2"></span>Harvesting authoritative internet sources via Google Search...</div>';
+
+    try {
+        const res = await apiFetch('/brain/planner/google-search', {
+            method: 'POST',
+            body: JSON.stringify({
+                query: q,
+                credentials: {
+                    api_key: apiKey,
+                    cx: cx,
+                    num: 4
+                }
+            })
+        });
+
+        if (!res.success || !res.data) {
+            box.innerHTML = `<div class="text-danger p-2">Search harvesting error: ${escapeHtml(res.message || 'Unknown error')}</div>`;
+            return;
+        }
+
+        const d = res.data;
+        const items = d.results || [];
+        box.innerHTML = `
+            <div class="p-2.5 rounded bg-[#0c1017] border border-success/40">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-emerald-300 fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Harvested ${items.length} Web Sources (${escapeHtml(d.source)})</span>
+                    <button class="btn btn-xs btn-outline-success" onclick="useSearchInGoalPlan('${escapeHtml(q)}')">
+                        <i class="bi bi-plus-circle me-1"></i> Generate DAG Plan for This
+                    </button>
+                </div>
+                <div class="space-y-1.5 mb-2">
+                    ${items.map(item => `
+                        <div class="p-2 rounded bg-black border border-secondary/50">
+                            <div class="d-flex justify-content-between align-items-baseline">
+                                <a href="${escapeHtml(item.link)}" target="_blank" class="fw-bold text-info text-xs hover:underline">${escapeHtml(item.title)}</a>
+                                <span class="badge bg-dark text-muted text-[10px]">${escapeHtml(item.displayLink || 'web')}</span>
+                            </div>
+                            <p class="text-muted text-[11px] mb-0 mt-0.5">${escapeHtml(item.snippet || '')}</p>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="text-[11px] text-muted"><i class="bi bi-info-circle me-1"></i>${escapeHtml(d.plan_recommendation || '')}</div>
+            </div>
+        `;
+    } catch (e) {
+        box.innerHTML = `<div class="text-danger p-2">Harvesting failed: ${escapeHtml(e.message)}</div>`;
+    }
+}
+
+function useSearchInGoalPlan(query) {
+    const input = document.getElementById('plannerGoalInput');
+    if (input) {
+        input.value = `Research and implement: ${query}`;
+        loadPlanTemplate('google_internet_research');
+        if (typeof showToast === 'function') showToast('Loaded Google Search DAG plan template!', 'success');
+    }
 }
 
 function teachAtomConcept() {
@@ -924,6 +1266,7 @@ function teachAtomConcept() {
             fb.className = 'text-xs text-emerald-400 p-2 rounded bg-black border border-emerald-500/40';
             fb.innerHTML = `<strong>Learned:</strong> ${escapeHtml(res.data.message || 'Concept recorded!')}`;
             document.getElementById('teachConceptInput').value = '';
+            brain3D.pulseEnergy = 2.5;
             loadLearningGraph();
         } else {
             fb.className = 'text-xs text-danger p-2 rounded bg-black border border-danger';

@@ -89,6 +89,21 @@ class Marketplace extends BaseApiController
     }
 
     /**
+     * POST /api/v1/marketplace/install-free
+     * Installs all free verified plugins in one batch.
+     */
+    public function installFree()
+    {
+        $registry = $this->getRegistry();
+        try {
+            $result = $registry->installAllFree();
+            return $this->respondSuccess($result, $result['message']);
+        } catch (\Exception $e) {
+            return $this->respondError($e->getMessage(), 500);
+        }
+    }
+
+    /**
      * POST /api/v1/marketplace/uninstall
      */
     public function uninstall()

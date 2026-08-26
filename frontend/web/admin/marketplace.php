@@ -9,9 +9,12 @@ include_once __DIR__ . '/components/header.php';
         <h2 class="fw-bold mb-1" style="color: #8B5CF6;">Enterprise Plugin Marketplace &amp; Sandbox</h2>
         <p class="text-muted small mb-0">Cryptographically signed packages, capability permission boundaries &amp; hot-reloadable sandboxed execution</p>
     </div>
-    <div>
-        <button class="btn btn-outline-secondary btn-sm me-2" onclick="location.reload();">
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-secondary btn-sm" onclick="location.reload();">
             <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+        </button>
+        <button class="btn btn-sm text-dark fw-bold" style="background: linear-gradient(135deg, #10B981 0%, #34D399 100%); border: none;" onclick="installAllFreePlugins()">
+            <i class="bi bi-gift-fill me-1"></i> ⚡ Get All Free Plugins
         </button>
         <button class="btn btn-sm text-white" style="background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); border: none;" onclick="loadPlugins('all')">
             <i class="bi bi-shop me-1"></i> Sync Marketplace
@@ -29,8 +32,8 @@ include_once __DIR__ . '/components/header.php';
     </div>
     <div class="col-md-3">
         <div class="card bg-dark border-secondary p-3 text-white">
-            <div class="text-muted small fw-bold">PACKAGE SIGNING</div>
-            <div class="fs-4 fw-bold text-success" id="metricSigning">HMAC-SHA256</div>
+            <div class="text-muted small fw-bold">FREE PLUGINS</div>
+            <div class="fs-4 fw-bold text-emerald-400" id="metricFreeCount">6 VERIFIED FREE</div>
         </div>
     </div>
     <div class="col-md-3">
@@ -48,8 +51,9 @@ include_once __DIR__ . '/components/header.php';
 </div>
 
 <!-- Category Filters -->
-<div class="d-flex gap-2 mb-4">
-    <button class="btn btn-sm btn-primary category-btn active" onclick="filterCategory('all', this)">All Categories</button>
+<div class="d-flex gap-2 mb-4 flex-wrap">
+    <button class="btn btn-sm btn-primary category-btn active" onclick="filterCategory('all', this)">All Plugins</button>
+    <button class="btn btn-sm btn-outline-success category-btn" onclick="filterCategory('free', this)"><i class="bi bi-gift me-1"></i>Free Plugins</button>
     <button class="btn btn-sm btn-outline-secondary category-btn" onclick="filterCategory('database', this)">Database</button>
     <button class="btn btn-sm btn-outline-secondary category-btn" onclick="filterCategory('security', this)">Security</button>
     <button class="btn btn-sm btn-outline-secondary category-btn" onclick="filterCategory('cloud', this)">Cloud</button>
@@ -132,7 +136,10 @@ function renderPlugins(plugins) {
                 <div>
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <span class="fw-bold fs-6 text-info">${escapeHtml(p.name)}</span>
-                        <span class="badge ${p.is_installed ? 'bg-success' : 'bg-secondary'}">${p.is_installed ? 'INSTALLED' : 'AVAILABLE'}</span>
+                        <div class="d-flex gap-1">
+                            ${p.is_free ? `<span class="badge bg-emerald-950 text-emerald-300 border border-emerald-500/40">100% FREE</span>` : ''}
+                            <span class="badge ${p.is_installed ? 'bg-success' : 'bg-secondary'}">${p.is_installed ? 'INSTALLED' : 'AVAILABLE'}</span>
+                        </div>
                     </div>
                     <p class="text-muted small mb-3">${escapeHtml(p.description || '')}</p>
                 </div>
@@ -140,12 +147,25 @@ function renderPlugins(plugins) {
                     <span class="badge bg-dark border border-secondary text-muted">${escapeHtml(p.category || 'General')}</span>
                     ${p.is_installed
                         ? `<button class="btn btn-xs btn-outline-danger" onclick="uninstallPlugin('${p.id}')">Uninstall</button>`
-                        : `<button class="btn btn-xs btn-outline-info" onclick="installPlugin('${p.id}')">Install</button>`
+                        : `<button class="btn btn-xs ${p.is_free ? 'btn-outline-success' : 'btn-outline-info'}" onclick="installPlugin('${p.id}')">${p.is_free ? '⚡ Get Free' : 'Install'}</button>`
                     }
                 </div>
             </div>
         </div>
     `).join('');
+}
+
+async function installAllFreePlugins() {
+    try {
+        const data = await apiFetch('/marketplace/install-free', {
+            method: 'POST',
+            body: JSON.stringify({})
+        });
+        if (typeof showToast === 'function') showToast(data.message || 'All free plugins installed successfully!', 'success');
+        loadPlugins();
+    } catch (e) {
+        if (typeof showToast === 'function') showToast('Batch installation error: ' + e.message, 'error');
+    }
 }
 
 async function installPlugin(pluginId) {

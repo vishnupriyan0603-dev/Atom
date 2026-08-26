@@ -383,6 +383,26 @@ class Brain extends BaseApiController
     }
 
     /**
+     * POST /api/v1/brain/planner/google-search
+     * Performs Google Search & live internet information harvesting for multi-step plans.
+     */
+    public function googleSearchPlanner()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $query = trim($json['query'] ?? ($json['q'] ?? ($json['goal'] ?? '')));
+        $googleConfig = $json['credentials'] ?? ($json['config'] ?? []);
+
+        if (empty($query)) {
+            return $this->respondError('Query is required for Google Search Harvester', 400);
+        }
+
+        $planner = new \Atom\Brain\AtomGoalPlannerEngine();
+        $res = $planner->executeGoogleSearchHarvest($query, $googleConfig);
+
+        return $this->respondSuccess($res, 'Internet information harvested successfully');
+    }
+
+    /**
      * GET /api/v1/brain/meta/telemetry
      * Returns aggregated master telemetry across all 6 Atom Brain phases.
      */
