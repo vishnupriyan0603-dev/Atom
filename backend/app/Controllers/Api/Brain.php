@@ -144,7 +144,69 @@ class Brain extends BaseApiController
         $engine = new \Atom\Brain\AtomPersonalAssistantEngine();
         $res = $engine->generateLocalResponse($message, $mode);
 
+        // Also record in multi-turn memory
+        $memoryEngine = new \Atom\Brain\MultiTurnContextMemoryEngine();
+        $memoryEngine->recordTurn($message, $res['response'] ?? '');
+
         return $this->respondSuccess($res, 'Atom Personal Assistant response');
     }
+
+    /**
+     * GET /api/v1/brain/memory
+     * Returns working memory, episodic facts, and sentiment velocity.
+     */
+    public function memory()
+    {
+        $memoryEngine = new \Atom\Brain\MultiTurnContextMemoryEngine();
+        return $this->respondSuccess($memoryEngine->getMemoryStatus(), 'Atom Brain multi-turn memory status');
+    }
+
+    /**
+     * POST /api/v1/brain/memory/remember
+     * Explicitly store a user preference or fact into episodic memory.
+     */
+    public function remember()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $category = $json['category'] ?? 'preference';
+        $fact = trim($json['fact'] ?? ($json['message'] ?? ''));
+        $confidence = (float) ($json['confidence'] ?? 1.0);
+
+        if (empty($fact)) {
+            return $this->respondError('Fact or preference cannot be empty', 400);
+        }
+
+        $memoryEngine = new \Atom\Brain\MultiTurnContextMemoryEngine();
+        $res = $memoryEngine->storeFact($category, $fact, $confidence);
+
+        return $this->respondSuccess($res, 'Fact stored into episodic memory');
+    }
+
+    /**
+     * POST /api/v1/brain/memory/forget
+     * Forget or delete a specific fact or clear memory.
+     */
+    public function forget()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $identifier = trim($json['id'] ?? ($json['fact'] ?? ''));
+        $clearAll = (bool) ($json['clear_all'] ?? false);
+        $workingOnly = (bool) ($json['working_only'] ?? false);
+
+        $memoryEngine = new \Atom\Brain\MultiTurnContextMemoryEngine();
+
+        if ($clearAll) {
+            $memoryEngine->clearMemory($workingOnly);
+            return $this->respondSuccess(['cleared' => true, 'working_only' => $workingOnly], 'Memory cleared');
+        }
+
+        if (empty($identifier)) {
+            return $this->respondError('Identifier or fact query required to forget', 400);
+        }
+
+        $forgotten = $memoryEngine->forgetFact($identifier);
+        return $this->respondSuccess(['forgotten' => $forgotten, 'identifier' => $identifier], $forgotten ? 'Fact forgotten successfully' : 'Fact not found');
+    }
 }
+
 

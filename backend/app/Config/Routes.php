@@ -747,6 +747,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 101 — WebAssembly (Wasm) Sandbox Runtime Routes
     $routes->post('infrastructure/wasm/execute', 'Api\WasmSandbox::execute');
     $routes->get('infrastructure/wasm/runtimes', 'Api\WasmSandbox::runtimes');
+
+    // Atom Brain — Personal Assistant, Learning Synapse Graph & Multi-Turn Memory Routes
+    $routes->get('brain/status', 'Api\Brain::status');
+    $routes->get('brain/graph', 'Api\Brain::graph');
+    $routes->post('brain/teach', 'Api\Brain::teach');
+    $routes->post('brain/chat', 'Api\Brain::chat');
+    $routes->get('brain/memory', 'Api\Brain::memory');
+    $routes->post('brain/memory/remember', 'Api\Brain::remember');
+    $routes->post('brain/memory/forget', 'Api\Brain::forget');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)

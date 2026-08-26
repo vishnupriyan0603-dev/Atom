@@ -208,9 +208,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                 elseif ($model === 'atom-brain-level') $brainMode = 'level';
 
                 $assistantEngine = new \Atom\Brain\AtomPersonalAssistantEngine();
+                $memoryEngine = new \Atom\Brain\MultiTurnContextMemoryEngine();
 
-                // Direct handle for /teach or /level
-                if ($brainMode === 'teach' || $brainMode === 'level' || str_starts_with($lowerMsg, '/teach') || str_starts_with($lowerMsg, '/level')) {
+                // Multi-Turn Anaphora & Context Resolution
+                $anaphora = $memoryEngine->resolveAnaphora($message);
+                $effectiveMessage = $anaphora['clarified_prompt'];
+
+                // Direct handle for memory commands or /teach or /level
+                if (str_starts_with($lowerMsg, '/remember')) {
+                    $factText = trim(preg_replace('/^\/remember\s*/i', '', $message));
+                    if (!empty($factText)) {
+                        $stored = $memoryEngine->storeFact('preference', $factText);
+                        $reply = "🧠 **Memory Updated:** I've remembered this:\n> \"{$factText}\"\n\n*(Total Active Memories: {$stored['total_facts']})*";
+                    } else {
+                        $reply = "🧠 **Usage:** `/remember <fact or preference>`\nExample: `/remember I prefer CodeIgniter 4 and strictly typed PHP 8.3`";
+                    }
+                } elseif (str_starts_with($lowerMsg, '/memory')) {
+                    $memStatus = $memoryEngine->getMemoryStatus();
+                    $reply = "🧠 **Atom Brain Working & Episodic Memory Status**\n\n"
+                           . "• **Working Memory Window**: `{$memStatus['working_memory_count']}` recent turns\n"
+                           . "• **Sentiment Trajectory**: `{$memStatus['sentiment_velocity']['trend']}` (Current: `{$memStatus['sentiment_velocity']['current_sentiment']}`, Tone: `{$memStatus['sentiment_velocity']['recommended_tone']}`)\n"
+                           . "• **Stored Facts & Preferences**: `{$memStatus['facts_count']}`\n";
+                    if (!empty($memStatus['facts'])) {
+                        $reply .= "\n**Active Stored Facts:**\n";
+                        foreach ($memStatus['facts'] as $f) {
+                            $reply .= "• `[{$f['category']}]` {$f['fact']}\n";
+                        }
+                    }
+                } elseif ($brainMode === 'teach' || $brainMode === 'level' || str_starts_with($lowerMsg, '/teach') || str_starts_with($lowerMsg, '/level')) {
                     $localRes = $assistantEngine->generateLocalResponse($message, $brainMode);
                     $reply = $localRes['reply'];
                 } else {
@@ -220,13 +245,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                         $apiUrl = \Atom\Config\Config::get('GROQ_API_URL') ?: 'https://api.groq.com/openai/v1';
                         $actualModel = $isAtomBrain ? (\Atom\Config\Config::get('GROQ_MODEL') ?: 'openai/gpt-oss-120b') : $model;
 
-                        $systemPrompt = \Atom\Brain\AtomPersonalAssistantEngine::SYSTEM_PROMPT;
+                        $systemPrompt = \Atom\Brain\AtomPersonalAssistantEngine::SYSTEM_PROMPT . "\n\n" . $memoryEngine->getContextualPromptInjection($message);
 
                         $payload = [
                             'model' => $actualModel,
                             'messages' => [
                                 ['role' => 'system', 'content' => $systemPrompt],
-                                ['role' => 'user', 'content' => $message]
+                                ['role' => 'user', 'content' => $effectiveMessage]
                             ],
                             'temperature' => 0.7,
                             'max_tokens' => 1500
@@ -247,10 +272,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                     }
 
                     if (empty($reply)) {
-                        $localRes = $assistantEngine->generateLocalResponse($message, 'assistant');
+                        $localRes = $assistantEngine->generateLocalResponse($effectiveMessage, 'assistant');
                         $reply = $localRes['reply'];
                     }
                 }
+
+                // Record turn in working memory
+                $memoryEngine->recordTurn($message, $reply);
             }
 
             // Store assistant reply
@@ -425,6 +453,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
       <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider shrink-0">Atom Modes &amp; Commands:</span>
       <button onclick="insertSlash('/level')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-purple-900/30 border border-purple-500/30 text-purple-300 text-[11px] font-mono shrink-0 transition">📊 /level</button>
       <button onclick="insertSlash('/teach ')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 text-[11px] font-mono shrink-0 transition">🎓 /teach</button>
+      <button onclick="insertSlash('/remember ')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-cyan-900/30 border border-cyan-500/30 text-cyan-300 text-[11px] font-mono shrink-0 transition">🧠 /remember</button>
+      <button onclick="insertSlash('/memory')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-blue-900/30 border border-blue-500/30 text-blue-300 text-[11px] font-mono shrink-0 transition">🔍 /memory</button>
       <button onclick="insertSlash('/help')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-[#1e2838] border border-[#1e2838] text-gray-300 text-[11px] font-mono shrink-0 transition">/help</button>
       <button onclick="insertSlash('/voice:eq')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-[#1e2838] border border-cyan-500/20 text-cyan-400 text-[11px] font-mono shrink-0 transition">/voice:eq</button>
       <button onclick="insertSlash('/search:code ')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-[#1e2838] border border-blue-500/20 text-blue-400 text-[11px] font-mono shrink-0 transition">/search:code</button>

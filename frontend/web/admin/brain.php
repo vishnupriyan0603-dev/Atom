@@ -228,6 +228,82 @@ include_once __DIR__ . '/components/header.php';
     </div>
 </div>
 
+<!-- ATOM Brain Phase 2: Working & Episodic Memory, Sentiment Velocity & Tone Adaptor -->
+<div class="row g-4 mb-4">
+    <!-- Working & Episodic Memory Inspector -->
+    <div class="col-md-7">
+        <div class="card bg-dark border-secondary text-white h-100 shadow">
+            <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-cyan-400"><i class="bi bi-memory me-2"></i>Episodic &amp; User Facts Memory</span>
+                <div>
+                    <span class="badge bg-cyan-950 text-cyan-300 border border-cyan-500/40 me-2" id="memoryCountBadge">0 FACTS</span>
+                    <button class="btn btn-outline-danger btn-sm py-0 px-2" onclick="clearAllMemory()" title="Clear Working Memory">Clear</button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                    <table class="table table-dark table-hover mb-0 align-middle small">
+                        <thead class="table-secondary text-uppercase text-muted">
+                            <tr>
+                                <th>Category</th>
+                                <th>Fact / Rule / Preference</th>
+                                <th>Confidence</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="memoryFactsTableBody">
+                            <tr><td colspan="4" class="text-center p-3 text-muted">No episodic facts stored yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer border-secondary bg-black p-2 d-flex justify-content-between text-xs text-muted">
+                <span>Working turns in active buffer: <strong id="workingTurnsCount" class="text-white font-monospace">0</strong></span>
+                <span>Auto-extracted preferences &amp; explicit <code>/remember</code> facts</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sentiment Velocity & Tone Matrix + Remember Sandbox -->
+    <div class="col-md-5">
+        <div class="card bg-dark border-secondary text-white h-100 shadow">
+            <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-info"><i class="bi bi-activity me-2"></i>Sentiment Velocity &amp; Tone</span>
+                <span class="badge bg-info text-dark fw-bold" id="toneBadge">NATURAL</span>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center p-2 rounded bg-black border border-secondary mb-3">
+                    <div>
+                        <div class="text-muted text-xs">SENTIMENT VELOCITY</div>
+                        <div class="fs-6 fw-bold font-monospace text-emerald-400" id="sentimentVelocityValue">0.0 (Stable)</div>
+                    </div>
+                    <div class="text-end">
+                        <div class="text-muted text-xs">CURRENT STATE</div>
+                        <span class="badge bg-secondary text-uppercase" id="currentSentimentState">neutral</span>
+                    </div>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label text-muted small fw-bold">REMEMBER NEW USER FACT / PREFERENCE</label>
+                    <div class="input-group input-group-sm mb-2">
+                        <select id="newFactCategory" class="form-select bg-black text-white border-secondary" style="max-width: 120px;">
+                            <option value="preference">preference</option>
+                            <option value="rule">rule</option>
+                            <option value="tech">tech</option>
+                            <option value="general">general</option>
+                        </select>
+                        <input type="text" id="newFactInput" class="form-control bg-black text-white border-secondary" placeholder="e.g. Always format responses cleanly with bullet points">
+                    </div>
+                    <button class="btn btn-sm btn-info text-dark fw-bold w-100" onclick="storeNewFact()">
+                        <i class="bi bi-save me-1"></i> Store Fact in Episodic Memory
+                    </button>
+                    <div id="memoryFeedback" class="text-xs mt-2 p-1.5 rounded bg-black border border-secondary text-muted" style="display:none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Intent Inspector Modal -->
 <div class="modal fade" id="intentModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -469,11 +545,103 @@ function classifyIntent() {
     }).catch(() => setText('irIntent', 'Error'));
 }
 
+function loadBrainMemory() {
+    apiFetch('/brain/memory').then(res => {
+        if (!res.success) return;
+        const d = res.data;
+        const facts = d.facts || [];
+        const workingCount = d.working_memory_count || 0;
+        const velocity = d.sentiment_velocity || {};
+
+        document.getElementById('memoryCountBadge').innerText = `${facts.length} FACTS`;
+        document.getElementById('workingTurnsCount').innerText = workingCount;
+        
+        // Velocity & Tone
+        const velVal = velocity.velocity !== undefined ? (velocity.velocity > 0 ? `+${velocity.velocity}` : `${velocity.velocity}`) : '0.0';
+        document.getElementById('sentimentVelocityValue').innerText = `${velVal} (${velocity.trend || 'Stable'})`;
+        document.getElementById('currentSentimentState').innerText = velocity.current_sentiment || 'neutral';
+        document.getElementById('toneBadge').innerText = (velocity.recommended_tone || 'NATURAL').toUpperCase().replace('_', ' ');
+
+        const tbody = document.getElementById('memoryFactsTableBody');
+        if (!facts.length) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center p-3 text-muted">No episodic facts stored yet. Use /remember in chat or the form to add one.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = facts.map(f => `
+            <tr>
+                <td><span class="badge bg-dark border border-secondary text-info">${escapeHtml(f.category || 'general')}</span></td>
+                <td class="text-white">${escapeHtml(f.fact)}</td>
+                <td><span class="badge bg-success text-dark font-monospace">${Math.round((f.confidence || 1.0) * 100)}%</span></td>
+                <td class="text-end">
+                    <button class="btn btn-outline-danger btn-sm py-0 px-2 text-xs" onclick="forgetMemoryFact('${escapeHtml(f.id)}')">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }).catch(() => {});
+}
+
+function storeNewFact() {
+    const category = document.getElementById('newFactCategory').value;
+    const fact = document.getElementById('newFactInput').value.trim();
+
+    if (!fact) {
+        alert('Please enter a fact or preference.');
+        return;
+    }
+
+    apiFetch('/brain/memory/remember', {
+        method: 'POST',
+        body: JSON.stringify({ category: category, fact: fact, confidence: 1.0 })
+    }).then(res => {
+        const fb = document.getElementById('memoryFeedback');
+        fb.style.display = 'block';
+        if (res.success) {
+            fb.className = 'text-xs mt-2 p-1.5 rounded bg-black border border-info text-info';
+            fb.innerHTML = '<strong>Stored:</strong> Fact memorized successfully!';
+            document.getElementById('newFactInput').value = '';
+            loadBrainMemory();
+        } else {
+            fb.className = 'text-xs mt-2 p-1.5 rounded bg-black border border-danger text-danger';
+            fb.innerText = res.message || 'Failed to remember fact.';
+        }
+    }).catch(e => alert('Memory error: ' + e.message));
+}
+
+function forgetMemoryFact(id) {
+    if (!confirm('Forget this stored fact from memory?')) return;
+    apiFetch('/brain/memory/forget', {
+        method: 'POST',
+        body: JSON.stringify({ id: id })
+    }).then(res => {
+        if (res.success) {
+            loadBrainMemory();
+        } else {
+            alert(res.message || 'Failed to forget fact.');
+        }
+    }).catch(e => alert('Error forgetting fact: ' + e.message));
+}
+
+function clearAllMemory() {
+    if (!confirm('Clear working turn history from memory?')) return;
+    apiFetch('/brain/memory/forget', {
+        method: 'POST',
+        body: JSON.stringify({ clear_all: true, working_only: true })
+    }).then(res => {
+        if (res.success) {
+            loadBrainMemory();
+        }
+    }).catch(() => {});
+}
+
 // Load on page ready
 document.addEventListener('DOMContentLoaded', function () {
     loadBrainStatus();
     loadBrainContext();
     loadLearningGraph();
+    loadBrainMemory();
     setInterval(loadBrainStatus, 15000);
 });
 </script>
