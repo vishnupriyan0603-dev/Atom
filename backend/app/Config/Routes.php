@@ -696,10 +696,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('security/zkp/generate', 'Api\ZkProof::generate');
     $routes->post('security/zkp/verify', 'Api\ZkProof::verify');
     $routes->post('security/zkp/rollup', 'Api\ZkProof::rollup');
+
+    // Phase 92 — Multi-Channel Event Mesh & Topic Broker Routes
+    $routes->post('network/mesh/publish', 'Api\EventMesh::publish');
+    $routes->post('network/mesh/subscribe', 'Api\EventMesh::subscribe');
+    $routes->get('network/mesh/topics', 'Api\EventMesh::topics');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
