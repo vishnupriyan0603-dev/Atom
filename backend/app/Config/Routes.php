@@ -739,10 +739,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('orchestration/century/dispatch', 'Api\CenturyMatrix::dispatch');
     $routes->get('orchestration/century/status', 'Api\CenturyMatrix::status');
     $routes->get('orchestration/century/subsystems', 'Api\CenturyMatrix::subsystems');
+
+    // Phase 101 — WebAssembly (Wasm) Sandbox Runtime Routes
+    $routes->post('infrastructure/wasm/execute', 'Api\WasmSandbox::execute');
+    $routes->get('infrastructure/wasm/runtimes', 'Api\WasmSandbox::runtimes');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
