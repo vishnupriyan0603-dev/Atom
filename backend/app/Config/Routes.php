@@ -677,10 +677,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('database/shards/nodes', 'Api\ShardRouter::nodes');
     $routes->post('database/shards/locate', 'Api\ShardRouter::locate');
     $routes->post('database/shards/manage', 'Api\ShardRouter::manage');
+
+    // Phase 88 — Audio Dynamic Range Compressor & Peak Limiter Routes
+    $routes->post('voice/compressor/process', 'Api\AudioCompressor::process');
+    $routes->get('voice/compressor/presets', 'Api\AudioCompressor::presets');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
