@@ -701,10 +701,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('network/mesh/publish', 'Api\EventMesh::publish');
     $routes->post('network/mesh/subscribe', 'Api\EventMesh::subscribe');
     $routes->get('network/mesh/topics', 'Api\EventMesh::topics');
+
+    // Phase 93 — Data Pipeline Orchestrator & Stream ETL Routes
+    $routes->post('database/etl/execute', 'Api\DataEtl::execute');
+    $routes->get('database/etl/pipelines', 'Api\DataEtl::pipelines');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
