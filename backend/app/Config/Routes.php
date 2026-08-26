@@ -691,10 +691,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('network/stream/compress', 'Api\StreamCompressor::compress');
     $routes->post('network/stream/decompress', 'Api\StreamCompressor::decompress');
     $routes->get('network/stream/codecs', 'Api\StreamCompressor::codecs');
+
+    // Phase 91 — Zero-Knowledge Proofs & zk-Rollup Verifier Routes
+    $routes->post('security/zkp/generate', 'Api\ZkProof::generate');
+    $routes->post('security/zkp/verify', 'Api\ZkProof::verify');
+    $routes->post('security/zkp/rollup', 'Api\ZkProof::rollup');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
