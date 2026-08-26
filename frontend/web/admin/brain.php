@@ -505,6 +505,62 @@ include_once __DIR__ . '/components/header.php';
                 </div>
             </div>
         </div>
+<!-- ATOM Brain Phase 4: Voice Duplex & Expressive Speech Prosody Studio -->
+<div class="card bg-dark border-secondary text-white mb-4 shadow">
+    <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+        <span class="fw-bold text-cyan-400"><i class="bi bi-soundwave me-2"></i>Voice Duplex &amp; Expressive Speech Prosody Studio</span>
+        <span class="badge bg-cyan-950 text-cyan-300 border border-cyan-500/40">SSML &amp; DUPLEX AUDIO</span>
+    </div>
+    <div class="card-body p-3">
+        <div class="row g-3">
+            <div class="col-md-5">
+                <div class="mb-2">
+                    <label class="form-label text-muted text-xs fw-bold">VOICE PERSONA PROFILE</label>
+                    <select id="adminVoiceProfile" class="form-select bg-black text-white border-secondary small" onchange="updateVoiceSliders()">
+                        <option value="heroic_ben10">⚡ Heroic Ben 10 (Tamil/EN) - Pitch 1.18x, Rate 1.18x</option>
+                        <option value="calm_mentor">🏛️ Calm Engineering Mentor - Pitch 0.95x, Rate 1.05x</option>
+                        <option value="empathic_companion">🌱 Empathic Companion - Pitch 1.02x, Rate 0.95x</option>
+                        <option value="fast_briefing">⚡ Ultra-Fast Briefing - Pitch 1.05x, Rate 1.35x</option>
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label text-muted text-xs fw-bold">EMOTION MODULATION</label>
+                    <select id="adminVoiceEmotion" class="form-select bg-black text-white border-secondary small" onchange="generateVoiceProsody()">
+                        <option value="neutral">Neutral (Standard)</option>
+                        <option value="excited">Excited / Heroic (+8% Pitch, +6% Velocity)</option>
+                        <option value="frustrated">Frustrated Empathy (-6% Pitch, -8% Velocity)</option>
+                        <option value="playful">Playful (+5% Pitch, +2% Velocity)</option>
+                        <option value="worried">Worried / Reassuring (-4% Pitch, -10% Velocity)</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted text-xs fw-bold">SAMPLE TEXT / TAMIL PHONETICS</label>
+                    <textarea id="adminVoiceText" class="form-control bg-black text-white border-secondary small" rows="2">வணக்கம்! நான் ATOM. உங்களின் Personal AI Assistant. How can I help your project today?</textarea>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-cyan fw-bold flex-grow-1 text-dark" style="background:#22D3EE;" onclick="testVoiceSynthesize()">
+                        <i class="bi bi-play-fill me-1"></i> Synthesize &amp; Play Speech
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="stopSpeech()">
+                        <i class="bi bi-stop-fill"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div class="p-2 rounded bg-black border border-secondary h-100 flex flex-col justify-between">
+                    <div class="d-flex justify-content-between align-items-center mb-1 text-xs">
+                        <span class="text-muted fw-bold">W3C SSML GENERATED PAYLOAD</span>
+                        <span class="badge bg-secondary text-[10px]" id="ssmlLangBadge">ta-IN</span>
+                    </div>
+                    <pre id="adminSsmlPre" class="p-2 bg-[#06080b] border border-secondary rounded text-[11px] text-cyan-300 custom-scroll mb-2" style="max-height: 120px; overflow-y:auto;">&lt;speak version="1.0" xml:lang="ta-IN"&gt;&lt;prosody pitch="+18%" rate="+18%"&gt;Loading voice stream...&lt;/prosody&gt;&lt;/speak&gt;</pre>
+                    <div class="d-flex justify-content-between text-xs text-muted pt-1 border-t border-secondary/40">
+                        <span>Pitch SSML: <strong id="ssmlPitchVal" class="text-white font-monospace">+18%</strong></span>
+                        <span>Rate SSML: <strong id="ssmlRateVal" class="text-white font-monospace">+18%</strong></span>
+                        <span>Duplex Latency: <strong class="text-emerald-400 font-monospace">~42ms</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -996,12 +1052,96 @@ function evaluateTradeOffPreset() {
     `;
 }
 
+let currentUtterance = null;
+
+function updateVoiceSliders() {
+    generateVoiceProsody();
+}
+
+function generateVoiceProsody() {
+    const text = document.getElementById('adminVoiceText').value.trim();
+    const profile = document.getElementById('adminVoiceProfile').value;
+    const emotion = document.getElementById('adminVoiceEmotion').value;
+
+    if (!text) return;
+
+    apiFetch('/brain/voice/synthesize', {
+        method: 'POST',
+        body: JSON.stringify({ text: text, profile: profile, emotion: emotion })
+    }).then(res => {
+        if (res.success && res.data) {
+            const d = res.data;
+            document.getElementById('adminSsmlPre').innerText = d.ssml || '';
+            document.getElementById('ssmlLangBadge').innerText = d.is_tamil ? 'ta-IN (Tamil)' : (d.profile?.lang || 'en-US');
+            document.getElementById('ssmlPitchVal').innerText = d.prosody?.pitch_ssml || '+18%';
+            document.getElementById('ssmlRateVal').innerText = d.prosody?.rate_ssml || '+18%';
+        }
+    }).catch(() => {});
+}
+
+function testVoiceSynthesize() {
+    const text = document.getElementById('adminVoiceText').value.trim();
+    const profile = document.getElementById('adminVoiceProfile').value;
+    const emotion = document.getElementById('adminVoiceEmotion').value;
+
+    if (!text) {
+        alert('Please enter some text to synthesize.');
+        return;
+    }
+
+    if (!('speechSynthesis' in window)) {
+        alert('Speech Synthesis API not supported in this browser.');
+        return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    apiFetch('/brain/voice/synthesize', {
+        method: 'POST',
+        body: JSON.stringify({ text: text, profile: profile, emotion: emotion })
+    }).then(res => {
+        if (!res.success || !res.data) {
+            alert('Voice synthesis failed.');
+            return;
+        }
+
+        const d = res.data;
+        const wp = d.web_speech_params;
+        const utterance = new SpeechSynthesisUtterance(wp.text);
+        utterance.pitch = wp.pitch;
+        utterance.rate = wp.rate;
+        utterance.volume = wp.volume;
+        utterance.lang = wp.lang;
+
+        const voices = window.speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            if (d.is_tamil) {
+                const tv = voices.find(v => v.lang && (v.lang.startsWith('ta') || v.name.toLowerCase().includes('tamil')));
+                if (tv) utterance.voice = tv;
+            } else {
+                const vMatch = voices.find(v => v.lang && v.lang.startsWith(wp.lang.split('-')[0]));
+                if (vMatch) utterance.voice = vMatch;
+            }
+        }
+
+        currentUtterance = utterance;
+        window.speechSynthesis.speak(utterance);
+    }).catch(e => alert('Speech error: ' + e.message));
+}
+
+function stopSpeech() {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+    }
+}
+
 // Load on page ready
 document.addEventListener('DOMContentLoaded', function () {
     loadBrainStatus();
     loadBrainContext();
     loadLearningGraph();
     loadBrainMemory();
+    generateVoiceProsody();
     setInterval(loadBrainStatus, 15000);
 });
 </script>

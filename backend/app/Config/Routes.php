@@ -748,7 +748,7 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('infrastructure/wasm/execute', 'Api\WasmSandbox::execute');
     $routes->get('infrastructure/wasm/runtimes', 'Api\WasmSandbox::runtimes');
 
-    // Atom Brain — Personal Assistant, Learning Synapse Graph, Multi-Turn Memory & Proactive Sandbox Routes
+    // Atom Brain — Personal Assistant, Learning Synapse Graph, Multi-Turn Memory, Proactive Sandbox & Voice Duplex Routes
     $routes->get('brain/status', 'Api\Brain::status');
     $routes->get('brain/graph', 'Api\Brain::graph');
     $routes->post('brain/teach', 'Api\Brain::teach');
@@ -759,6 +759,9 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('brain/reason', 'Api\Brain::reason');
     $routes->get('brain/tools', 'Api\Brain::tools');
     $routes->post('brain/tool/execute', 'Api\Brain::executeTool');
+    $routes->post('brain/voice/synthesize', 'Api\Brain::synthesizeVoice');
+    $routes->get('brain/voice/profiles', 'Api\Brain::voiceProfiles');
+    $routes->post('brain/voice/stream', 'Api\Brain::voiceStream');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)

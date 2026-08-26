@@ -264,7 +264,63 @@ class Brain extends BaseApiController
 
         return $this->respondError($res['error'] ?? 'Tool execution failed', 400, $res);
     }
+
+    /**
+     * POST /api/v1/brain/voice/synthesize
+     * Synthesizes text with emotional prosody parameters and W3C SSML.
+     */
+    public function synthesizeVoice()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $text = trim($json['text'] ?? ($json['message'] ?? ''));
+        $profile = $json['profile'] ?? 'heroic_ben10';
+        $emotion = $json['emotion'] ?? 'neutral';
+
+        if (empty($text)) {
+            return $this->respondError('Text cannot be empty for voice synthesis', 400);
+        }
+
+        $voiceEngine = new \Atom\Brain\AtomVoiceProsodyEngine();
+        $res = $voiceEngine->synthesize($text, $profile, $emotion);
+
+        return $this->respondSuccess($res, 'Voice prosody synthesized successfully');
+    }
+
+    /**
+     * GET /api/v1/brain/voice/profiles
+     * Returns all calibrated voice profiles.
+     */
+    public function voiceProfiles()
+    {
+        $voiceEngine = new \Atom\Brain\AtomVoiceProsodyEngine();
+        return $this->respondSuccess([
+            'profiles' => $voiceEngine->getVoiceProfiles(),
+            'default' => 'heroic_ben10'
+        ], 'Atom Voice Profiles');
+    }
+
+    /**
+     * POST /api/v1/brain/voice/stream
+     * Coordinates duplex voice streaming and handles speech interruption events.
+     */
+    public function voiceStream()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $streamId = $json['stream_id'] ?? uniqid('vstream_', true);
+        $event = $json['event'] ?? 'start_speech';
+        $payload = $json['payload'] ?? [];
+
+        $voiceEngine = new \Atom\Brain\AtomVoiceProsodyEngine();
+        $res = $voiceEngine->handleStreamTurn($streamId, $event, $payload);
+
+        if (!empty($res['success'])) {
+            return $this->respondSuccess($res, 'Voice stream event processed');
+        }
+
+        return $this->respondError($res['error'] ?? 'Stream event failed', 400);
+    }
 }
+
 
 
 

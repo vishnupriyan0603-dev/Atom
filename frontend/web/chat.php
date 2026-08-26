@@ -430,10 +430,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
           <span class="hidden md:inline" id="duplexLabel">Duplex Mode</span>
         </button>
 
-        <!-- TTS Audio Toggle -->
+        <!-- TTS Audio Toggle & Voice Profile -->
         <button id="ttsToggleBtn" onclick="toggleTTS()" class="p-2 rounded-xl border border-[#1e2838] bg-[#11151c] text-gray-400 hover:text-emerald-400 text-xs transition" title="Toggle Speech Output">
           <i class="bi bi-volume-up" id="ttsIcon"></i>
         </button>
+
+        <select id="voiceProfileSelect" class="h-9 px-2 rounded-xl bg-[#11151c] border border-cyan-500/30 text-xs text-cyan-300 focus:outline-none font-mono font-semibold" title="Voice Persona Profile">
+          <option value="heroic_ben10" selected>⚡ Heroic Ben 10 (Tamil/EN)</option>
+          <option value="calm_mentor">🏛️ Calm Mentor (EN)</option>
+          <option value="empathic_companion">🌱 Empathic (EN)</option>
+          <option value="fast_briefing">⚡ Ultra-Fast Briefing</option>
+        </select>
 
         <!-- LLM / Brain Selector -->
         <select id="chatModel" onchange="onModelChange()" class="h-9 px-3 rounded-xl bg-[#11151c] border border-purple-500/40 text-xs text-purple-300 focus:outline-none focus:border-purple-500 font-mono font-semibold">
@@ -598,7 +605,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
       }
     }
 
-    function speakText(text) {
+    async function speakText(text) {
       if (!('speechSynthesis' in window)) return;
       window.speechSynthesis.cancel();
       // Clean markdown tags for natural speech
@@ -608,23 +615,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                         .trim();
       if (!clean) return;
 
-      const utterance = new SpeechSynthesisUtterance(clean);
+      const profileKey = document.getElementById('voiceProfileSelect') ? document.getElementById('voiceProfileSelect').value : 'heroic_ben10';
       const isTamil = /[\u0B80-\u0BFF]/.test(clean);
 
-      // Calibrated to Ben 10 Tamil reference audio (sample audio/ben10_tamil_dialogue.mp3)
-      utterance.rate = 1.18;   // Heroic, brisk dialogue velocity
-      utterance.pitch = 1.18;  // Energetic, bright tenor register
-      utterance.volume = 1.0;
+      // Default baseline values based on profile
+      let pitch = 1.18;
+      let rate = 1.18;
+      let lang = isTamil ? 'ta-IN' : 'en-IN';
 
-      // Select Tamil voice if Tamil text or available on platform
+      if (profileKey === 'calm_mentor') {
+        pitch = 0.95; rate = 1.05; lang = isTamil ? 'ta-IN' : 'en-US';
+      } else if (profileKey === 'empathic_companion') {
+        pitch = 1.02; rate = 0.95; lang = isTamil ? 'ta-IN' : 'en-US';
+      } else if (profileKey === 'fast_briefing') {
+        pitch = 1.05; rate = 1.35; lang = isTamil ? 'ta-IN' : 'en-US';
+      }
+
+      const utterance = new SpeechSynthesisUtterance(clean);
+      utterance.rate = rate;
+      utterance.pitch = pitch;
+      utterance.volume = 1.0;
+      utterance.lang = lang;
+
+      // Select matching platform voice if available
       const voices = window.speechSynthesis.getVoices();
-      if (isTamil && voices.length > 0) {
-        const tamilVoice = voices.find(v => v.lang && (v.lang.startsWith('ta') || v.name.toLowerCase().includes('tamil')));
-        if (tamilVoice) {
-          utterance.voice = tamilVoice;
-          utterance.lang = 'ta-IN';
+      if (voices.length > 0) {
+        if (isTamil) {
+          const tamilVoice = voices.find(v => v.lang && (v.lang.startsWith('ta') || v.name.toLowerCase().includes('tamil')));
+          if (tamilVoice) utterance.voice = tamilVoice;
+        } else {
+          const targetVoice = voices.find(v => v.lang && v.lang.startsWith(lang.split('-')[0]));
+          if (targetVoice) utterance.voice = targetVoice;
         }
       }
+
       window.speechSynthesis.speak(utterance);
     }
 
