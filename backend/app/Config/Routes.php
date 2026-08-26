@@ -729,10 +729,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('database/migration/plan', 'Api\SchemaMigration::plan');
     $routes->post('database/migration/execute', 'Api\SchemaMigration::execute');
     $routes->get('database/migration/history', 'Api\SchemaMigration::history');
+
+    // Phase 99 — Distributed Rate Limiter & Token Mesh Routes
+    $routes->post('security/ratelimit/consume', 'Api\DistributedRateLimiter::consume');
+    $routes->post('security/ratelimit/sync', 'Api\DistributedRateLimiter::sync');
+    $routes->get('security/ratelimit/mesh', 'Api\DistributedRateLimiter::mesh');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
