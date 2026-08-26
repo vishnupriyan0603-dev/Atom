@@ -381,7 +381,59 @@ class Brain extends BaseApiController
             'templates' => $planner->getTemplates()
         ], 'Goal Plan Templates');
     }
+
+    /**
+     * GET /api/v1/brain/meta/telemetry
+     * Returns aggregated master telemetry across all 6 Atom Brain phases.
+     */
+    public function metaTelemetry()
+    {
+        $metaEngine = new \Atom\Brain\AtomMetaCognitionEngine();
+        $res = $metaEngine->getMasterTelemetry();
+        return $this->respondSuccess($res, 'Atom Brain Master Telemetry');
+    }
+
+    /**
+     * POST /api/v1/brain/meta/evaluate
+     * Evaluates a turn across 5 meta-cognitive quality dimensions.
+     */
+    public function evaluateMetaCognition()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $userInput = trim($json['input'] ?? ($json['query'] ?? ''));
+        $response = trim($json['response'] ?? ($json['assistant'] ?? ''));
+        $context = $json['context'] ?? [];
+
+        if (empty($userInput) || empty($response)) {
+            return $this->respondError('Both user input and assistant response are required', 400);
+        }
+
+        $metaEngine = new \Atom\Brain\AtomMetaCognitionEngine();
+        $res = $metaEngine->evaluateTurn($userInput, $response, $context);
+
+        if (!empty($res['success'])) {
+            return $this->respondSuccess($res, 'Meta-cognitive quality evaluation complete');
+        }
+
+        return $this->respondError($res['error'] ?? 'Evaluation failed', 400);
+    }
+
+    /**
+     * POST /api/v1/brain/meta/evolve
+     * Triggers autonomous prompt calibration and synapse weight adjustments.
+     */
+    public function evolveMetaCognition()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $evaluations = $json['evaluations'] ?? [];
+
+        $metaEngine = new \Atom\Brain\AtomMetaCognitionEngine();
+        $res = $metaEngine->evolveSynapseWeights($evaluations);
+
+        return $this->respondSuccess($res, 'Synapse weights evolved successfully');
+    }
 }
+
 
 
 

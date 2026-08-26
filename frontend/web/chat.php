@@ -463,6 +463,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
     <!-- Slash Commands Quick Bar -->
     <div class="px-6 py-2 border-b border-[#1e2838] bg-[#0c0f14]/50 flex items-center gap-2 overflow-x-auto custom-scroll text-xs shrink-0">
       <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider shrink-0">Atom Modes &amp; Commands:</span>
+      <button onclick="insertSlash('/meta')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-pink-900/30 border border-pink-500/30 text-pink-300 text-[11px] font-mono shrink-0 transition">🧠 /meta</button>
       <button onclick="insertSlash('/plan ')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-amber-900/30 border border-amber-500/30 text-amber-300 text-[11px] font-mono shrink-0 transition">🎯 /plan</button>
       <button onclick="insertSlash('/level')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-purple-900/30 border border-purple-500/30 text-purple-300 text-[11px] font-mono shrink-0 transition">📊 /level</button>
       <button onclick="insertSlash('/teach ')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 text-[11px] font-mono shrink-0 transition">🎓 /teach</button>

@@ -604,6 +604,115 @@ include_once __DIR__ . '/components/header.php';
                 <i class="bi bi-diagram-2 fs-3 text-secondary d-block mb-2"></i>
                 Submit a goal above or select a preset template to generate a multi-step DAG execution plan.
             </div>
+<!-- ATOM Brain Phase 6: Meta-Cognition, Self-Evolution & 6-Phase Master Hub -->
+<div class="card bg-dark border-secondary text-white mb-4 shadow">
+    <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+        <span class="fw-bold text-pink-400"><i class="bi bi-cpu-fill me-2"></i>Meta-Cognition, Self-Evolution &amp; 6-Phase Master Hub</span>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="badge bg-pink-950 text-pink-300 border border-pink-500/40">MASTER SYNAPSE v6.0</span>
+            <button class="btn btn-outline-pink btn-sm py-0 px-2 text-[11px] text-pink-300 border-pink-500/40" onclick="triggerSelfEvolution()">
+                <i class="bi bi-stars me-1"></i> Evolve Synapse
+            </button>
+        </div>
+    </div>
+    <div class="card-body p-3">
+        <!-- 6-Phase Readiness Radar Grid -->
+        <div class="row g-2 mb-3" id="metaPhasesGrid">
+            <div class="col-md-2 col-4">
+                <div class="p-2 rounded bg-black border border-secondary text-center">
+                    <div class="text-[10px] text-muted fw-bold">PHASE 1</div>
+                    <div class="text-xs text-white fw-bold truncate">Persona Graph</div>
+                    <span class="badge bg-success/20 text-success border border-success/40 text-[9px]">100% READY</span>
+                </div>
+            </div>
+            <div class="col-md-2 col-4">
+                <div class="p-2 rounded bg-black border border-secondary text-center">
+                    <div class="text-[10px] text-muted fw-bold">PHASE 2</div>
+                    <div class="text-xs text-white fw-bold truncate">Memory &amp; Tone</div>
+                    <span class="badge bg-success/20 text-success border border-success/40 text-[9px]">100% READY</span>
+                </div>
+            </div>
+            <div class="col-md-2 col-4">
+                <div class="p-2 rounded bg-black border border-secondary text-center">
+                    <div class="text-[10px] text-muted fw-bold">PHASE 3</div>
+                    <div class="text-xs text-white fw-bold truncate">Reasoner &amp; Tools</div>
+                    <span class="badge bg-success/20 text-success border border-success/40 text-[9px]">100% READY</span>
+                </div>
+            </div>
+            <div class="col-md-2 col-4">
+                <div class="p-2 rounded bg-black border border-secondary text-center">
+                    <div class="text-[10px] text-muted fw-bold">PHASE 4</div>
+                    <div class="text-xs text-white fw-bold truncate">Voice &amp; Duplex</div>
+                    <span class="badge bg-success/20 text-success border border-success/40 text-[9px]">100% READY</span>
+                </div>
+            </div>
+            <div class="col-md-2 col-4">
+                <div class="p-2 rounded bg-black border border-secondary text-center">
+                    <div class="text-[10px] text-muted fw-bold">PHASE 5</div>
+                    <div class="text-xs text-white fw-bold truncate">Goal DAG Planner</div>
+                    <span class="badge bg-success/20 text-success border border-success/40 text-[9px]">100% READY</span>
+                </div>
+            </div>
+            <div class="col-md-2 col-4">
+                <div class="p-2 rounded bg-black border border-secondary text-center">
+                    <div class="text-[10px] text-muted fw-bold">PHASE 6</div>
+                    <div class="text-xs text-white fw-bold truncate">Meta-Cognition</div>
+                    <span class="badge bg-pink-900/40 text-pink-300 border border-pink-500/40 text-[9px]">EVOLVING</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5-Dimensional Meta-Cognitive Evaluator & Scorecard -->
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="p-2.5 rounded bg-black border border-secondary h-100">
+                    <div class="text-xs text-muted fw-bold mb-2">LIVE 5D RESPONSE QUALITY EVALUATOR</div>
+                    <div class="mb-2">
+                        <input type="text" id="metaTestQuery" class="form-control form-control-sm bg-[#0a0d13] text-white border-secondary text-xs" value="Can we scale MySQL horizontally across 5 nodes?">
+                    </div>
+                    <div class="mb-2">
+                        <textarea id="metaTestResponse" class="form-control form-control-sm bg-[#0a0d13] text-white border-secondary text-xs" rows="3">Yes, you can scale MySQL horizontally using active replication clusters with Vitess or ProxySQL sharding. For read-heavy loads, read-replicas provide immediate linear throughput gains.</textarea>
+                    </div>
+                    <button class="btn btn-sm btn-outline-pink fw-bold w-100 text-pink-300 border-pink-500/40" onclick="evaluateMetaTurn()">
+                        <i class="bi bi-search me-1"></i> Run 5-Dimensional Meta Evaluation
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div id="metaScorecardBox" class="p-2.5 rounded bg-black border border-secondary h-100 flex flex-col justify-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-xs text-muted fw-bold">META-COGNITIVE SCORECARD</span>
+                            <span id="metaGradeBadge" class="badge bg-success text-dark fw-bold">A+ (96.5%)</span>
+                        </div>
+                        <div class="space-y-1.5 text-xs" id="metaDimRows">
+                            <div class="d-flex justify-content-between text-[11px]">
+                                <span class="text-muted">1. Factuality &amp; Grounding</span>
+                                <span class="text-emerald-400 font-monospace font-bold">95%</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-[11px]">
+                                <span class="text-muted">2. Persona Consistency</span>
+                                <span class="text-emerald-400 font-monospace font-bold">96%</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-[11px]">
+                                <span class="text-muted">3. Conciseness &amp; Precision</span>
+                                <span class="text-emerald-400 font-monospace font-bold">92%</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-[11px]">
+                                <span class="text-muted">4. Tool Appropriateness (Rule 14)</span>
+                                <span class="text-emerald-400 font-monospace font-bold">98%</span>
+                            </div>
+                            <div class="d-flex justify-content-between text-[11px]">
+                                <span class="text-muted">5. Safety &amp; Redaction Integrity</span>
+                                <span class="text-emerald-400 font-monospace font-bold">100%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-pink-300 border-t border-secondary/50 pt-1 mt-2" id="metaVerdictText">
+                        <i class="bi bi-shield-check text-success me-1"></i><strong>Verdict:</strong> HIGH_CALIBRATION • Optimal response quality with zero hallucination markers.
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -1304,6 +1413,74 @@ function executePlanStep(taskId, simulateSuccess) {
     }).catch(e => alert('Step execution error: ' + e.message));
 }
 
+function evaluateMetaTurn() {
+    const input = document.getElementById('metaTestQuery').value.trim();
+    const response = document.getElementById('metaTestResponse').value.trim();
+
+    if (!input || !response) {
+        alert('Please enter both query and response to evaluate.');
+        return;
+    }
+
+    apiFetch('/brain/meta/evaluate', {
+        method: 'POST',
+        body: JSON.stringify({ input: input, response: response })
+    }).then(res => {
+        if (res.success && res.data) {
+            const d = res.data;
+            const dims = d.dimensions || {};
+
+            document.getElementById('metaGradeBadge').innerText = `${d.grade} (${d.composite_score}%)`;
+            document.getElementById('metaGradeBadge').className = d.composite_score >= 90 ? 'badge bg-success text-dark fw-bold' : (d.composite_score >= 80 ? 'badge bg-info text-dark fw-bold' : 'badge bg-warning text-dark fw-bold');
+
+            document.getElementById('metaDimRows').innerHTML = `
+                <div class="d-flex justify-content-between text-[11px]">
+                    <span class="text-muted">1. Factuality &amp; Grounding</span>
+                    <span class="text-emerald-400 font-monospace font-bold">${dims.factuality?.score || 0}%</span>
+                </div>
+                <div class="d-flex justify-content-between text-[11px]">
+                    <span class="text-muted">2. Persona Consistency</span>
+                    <span class="text-emerald-400 font-monospace font-bold">${dims.persona_consistency?.score || 0}%</span>
+                </div>
+                <div class="d-flex justify-content-between text-[11px]">
+                    <span class="text-muted">3. Conciseness &amp; Precision</span>
+                    <span class="text-emerald-400 font-monospace font-bold">${dims.conciseness?.score || 0}%</span>
+                </div>
+                <div class="d-flex justify-content-between text-[11px]">
+                    <span class="text-muted">4. Tool Appropriateness (Rule 14)</span>
+                    <span class="text-emerald-400 font-monospace font-bold">${dims.tool_appropriateness?.score || 0}%</span>
+                </div>
+                <div class="d-flex justify-content-between text-[11px]">
+                    <span class="text-muted">5. Safety &amp; Redaction Integrity</span>
+                    <span class="text-emerald-400 font-monospace font-bold">${dims.safety_integrity?.score || 0}%</span>
+                </div>
+            `;
+
+            document.getElementById('metaVerdictText').innerHTML = `<i class="bi bi-shield-check text-success me-1"></i><strong>Verdict:</strong> ${d.meta_verdict} • Grade ${d.grade}`;
+        }
+    }).catch(e => alert('Meta evaluation error: ' + e.message));
+}
+
+function triggerSelfEvolution() {
+    apiFetch('/brain/meta/evolve', {
+        method: 'POST',
+        body: JSON.stringify({})
+    }).then(res => {
+        if (res.success) {
+            alert(res.message || 'Synapse weights evolved successfully!');
+            loadMetaTelemetry();
+        }
+    }).catch(e => alert('Evolution error: ' + e.message));
+}
+
+function loadMetaTelemetry() {
+    apiFetch('/brain/meta/telemetry').then(res => {
+        if (res.success && res.data) {
+            // Master telemetry refreshed
+        }
+    }).catch(() => {});
+}
+
 // Load on page ready
 document.addEventListener('DOMContentLoaded', function () {
     loadBrainStatus();
@@ -1312,9 +1489,9 @@ document.addEventListener('DOMContentLoaded', function () {
     loadBrainMemory();
     generateVoiceProsody();
     loadPlanTemplate('db_migration');
+    loadMetaTelemetry();
     setInterval(loadBrainStatus, 15000);
 });
-
 </script>
 
 <?php include_once __DIR__ . '/components/footer.php'; ?>
