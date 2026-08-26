@@ -748,6 +748,13 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('infrastructure/wasm/execute', 'Api\WasmSandbox::execute');
     $routes->get('infrastructure/wasm/runtimes', 'Api\WasmSandbox::runtimes');
 
+    // Phase 102 — Autonomous Event-Driven CQRS State Sourcing & Time-Travel Ledger Routes
+    $routes->post('infrastructure/events/dispatch', 'Api\EventSourcingLedger::dispatchCommand');
+    $routes->get('infrastructure/events/stream', 'Api\EventSourcingLedger::stream');
+    $routes->post('infrastructure/events/timetravel', 'Api\EventSourcingLedger::timeTravel');
+    $routes->get('infrastructure/events/verify', 'Api\EventSourcingLedger::verify');
+    $routes->get('infrastructure/events/projections', 'Api\EventSourcingLedger::projections');
+
     // Atom Brain — Personal Assistant, Learning Synapse Graph, Multi-Turn Memory, Proactive Sandbox & Voice Duplex Routes
     $routes->get('brain/status', 'Api\Brain::status');
     $routes->get('brain/graph', 'Api\Brain::graph');
