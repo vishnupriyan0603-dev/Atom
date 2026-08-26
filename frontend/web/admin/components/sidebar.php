@@ -354,6 +354,11 @@ $isActive = function(string $route) use ($currentPage) {
       <span class="sidebar-label">Feature Flags (77)</span>
     </a>
 
+    <a href="<?= $getAdminUrl('rollout_studio') ?>" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all <?= $isActive('rollout_studio') ? 'bg-[#1e2735] text-emerald-400 font-bold' : 'text-gray-400 hover:text-white hover:bg-[#161c28]' ?>">
+      <svg class="w-4 h-4 shrink-0 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span class="sidebar-label">Flag Rollouts (95)</span>
+    </a>
+
     <a href="<?= $getAdminUrl('chaos_studio') ?>" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all <?= $isActive('chaos_studio') ? 'bg-[#1e2735] text-orange-400 font-bold' : 'text-gray-400 hover:text-white hover:bg-[#161c28]' ?>">
       <svg class="w-4 h-4 shrink-0 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
       <span class="sidebar-label">Chaos Engineering (81)</span>

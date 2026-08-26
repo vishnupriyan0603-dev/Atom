@@ -3,11 +3,11 @@
 namespace Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Atom\Config\FeatureFlagRolloutEngine;
+use Atom\Infrastructure\FeatureFlagRolloutEngine;
 use Atom\Security\SecretRedactor;
 
 /**
- * Phase 77 — FeatureFlagRolloutEngine unit tests (6 tests).
+ * Phase 95 — FeatureFlagRolloutEngine unit tests (6 tests).
  */
 class FeatureFlagRolloutEngineTest extends TestCase
 {
@@ -19,55 +19,64 @@ class FeatureFlagRolloutEngineTest extends TestCase
         $this->engine = new FeatureFlagRolloutEngine(new SecretRedactor());
     }
 
-    public function testEvaluateUserWhitelistMatch(): void
+    public function testEvaluateUserDeterministicConsistency(): void
     {
-        $res = $this->engine->evaluate('beta_voice_cloning', 'user_alex', 'default');
+        $this->engine->registerFlag('test_feature_flag', true, 50);
 
-        $this->assertTrue($res['is_active']);
-        $this->assertSame('USER_WHITELIST_MATCH', $res['reason']);
+        $res1 = $this->engine->evaluate('test_feature_flag', 'user_consistent_123');
+        $res2 = $this->engine->evaluate('test_feature_flag', 'user_consistent_123');
+
+        $this->assertSame($res1['enabled'], $res2['enabled']);
+        $this->assertSame($res1['bucket'], $res2['bucket']);
+        $this->assertSame($res1['variant'], $res2['variant']);
     }
 
-    public function testEvaluateTenantWhitelistMatch(): void
+    public function testGlobalKillSwitchDisablesFlag(): void
     {
-        $res = $this->engine->evaluate('beta_voice_cloning', 'random_user', 'tenant_vip');
+        $this->engine->registerFlag('critical_payment_feature', false, 100);
 
-        $this->assertTrue($res['is_active']);
-        $this->assertSame('TENANT_WHITELIST_MATCH', $res['reason']);
+        $res = $this->engine->evaluate('critical_payment_feature', 'user_anyone');
+        $this->assertFalse($res['enabled']);
+        $this->assertSame('FLAG_GLOBALLY_DISABLED', $res['reason']);
     }
 
-    public function testEvaluateMasterKillSwitchDisabled(): void
+    public function testRoleTargetingOverrideEnablesFlag(): void
     {
-        $res = $this->engine->evaluate('legacy_xml_export', 'admin', 'tenant_vip');
+        $this->engine->registerFlag('beta_feature', true, 0, ['admin', 'beta_tester']);
 
-        $this->assertFalse($res['is_active']);
-        $this->assertSame('MASTER_SWITCH_DISABLED', $res['reason']);
+        // Guest with 0% rollout gets false
+        $resGuest = $this->engine->evaluate('beta_feature', 'guest_1', ['role' => 'guest']);
+        $this->assertFalse($resGuest['enabled']);
+
+        // Admin role matches override
+        $resAdmin = $this->engine->evaluate('beta_feature', 'admin_1', ['role' => 'admin']);
+        $this->assertTrue($resAdmin['enabled']);
+        $this->assertSame('ROLE_TARGETING_MATCH', $resAdmin['reason']);
     }
 
-    public function testEvaluateNonExistentFlagReturnsDefaultDisabled(): void
+    public function testHundredPercentRolloutEnablesAllUsers(): void
     {
-        $res = $this->engine->evaluate('non_existent_future_flag_xyz');
+        $this->engine->registerFlag('global_rollout_flag', true, 100);
 
-        $this->assertFalse($res['is_active']);
-        $this->assertSame('FLAG_NOT_FOUND_DEFAULT_DISABLED', $res['reason']);
+        for ($i = 0; $i < 20; $i++) {
+            $res = $this->engine->evaluate('global_rollout_flag', "user_{$i}");
+            $this->assertTrue($res['enabled']);
+        }
     }
 
-    public function testSetFlagClampsRolloutPercentage(): void
+    public function testUnknownFlagEvaluatesToFalse(): void
     {
-        $this->engine->setFlag('clamped_flag_high', true, 150);
-        $this->engine->setFlag('clamped_flag_low', true, -20);
+        $res = $this->engine->evaluate('non_existent_flag_xyz', 'user_1');
+        $this->assertFalse($res['enabled']);
+        $this->assertSame('FLAG_NOT_FOUND', $res['reason']);
+    }
 
+    public function testGetAllFlagsReturnsList(): void
+    {
         $flags = $this->engine->getAllFlags();
-        $keyMap = array_column($flags, null, 'key');
 
-        $this->assertSame(100, $keyMap['clamped_flag_high']['rollout_pct']);
-        $this->assertSame(0, $keyMap['clamped_flag_low']['rollout_pct']);
-    }
-
-    public function testFullRolloutAlwaysEvaluatesActive(): void
-    {
-        $res = $this->engine->evaluate('post_quantum_v2', 'any_user_1', 'any_tenant_1');
-
-        $this->assertTrue($res['is_active']);
-        $this->assertSame('FULL_ROLLOUT_100_PCT', $res['reason']);
+        $this->assertGreaterThanOrEqual(3, count($flags));
+        $this->assertArrayHasKey('flag_key', $flags[0]);
+        $this->assertArrayHasKey('rollout_pct', $flags[0]);
     }
 }

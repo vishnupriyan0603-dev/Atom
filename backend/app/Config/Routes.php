@@ -709,10 +709,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 94 — 3D Binaural Audio Spatializer & HRTF Routes
     $routes->post('voice/spatial/process', 'Api\AudioSpatializer::process');
     $routes->get('voice/spatial/presets', 'Api\AudioSpatializer::presets');
+
+    // Phase 95 — Feature Flag Rollouts & A/B Splitter Routes
+    $routes->post('infrastructure/flags/evaluate', 'Api\FeatureRollout::evaluate');
+    $routes->get('infrastructure/flags/list', 'Api\FeatureRollout::list');
+    $routes->post('infrastructure/flags/toggle', 'Api\FeatureRollout::toggle');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
