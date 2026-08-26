@@ -714,10 +714,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('infrastructure/flags/evaluate', 'Api\FeatureRollout::evaluate');
     $routes->get('infrastructure/flags/list', 'Api\FeatureRollout::list');
     $routes->post('infrastructure/flags/toggle', 'Api\FeatureRollout::toggle');
+
+    // Phase 96 — Vector Similarity Index & Semantic Search Routes
+    $routes->post('ai/vector/search', 'Api\VectorSearch::search');
+    $routes->post('ai/vector/upsert', 'Api\VectorSearch::upsert');
+    $routes->get('ai/vector/stats', 'Api\VectorSearch::stats');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 

@@ -2,111 +2,62 @@
 
 namespace App\Controllers\Api;
 
-use Atom\Search\VectorEmbeddingPipeline;
-use Atom\Search\HnswVectorIndex;
+use Atom\Ai\VectorSimilaritySearchEngine;
 
 /**
- * VectorSearch API Controller — Phase 44
+ * VectorSearch API Controller — Phase 96
  */
 class VectorSearch extends BaseApiController
 {
-    private static ?VectorEmbeddingPipeline $pipeline = null;
+    private static ?VectorSimilaritySearchEngine $engine = null;
 
-    private function getPipeline(): VectorEmbeddingPipeline
+    private function getEngine(): VectorSimilaritySearchEngine
     {
-        if (self::$pipeline === null) {
-            self::$pipeline = new VectorEmbeddingPipeline(64);
-            // Pre-seed with key core modules
-            self::$pipeline->ingest('core_brain', 'Atom Brain Core multi-agent reasoning, thought graph, GoT planning, and cognitive dispatch.', ['category' => 'core']);
-            self::$pipeline->ingest('core_voice', 'Tamil Ben 10 reference voice engine with 245Hz pitch, formant equalizer, and prosodic Tamil phonemes.', ['category' => 'voice']);
-            self::$pipeline->ingest('core_security', 'Zero Knowledge Vault with AES-256-GCM encryption, secret redactor, and PBKDF2 key derivation.', ['category' => 'security']);
-            self::$pipeline->ingest('core_refactor', 'Dependency graph DAG analyzer, Martin coupling metrics, circular cycle detection and DIP decoupling.', ['category' => 'refactoring']);
-            self::$pipeline->ingest('core_vision', 'Neural code OCR extraction, UI layout synthesizer for Bootstrap 5, Tailwind and Flutter, and SQL schema generator.', ['category' => 'vision']);
+        if (self::$engine === null) {
+            self::$engine = new VectorSimilaritySearchEngine();
         }
-
-        return self::$pipeline;
+        return self::$engine;
     }
 
     /**
-     * GET /api/vector/index/stats
-     */
-    public function stats()
-    {
-        $pipeline = $this->getPipeline();
-        return $this->respondSuccess($pipeline->getStats(), 'HNSW vector index statistics');
-    }
-
-    /**
-     * POST /api/vector/index/insert
-     */
-    public function insert()
-    {
-        $json = $this->request->getJSON(true) ?? [];
-        $id = $json['id'] ?? ('doc_' . uniqid());
-        $content = $json['content'] ?? $json['text'] ?? '';
-        $metadata = $json['metadata'] ?? [];
-
-        if (empty(trim($content))) {
-            return $this->respondError('Document content is required for embedding', 400);
-        }
-
-        $pipeline = $this->getPipeline();
-        $result = $pipeline->ingest($id, $content, $metadata);
-
-        return $this->respondSuccess($result, 'Vector embedded and inserted into HNSW index');
-    }
-
-    /**
-     * POST /api/vector/search
+     * POST /api/ai/vector/search
      */
     public function search()
     {
         $json = $this->request->getJSON(true) ?? [];
-        $query = $json['query'] ?? $json['text'] ?? '';
-        $topK = (int)($json['top_k'] ?? 5);
+        $queryVector = $json['query_vector'] ?? [0.14, 0.46, 0.86, 0.22, 0.90, 0.16, 0.66, 0.32];
+        $topK = (int)($json['top_k'] ?? 3);
+        $metric = $json['metric'] ?? 'cosine';
+        $filter = $json['filter'] ?? [];
 
-        if (empty(trim($query))) {
-            return $this->respondError('Query text is required', 400);
-        }
+        $engine = $this->getEngine();
+        $res = $engine->search($queryVector, $topK, $metric, $filter);
 
-        $pipeline = $this->getPipeline();
-        $result = $pipeline->query($query, $topK);
-
-        return $this->respondSuccess($result, 'HNSW vector search completed');
+        return $this->respondSuccess($res, 'Vector similarity search completed');
     }
 
     /**
-     * POST /api/vector/embed
+     * POST /api/ai/vector/upsert
      */
-    public function embed()
+    public function upsert()
     {
         $json = $this->request->getJSON(true) ?? [];
-        $text = $json['text'] ?? $json['content'] ?? '';
+        $vectorId = $json['vector_id'] ?? ('vec_' . bin2hex(random_bytes(4)));
+        $vector = $json['vector'] ?? [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8];
+        $metadata = $json['metadata'] ?? ['category' => 'custom'];
 
-        if (empty(trim($text))) {
-            return $this->respondError('Text content is required for embedding generation', 400);
-        }
+        $engine = $this->getEngine();
+        $ok = $engine->upsertVector($vectorId, $vector, $metadata);
 
-        $pipeline = $this->getPipeline();
-        $vector = $pipeline->generateEmbedding($text);
-
-        return $this->respondSuccess([
-            'dimension' => count($vector),
-            'vector' => $vector,
-        ], 'Vector embedding generated');
+        return $this->respondSuccess(['upserted' => $ok, 'vector_id' => $vectorId], 'Vector upserted to index');
     }
 
     /**
-     * DELETE /api/vector/index/clear
+     * GET /api/ai/vector/stats
      */
-    public function clear()
+    public function stats()
     {
-        $pipeline = $this->getPipeline();
-        $pipeline->getIndex()->clear();
-
-        return $this->respondSuccess([
-            'cleared' => true,
-            'total_vectors' => 0,
-        ], 'HNSW vector index cleared');
+        $engine = $this->getEngine();
+        return $this->respondSuccess($engine->getIndexStats(), 'Vector index stats');
     }
 }
