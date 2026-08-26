@@ -134,6 +134,11 @@ $isActive = function(string $route) use ($currentPage) {
       <span class="sidebar-label">Video Segmenter (82)</span>
     </a>
 
+    <a href="<?= $getAdminUrl('century_studio') ?>" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all <?= $isActive('century_studio') ? 'bg-[#2a2110] text-amber-300 font-bold border border-amber-500/30' : 'text-amber-400 hover:text-white hover:bg-[#1e2735]' ?>">
+      <svg class="w-4 h-4 shrink-0 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+      <span class="sidebar-label font-bold text-amber-300">Century Finale (100) 🏆</span>
+    </a>
+
     <a href="<?= $getAdminUrl('brain') ?>" class="nav-item flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all <?= $isActive('brain') ? 'bg-[#1e2735] text-emerald-400 font-bold' : 'text-gray-400 hover:text-white hover:bg-[#161c28]' ?>">
       <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
       <span class="sidebar-label">Personal Brain</span>

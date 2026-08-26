@@ -734,10 +734,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('security/ratelimit/consume', 'Api\DistributedRateLimiter::consume');
     $routes->post('security/ratelimit/sync', 'Api\DistributedRateLimiter::sync');
     $routes->get('security/ratelimit/mesh', 'Api\DistributedRateLimiter::mesh');
+
+    // Phase 100 — Grand Century Landmark Super-Agent Matrix Routes
+    $routes->post('orchestration/century/dispatch', 'Api\CenturyMatrix::dispatch');
+    $routes->get('orchestration/century/status', 'Api\CenturyMatrix::status');
+    $routes->get('orchestration/century/subsystems', 'Api\CenturyMatrix::subsystems');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
