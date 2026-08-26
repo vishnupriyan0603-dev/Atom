@@ -277,6 +277,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                     }
                 }
 
+                // Generate proactive suggestions
+                $reasoner = new \Atom\Brain\AtomSituationReasonerEngine();
+                $proactiveSuggestions = $reasoner->generateProactiveSuggestions($message);
+
                 // Record turn in working memory
                 $memoryEngine->recordTurn($message, $reply);
             }
@@ -296,7 +300,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                 'data' => [
                     'content' => $reply,
                     'model' => $model,
-                    'provider' => $provider
+                    'provider' => $provider,
+                    'proactive_suggestions' => $proactiveSuggestions ?? []
                 ]
             ]);
             exit;
@@ -842,7 +847,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
       }
     }
 
-    function formatMessageHtml(role, content) {
+    function formatMessageHtml(role, content, suggestions = []) {
       const isUser = role === 'user';
       const bg = isUser ? 'bg-[#1a2332]' : 'bg-[#11151c]';
       const border = isUser ? 'border-emerald-500/20' : 'border-[#1e2838]';
@@ -857,6 +862,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         .replace(/`([^`]+)`/g, '<code class="bg-[#0c0f14] px-1.5 py-0.5 rounded text-emerald-300 border border-[#1e2838] text-[11px]">$1</code>')
         .replace(/\*\*([^*]+)\*\*/g, '<strong class="text-white">$1</strong>');
 
+      let suggestionsHtml = '';
+      if (!isUser && Array.isArray(suggestions) && suggestions.length > 0) {
+        suggestionsHtml = `
+          <div class="mt-2.5 pt-2 border-t border-[#1e2838]/60 flex flex-wrap items-center gap-1.5">
+            <span class="text-[10px] text-purple-400 font-bold uppercase tracking-wider mr-1"><i class="bi bi-lightbulb me-1"></i>Follow-ups:</span>
+            ${suggestions.map(s => `<button onclick="insertSlash('${escapeHtml(s)}')" class="px-2 py-0.5 rounded-lg bg-[#0c0f14] hover:bg-purple-950/40 border border-purple-500/30 text-purple-300 text-[10.5px] transition">${escapeHtml(s)}</button>`).join('')}
+          </div>
+        `;
+      }
+
       return `
         <div class="flex gap-3 max-w-4xl ${isUser ? 'ml-auto flex-row-reverse' : 'mr-auto'}">
           ${avatar}
@@ -867,6 +882,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             </div>
             <div class="p-4 rounded-2xl border ${border} ${bg} text-xs text-gray-300 leading-relaxed font-sans shadow-lg">
               ${formatted}
+              ${suggestionsHtml}
             </div>
           </div>
         </div>
@@ -930,7 +946,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
         if (thinkingEl) thinkingEl.remove();
 
         if (json.success && json.data && json.data.content) {
-          box.innerHTML += formatMessageHtml('assistant', json.data.content);
+          const suggestions = json.data.proactive_suggestions || [];
+          box.innerHTML += formatMessageHtml('assistant', json.data.content, suggestions);
           box.scrollTop = box.scrollHeight;
 
           if (isTtsEnabled) {

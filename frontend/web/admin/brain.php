@@ -304,6 +304,83 @@ include_once __DIR__ . '/components/header.php';
     </div>
 </div>
 
+<!-- ATOM Brain Phase 3: Proactive Situation Reasoner & Minimalist Tool Sandbox -->
+<div class="row g-4 mb-4">
+    <!-- Real-World Calculation & EMI Simulator -->
+    <div class="col-md-6">
+        <div class="card bg-dark border-secondary text-white h-100 shadow">
+            <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-emerald-400"><i class="bi bi-calculator me-2"></i>Real-World Financial &amp; EMI Reasoner</span>
+                <span class="badge bg-emerald-950 text-emerald-300 border border-emerald-500/40">CALCULATION ENGINE</span>
+            </div>
+            <div class="card-body">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label text-muted text-xs fw-bold">PRINCIPAL (₹)</label>
+                        <input type="number" id="emiPrincipal" class="form-control form-control-sm bg-black text-white border-secondary" value="150000" step="1000">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted text-xs fw-bold">INTEREST RATE (%)</label>
+                        <input type="number" id="emiRate" class="form-control form-control-sm bg-black text-white border-secondary" value="9.5" step="0.1">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted text-xs fw-bold">TENURE (MONTHS)</label>
+                        <input type="number" id="emiTenure" class="form-control form-control-sm bg-black text-white border-secondary" value="36" step="1">
+                    </div>
+                </div>
+                <button class="btn btn-sm btn-outline-success fw-bold w-100 mb-3" onclick="simulateEmiCalculation()">
+                    <i class="bi bi-play-circle me-1"></i> Calculate EMI with Assumptions &amp; Breakdown
+                </button>
+                <div id="emiResultsBox" class="p-2 rounded bg-black border border-secondary text-xs" style="display:none;">
+                    <div class="row text-center mb-2">
+                        <div class="col-4">
+                            <div class="text-muted">Monthly EMI</div>
+                            <div class="fs-6 fw-bold text-success font-monospace" id="emiMonthlyVal">₹0</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted">Total Interest</div>
+                            <div class="fs-6 fw-bold text-warning font-monospace" id="emiInterestVal">₹0</div>
+                        </div>
+                        <div class="col-4">
+                            <div class="text-muted">Total Payable</div>
+                            <div class="fs-6 fw-bold text-info font-monospace" id="emiPayableVal">₹0</div>
+                        </div>
+                    </div>
+                    <div class="text-muted text-[11px] border-t border-secondary pt-1" id="emiAssumptionsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Minimalist Tool Sandbox Console -->
+    <div class="col-md-6">
+        <div class="card bg-dark border-secondary text-white h-100 shadow">
+            <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-purple-400"><i class="bi bi-tools me-2"></i>Minimalist Tool Sandbox</span>
+                <span class="badge bg-purple-950 text-purple-300 border border-purple-500/40">SAFE SANDBOX</span>
+            </div>
+            <div class="card-body">
+                <div class="input-group input-group-sm mb-2">
+                    <select id="sandboxToolSelect" class="form-select bg-black text-white border-secondary" style="max-width: 150px;">
+                        <option value="system_inspect">system_inspect</option>
+                        <option value="calc">calc</option>
+                        <option value="code_diagnostics">code_diagnostics</option>
+                    </select>
+                    <input type="text" id="sandboxToolParams" class="form-control bg-black text-white border-secondary" placeholder="Optional params (e.g. 24000 * 1.18 or target=backend)">
+                    <button class="btn btn-purple btn-sm text-white fw-bold" style="background:#7C3AED;" onclick="executeSandboxTool()">
+                        <i class="bi bi-cpu me-1"></i> Execute
+                    </button>
+                </div>
+                <div class="text-xs text-muted mb-2">
+                    <i class="bi bi-shield-check text-success me-1"></i>
+                    Rule 14 Enforcement: Invoked strictly for verifiable data, not conversational queries.
+                </div>
+                <pre id="toolOutputPre" class="p-2 bg-black border border-secondary rounded text-xs text-info custom-scroll mb-0" style="max-height: 110px; overflow-y:auto;">{"status": "Sandbox idle. Select a tool to evaluate."}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Intent Inspector Modal -->
 <div class="modal fade" id="intentModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -634,6 +711,60 @@ function clearAllMemory() {
             loadBrainMemory();
         }
     }).catch(() => {});
+}
+
+function simulateEmiCalculation() {
+    const p = parseFloat(document.getElementById('emiPrincipal').value) || 0;
+    const r = parseFloat(document.getElementById('emiRate').value) || 0;
+    const t = parseInt(document.getElementById('emiTenure').value) || 0;
+
+    if (p <= 0 || t <= 0) {
+        alert('Please enter valid principal and tenure.');
+        return;
+    }
+
+    const query = `Calculate EMI for ${p} at ${r}% for ${t} months`;
+    apiFetch('/brain/reason', {
+        method: 'POST',
+        body: JSON.stringify({ query: query })
+    }).then(res => {
+        if (res.success && res.data && res.data.result) {
+            const r = res.data.result;
+            document.getElementById('emiResultsBox').style.display = 'block';
+            document.getElementById('emiMonthlyVal').innerText = `₹${(r.monthly_emi || 0).toLocaleString()}`;
+            document.getElementById('emiInterestVal').innerText = `₹${(r.total_interest || 0).toLocaleString()}`;
+            document.getElementById('emiPayableVal').innerText = `₹${(r.total_payable || 0).toLocaleString()}`;
+            
+            const assumptions = r.assumptions || [];
+            document.getElementById('emiAssumptionsList').innerHTML = '<strong>Assumptions:</strong> ' + assumptions.join(' • ');
+        } else {
+            alert('Failed to simulate EMI calculation.');
+        }
+    }).catch(e => alert('Calculation error: ' + e.message));
+}
+
+function executeSandboxTool() {
+    const tool = document.getElementById('sandboxToolSelect').value;
+    const paramsRaw = document.getElementById('sandboxToolParams').value.trim();
+
+    let params = {};
+    if (tool === 'calc') {
+        params = { expression: paramsRaw || '150000 * 0.18' };
+    } else if (tool === 'code_diagnostics') {
+        params = { target: paramsRaw || 'backend' };
+    }
+
+    const pre = document.getElementById('toolOutputPre');
+    pre.innerText = 'Evaluating tool in sandbox...';
+
+    apiFetch('/brain/tool/execute', {
+        method: 'POST',
+        body: JSON.stringify({ tool: tool, parameters: params })
+    }).then(res => {
+        pre.innerText = JSON.stringify(res, null, 2);
+    }).catch(e => {
+        pre.innerText = 'Error: ' + e.message;
+    });
 }
 
 // Load on page ready

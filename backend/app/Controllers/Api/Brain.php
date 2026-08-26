@@ -207,6 +207,64 @@ class Brain extends BaseApiController
         $forgotten = $memoryEngine->forgetFact($identifier);
         return $this->respondSuccess(['forgotten' => $forgotten, 'identifier' => $identifier], $forgotten ? 'Fact forgotten successfully' : 'Fact not found');
     }
+
+    /**
+     * POST /api/v1/brain/reason
+     * Performs situational reasoning, financial/EMI calculation, or trade-off evaluation.
+     */
+    public function reason()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $query = trim($json['query'] ?? ($json['message'] ?? ''));
+        $context = $json['context'] ?? [];
+
+        if (empty($query)) {
+            return $this->respondError('Query or situation prompt cannot be empty', 400);
+        }
+
+        $reasoner = new \Atom\Brain\AtomSituationReasonerEngine();
+        $res = $reasoner->reason($query, $context);
+
+        return $this->respondSuccess($res, 'Situation reasoning completed');
+    }
+
+    /**
+     * GET /api/v1/brain/tools
+     * Lists available minimalist brain tools and safety tiers.
+     */
+    public function tools()
+    {
+        $reasoner = new \Atom\Brain\AtomSituationReasonerEngine();
+        return $this->respondSuccess([
+            'tools' => $reasoner->getAvailableTools(),
+            'policy' => 'Minimalist: Invoked only when verifiable computation or real-time inspection is necessary.'
+        ], 'Available minimalist tools');
+    }
+
+    /**
+     * POST /api/v1/brain/tool/execute
+     * Safely executes a whitelisted minimalist tool.
+     */
+    public function executeTool()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $toolName = trim($json['tool'] ?? ($json['name'] ?? ''));
+        $params = $json['parameters'] ?? ($json['params'] ?? []);
+
+        if (empty($toolName)) {
+            return $this->respondError('Tool name is required', 400);
+        }
+
+        $reasoner = new \Atom\Brain\AtomSituationReasonerEngine();
+        $res = $reasoner->executeTool($toolName, $params);
+
+        if (!empty($res['success'])) {
+            return $this->respondSuccess($res, "Tool {$toolName} executed successfully");
+        }
+
+        return $this->respondError($res['error'] ?? 'Tool execution failed', 400, $res);
+    }
 }
+
 
 
