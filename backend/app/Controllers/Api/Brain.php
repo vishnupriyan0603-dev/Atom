@@ -432,6 +432,65 @@ class Brain extends BaseApiController
 
         return $this->respondSuccess($res, 'Synapse weights evolved successfully');
     }
+
+    /**
+     * GET /api/v1/brain/relationship
+     * Returns current user relationship profile, active subject, and context prompt.
+     */
+    public function relationship()
+    {
+        $relEngine = new \Atom\Brain\AtomRelationshipEngine();
+        return $this->respondSuccess([
+            'profile' => $relEngine->getUserProfile(),
+            'context_prompt' => $relEngine->buildRelationshipContextPrompt(),
+            'user_name' => $relEngine->getUserName(),
+            'active_topic' => $relEngine->getActiveTopic(),
+            'active_subject' => $relEngine->getActiveSubject(),
+        ], 'Atom Relationship & Context Profile');
+    }
+
+    /**
+     * POST /api/v1/brain/relationship/process
+     * Evaluates a turn through the relationship engine (identity, topic continuity, follow-ups).
+     */
+    public function processRelationship()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $message = trim($json['message'] ?? ($json['query'] ?? ($json['input'] ?? '')));
+
+        if (empty($message)) {
+            return $this->respondError('Message is required', 400);
+        }
+
+        $relEngine = new \Atom\Brain\AtomRelationshipEngine();
+        $res = $relEngine->processMessage($message);
+
+        return $this->respondSuccess($res, 'Relationship message processed');
+    }
+
+    /**
+     * POST /api/v1/brain/relationship/set
+     * Explicitly sets user name or active topic/subject.
+     */
+    public function setRelationship()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $name = trim($json['name'] ?? '');
+        $topic = trim($json['topic'] ?? '');
+        $subject = trim($json['subject'] ?? '');
+
+        $relEngine = new \Atom\Brain\AtomRelationshipEngine();
+        if (!empty($name)) {
+            $relEngine->setUserName($name);
+        }
+        if (!empty($topic) || !empty($subject)) {
+            $relEngine->setActiveTopic($topic ?: $subject, $subject ?: $topic);
+        }
+
+        return $this->respondSuccess([
+            'profile' => $relEngine->getUserProfile(),
+        ], 'Relationship context updated');
+    }
 }
 
 

@@ -148,14 +148,75 @@ Calculate carefully. When assumptions are required, state them clearly.
 TOOLS & CODING
 ==================================================
 
+==================================================
+ATOM RELATIONSHIP ENGINE
+==================================================
+
+Atom must treat the conversation as a continuous relationship, not a collection of independent questions.
+The current message is only one part of the conversation.
+
+Before responding, examine the recent conversation and identify:
+1. Who the user is.
+2. What the user previously told Atom.
+3. What topic is currently being discussed.
+4. What the user's latest message refers to.
+5. Whether the latest message is a continuation, correction, answer, or new topic.
+
+USER IDENTITY:
+If the user tells you their name (e.g. "My name is Vishnupriyan" or "Hi, I am Vishnupriyan"):
+Store the fact: name = Vishnupriyan.
+If the user later asks: "What is my name?" -> Answer: "Your name is Vishnupriyan."
+Never ask for the name again if it is already available in the conversation or persistent memory.
+Do not say "I don't think you've told me your name" unless the name genuinely is not available.
+
+TOPIC CONTINUITY:
+Always determine the active topic.
+Example: User says "I have a math problem a+b²." followed by "all".
+Interpret "all" using the active topic to mean: "Explain everything relevant about a+b²."
+Do NOT ask "What topic?" unless there is genuinely no identifiable topic.
+
+SHORT FOLLOW-UP MESSAGES:
+Short messages such as "yes", "no", "all", "why", "how", "then?", "really?", "okay", "this?", "what about this", "calculate", "explain" must be interpreted using the previous conversation. Never treat them as standalone messages.
+
+REFERENCES & ANAPHORA:
+Understand references such as "that", "this", "it", "the above", "same", "that problem", "my bike", "my project", "the first one" by looking at recent conversation.
+Example: User says "I saw a Honda Splendor today." followed by "How much?".
+Interpret "How much?" as "How much does the Honda Splendor cost?" without asking the user to repeat the subject.
+
+RELATIONSHIP PROFILE:
+Atom should gradually build a useful understanding of the user (Name, communication style, English-learning preference, current projects, frequently discussed topics, explicit preferences, important corrections). Do not invent personal information. Do not assume unstated preferences.
+
+CORRECTIONS:
+When the user corrects Atom (e.g. "No, I mean the 2025 Splendor"), update the relevant context (Current subject = 2025 Honda Splendor) rather than continuing with previous assumptions.
+
+TOPIC CHANGES:
+Do not force old context into a completely new topic (e.g. "Anyway, what is PHP?"). Switch naturally to PHP.
+
+CONTEXT PRIORITY:
+1. Current user message
+2. Immediate conversation context
+3. Relevant earlier conversation
+4. Persistent user memory
+5. General model knowledge
+
+FINAL RULE:
+Atom should feel like it is actually listening. The user should not have to repeatedly tell Atom their name, what they are talking about, what "it" or "that" means, or what they just asked about.
+
+==================================================
+TOOLS & CODING
+==================================================
+
 Tools are optional helpers. Use tools only when they materially improve the answer.
 Coding is only one capability. When I ask about PHP, explain the cause and give the solution. When I don't ask about coding, do not turn normal conversation into coding.
 EOT;
 
-    public function __construct(?SecretRedactor $redactor = null, ?LearningEngine $learningEngine = null)
+    private ?AtomRelationshipEngine $relationshipEngine = null;
+
+    public function __construct(?SecretRedactor $redactor = null, ?LearningEngine $learningEngine = null, ?AtomRelationshipEngine $relationshipEngine = null)
     {
         $this->redactor = $redactor ?? new SecretRedactor();
         $this->learningEngine = $learningEngine;
+        $this->relationshipEngine = $relationshipEngine ?? new AtomRelationshipEngine($this->redactor);
     }
 
     /**
@@ -334,8 +395,25 @@ EOT;
         $depth = $this->determineResponseDepth($cleanMsg);
         $emotion = $this->detectEmotion($cleanMsg);
         $englishTip = $this->detectEnglishImprovement($cleanMsg);
-
         $lower = mb_strtolower($cleanMsg);
+
+        // 0. Relationship Engine processing (Identity recall, short follow-ups like 'all', reference resolution, corrections)
+        if ($this->relationshipEngine !== null) {
+            $rel = $this->relationshipEngine->processMessage($cleanMsg);
+            if (!empty($rel['reply']) && in_array($rel['type'], ['identity_response', 'short_followup_resolved', 'correction_applied'], true)) {
+                $reply = $rel['reply'];
+                if ($englishTip) {
+                    $reply .= "\n\n💡 *" . $englishTip['tip'] . "*";
+                }
+                return [
+                    'reply' => $reply,
+                    'depth_level' => $depth,
+                    'emotion' => $emotion,
+                    'english_tip' => $englishTip,
+                    'relationship' => $rel,
+                ];
+            }
+        }
 
         // 1. Teach Mode
         if ($mode === 'teach' || str_starts_with($lower, '/teach ') || preg_match('/\b(teach\s+atom|learn\s+this|remember\s+this|note\s+this)\b/i', $lower)) {

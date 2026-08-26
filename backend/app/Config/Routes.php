@@ -775,6 +775,9 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('brain/meta/telemetry', 'Api\Brain::metaTelemetry');
     $routes->post('brain/meta/evaluate', 'Api\Brain::evaluateMetaCognition');
     $routes->post('brain/meta/evolve', 'Api\Brain::evolveMetaCognition');
+    $routes->get('brain/relationship', 'Api\Brain::relationship');
+    $routes->post('brain/relationship/process', 'Api\Brain::processRelationship');
+    $routes->post('brain/relationship/set', 'Api\Brain::setRelationship');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
