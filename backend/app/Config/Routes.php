@@ -719,10 +719,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('ai/vector/search', 'Api\VectorSearch::search');
     $routes->post('ai/vector/upsert', 'Api\VectorSearch::upsert');
     $routes->get('ai/vector/stats', 'Api\VectorSearch::stats');
+
+    // Phase 97 — Webhook Dead-Letter Queue (DLQ) & Replay Routes
+    $routes->post('network/dlq/enqueue', 'Api\WebhookDlq::enqueue');
+    $routes->post('network/dlq/replay', 'Api\WebhookDlq::replay');
+    $routes->get('network/dlq/items', 'Api\WebhookDlq::items');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
