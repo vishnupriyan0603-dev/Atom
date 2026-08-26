@@ -202,45 +202,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                        . "• Secret Redaction: Active in output stream\n"
                        . "• [Launch Vault Studio](admin/vault.php)";
             } else {
-                // Check if LLM API Key is configured for direct inference
-                $apiKey = \Atom\Config\Config::get('GROQ_API_KEY') ?: \Atom\Config\Config::get('LLM_API_KEY');
-                if (!empty($apiKey)) {
-                    $apiUrl = \Atom\Config\Config::get('GROQ_API_URL') ?: 'https://api.groq.com/openai/v1';
-                    $apiModel = \Atom\Config\Config::get('GROQ_MODEL') ?: 'openai/gpt-oss-120b';
+                $isAtomBrain = str_starts_with($model, 'atom-brain-');
+                $brainMode = 'assistant';
+                if ($model === 'atom-brain-teach') $brainMode = 'teach';
+                elseif ($model === 'atom-brain-level') $brainMode = 'level';
 
-                    $payload = [
-                        'model' => $model ?: $apiModel,
-                        'messages' => [
-                            ['role' => 'system', 'content' => 'You are ATOM, an advanced AI programming brain and personal assistant. Provide clear, concise, well-structured answers with markdown and syntax-highlighted code blocks.'],
-                            ['role' => 'user', 'content' => $message]
-                        ],
-                        'temperature' => 0.7,
-                        'max_tokens' => 1500
-                    ];
+                $assistantEngine = new \Atom\Brain\AtomPersonalAssistantEngine();
 
-                    $headers = [
-                        'Content-Type'  => 'application/json',
-                        'Authorization' => 'Bearer ' . $apiKey
-                    ];
+                // Direct handle for /teach or /level
+                if ($brainMode === 'teach' || $brainMode === 'level' || str_starts_with($lowerMsg, '/teach') || str_starts_with($lowerMsg, '/level')) {
+                    $localRes = $assistantEngine->generateLocalResponse($message, $brainMode);
+                    $reply = $localRes['reply'];
+                } else {
+                    // Check if LLM API Key is configured for direct inference
+                    $apiKey = \Atom\Config\Config::get('GROQ_API_KEY') ?: \Atom\Config\Config::get('LLM_API_KEY');
+                    if (!empty($apiKey)) {
+                        $apiUrl = \Atom\Config\Config::get('GROQ_API_URL') ?: 'https://api.groq.com/openai/v1';
+                        $actualModel = $isAtomBrain ? (\Atom\Config\Config::get('GROQ_MODEL') ?: 'openai/gpt-oss-120b') : $model;
 
-                    $raw = safeHttpPost(rtrim($apiUrl, '/') . '/chat/completions', $payload, $headers, 12);
-                    if ($raw) {
-                        $res = json_decode($raw, true);
-                        if (isset($res['choices'][0]['message']['content'])) {
-                            $reply = $res['choices'][0]['message']['content'];
+                        $systemPrompt = \Atom\Brain\AtomPersonalAssistantEngine::SYSTEM_PROMPT;
+
+                        $payload = [
+                            'model' => $actualModel,
+                            'messages' => [
+                                ['role' => 'system', 'content' => $systemPrompt],
+                                ['role' => 'user', 'content' => $message]
+                            ],
+                            'temperature' => 0.7,
+                            'max_tokens' => 1500
+                        ];
+
+                        $headers = [
+                            'Content-Type'  => 'application/json',
+                            'Authorization' => 'Bearer ' . $apiKey
+                        ];
+
+                        $raw = safeHttpPost(rtrim($apiUrl, '/') . '/chat/completions', $payload, $headers, 12);
+                        if ($raw) {
+                            $res = json_decode($raw, true);
+                            if (isset($res['choices'][0]['message']['content'])) {
+                                $reply = $res['choices'][0]['message']['content'];
+                            }
                         }
                     }
-                }
 
-                if (empty($reply)) {
-                    $reply = "Hello! I am **ATOM**, your personal AI programming brain and assistant.\n\n"
-                           . "```php\n"
-                           . "// ATOM Reasoning Engine v1.0\n"
-                           . "echo \"Online & Connected.\";\n"
-                           . "```\n\n"
-                           . "• **Active Model**: `{$model}` (`{$provider}`)\n"
-                           . "• **Workspace Context**: Ready for queries, code inspection, and refactoring.\n"
-                           . "• **Quick Start**: Try asking a technical question or type `/help` to see available slash commands.";
+                    if (empty($reply)) {
+                        $localRes = $assistantEngine->generateLocalResponse($message, 'assistant');
+                        $reply = $localRes['reply'];
+                    }
                 }
             }
 
@@ -393,20 +402,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
           <i class="bi bi-volume-up" id="ttsIcon"></i>
         </button>
 
-        <!-- LLM Selector -->
-        <select id="chatModel" onchange="onModelChange()" class="h-9 px-3 rounded-xl bg-[#11151c] border border-[#1e2838] text-xs text-emerald-400 focus:outline-none focus:border-emerald-500/50 font-mono font-semibold">
-          <option value="openai/gpt-oss-120b" selected>Groq / GPT-OSS 120B</option>
-          <option value="gemini-2.0-flash">Gemini / 2.0 Flash</option>
-          <option value="llama-3.3-70b-versatile">Groq / LLaMA 3.3 70B</option>
-          <option value="gpt-4o-mini">OpenAI / GPT-4o Mini</option>
-          <option value="llama3.1">Ollama / LLaMA 3.1 Local</option>
+        <!-- LLM / Brain Selector -->
+        <select id="chatModel" onchange="onModelChange()" class="h-9 px-3 rounded-xl bg-[#11151c] border border-purple-500/40 text-xs text-purple-300 focus:outline-none focus:border-purple-500 font-mono font-semibold">
+          <optgroup label="🧠 ATOM PERSONAL BRAIN">
+            <option value="atom-brain-assistant" selected>🧠 Atom Brain (Personal Assistant)</option>
+            <option value="atom-brain-teach">🎓 Atom Brain — Teach / Learn Mode</option>
+            <option value="atom-brain-level">📊 Atom Brain — Knowledge &amp; Level Inspector</option>
+          </optgroup>
+          <optgroup label="⚡ CLOUD &amp; LOCAL LLMS">
+            <option value="openai/gpt-oss-120b">Groq / GPT-OSS 120B</option>
+            <option value="gemini-2.0-flash">Gemini / 2.0 Flash</option>
+            <option value="llama-3.3-70b-versatile">Groq / LLaMA 3.3 70B</option>
+            <option value="gpt-4o-mini">OpenAI / GPT-4o Mini</option>
+            <option value="llama3.1">Ollama / LLaMA 3.1 Local</option>
+          </optgroup>
         </select>
       </div>
     </header>
 
     <!-- Slash Commands Quick Bar -->
     <div class="px-6 py-2 border-b border-[#1e2838] bg-[#0c0f14]/50 flex items-center gap-2 overflow-x-auto custom-scroll text-xs shrink-0">
-      <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider shrink-0">Quick Commands:</span>
+      <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider shrink-0">Atom Modes &amp; Commands:</span>
+      <button onclick="insertSlash('/level')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-purple-900/30 border border-purple-500/30 text-purple-300 text-[11px] font-mono shrink-0 transition">📊 /level</button>
+      <button onclick="insertSlash('/teach ')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-emerald-900/30 border border-emerald-500/30 text-emerald-300 text-[11px] font-mono shrink-0 transition">🎓 /teach</button>
       <button onclick="insertSlash('/help')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-[#1e2838] border border-[#1e2838] text-gray-300 text-[11px] font-mono shrink-0 transition">/help</button>
       <button onclick="insertSlash('/voice:eq')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-[#1e2838] border border-cyan-500/20 text-cyan-400 text-[11px] font-mono shrink-0 transition">/voice:eq</button>
       <button onclick="insertSlash('/search:code ')" class="px-2.5 py-1 rounded-lg bg-[#11151c] hover:bg-[#1e2838] border border-blue-500/20 text-blue-400 text-[11px] font-mono shrink-0 transition">/search:code</button>

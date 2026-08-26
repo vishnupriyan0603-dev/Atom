@@ -96,4 +96,55 @@ class Brain extends BaseApiController
             'intent_result' => $result->toArray(),
         ], 'Intent classified');
     }
+
+    /**
+     * GET /api/v1/brain/graph
+     * Returns the complete Atom Brain Knowledge & Learning Graph with Level 0-6 hierarchy.
+     */
+    public function graph()
+    {
+        $engine = new \Atom\Brain\AtomPersonalAssistantEngine();
+        return $this->respondSuccess($engine->getLearningGraph(), 'Atom Brain learning graph and topic levels');
+    }
+
+    /**
+     * POST /api/v1/brain/teach
+     * Teaches Atom a new concept or correction and updates topic score and level.
+     */
+    public function teach()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $topic = $json['topic'] ?? 'General Knowledge';
+        $concept = $json['concept'] ?? ($json['message'] ?? '');
+
+        if (empty($concept)) {
+            return $this->respondError('Concept or correction message cannot be empty', 400);
+        }
+
+        $engine = new \Atom\Brain\AtomPersonalAssistantEngine();
+        $res = $engine->teachConcept($topic, $concept);
+
+        return $this->respondSuccess($res, 'Concept taught to Atom successfully');
+    }
+
+    /**
+     * POST /api/v1/brain/chat
+     * Processes turn through Atom Personal Assistant Engine.
+     */
+    public function chat()
+    {
+        $json = $this->request->getJSON(true) ?? [];
+        $message = trim($json['message'] ?? '');
+        $mode = $json['mode'] ?? 'assistant';
+
+        if (empty($message)) {
+            return $this->respondError('Message cannot be empty', 400);
+        }
+
+        $engine = new \Atom\Brain\AtomPersonalAssistantEngine();
+        $res = $engine->generateLocalResponse($message, $mode);
+
+        return $this->respondSuccess($res, 'Atom Personal Assistant response');
+    }
 }
+
