@@ -724,10 +724,16 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->post('network/dlq/enqueue', 'Api\WebhookDlq::enqueue');
     $routes->post('network/dlq/replay', 'Api\WebhookDlq::replay');
     $routes->get('network/dlq/items', 'Api\WebhookDlq::items');
+
+    // Phase 98 — Schema Migrations & Zero-Downtime DDL Routes
+    $routes->post('database/migration/plan', 'Api\SchemaMigration::plan');
+    $routes->post('database/migration/execute', 'Api\SchemaMigration::execute');
+    $routes->get('database/migration/history', 'Api\SchemaMigration::history');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
