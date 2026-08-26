@@ -705,10 +705,15 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     // Phase 93 — Data Pipeline Orchestrator & Stream ETL Routes
     $routes->post('database/etl/execute', 'Api\DataEtl::execute');
     $routes->get('database/etl/pipelines', 'Api\DataEtl::pipelines');
+
+    // Phase 94 — 3D Binaural Audio Spatializer & HRTF Routes
+    $routes->post('voice/spatial/process', 'Api\AudioSpatializer::process');
+    $routes->get('voice/spatial/presets', 'Api\AudioSpatializer::presets');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)
 $routes->post('api/telemetry/errors', 'Api\Telemetry::logError');
+
 
 
 
