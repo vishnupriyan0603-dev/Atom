@@ -106,8 +106,43 @@ class AtomSituationReasonerEngineTest extends TestCase
         $this->assertTrue($diagRes['success']);
         $this->assertEquals('healthy', $diagRes['status']);
 
-        // 4. Invalid tool
+        // 4. Regex test tool
+        $regexRes = $this->engine->executeTool('regex_test', [
+            'pattern' => '/^[a-z0-9_]+$/i',
+            'subject' => 'atom_brain_42'
+        ]);
+        $this->assertTrue($regexRes['success']);
+        $this->assertTrue($regexRes['is_match']);
+
+        // 5. JSON validate tool
+        $jsonRes = $this->engine->executeTool('json_validate', [
+            'json' => '{"engine": "Atom Brain", "version": 3}'
+        ]);
+        $this->assertTrue($jsonRes['success']);
+        $this->assertTrue($jsonRes['valid']);
+
+        // 6. Invalid tool
         $invalidRes = $this->engine->executeTool('dangerous_bash_cmd');
         $this->assertFalse($invalidRes['success']);
     }
+
+    public function testCalculateFuelVsEvAmortization(): void
+    {
+        $res = $this->engine->calculateFuelVsEv(35.0, 103.0, 45.0, 7.5, 35.0);
+        $this->assertTrue($res['success']);
+        $this->assertEquals(35.0, $res['daily_distance_km']);
+        $this->assertGreaterThan(0, $res['savings']['annual']);
+        $this->assertGreaterThan(50.0, $res['savings']['savings_percentage']);
+        $this->assertStringContainsString('EV saves', $res['formatted_summary']);
+    }
+
+    public function testCalculateServerCapacitySizing(): void
+    {
+        $res = $this->engine->calculateServerCapacity(1000, 2.5, 15.0);
+        $this->assertTrue($res['success']);
+        $this->assertGreaterThanOrEqual(4, $res['recommended_architecture']['cpu_cores']);
+        $this->assertGreaterThanOrEqual(4, $res['recommended_architecture']['ram_gb']);
+        $this->assertStringContainsString('Recommended:', $res['formatted_summary']);
+    }
 }
+

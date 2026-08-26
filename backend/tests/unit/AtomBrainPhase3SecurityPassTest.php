@@ -59,7 +59,7 @@ class AtomBrainPhase3SecurityPassTest extends TestCase
     {
         $tools = $this->engine->getAvailableTools();
         $this->assertIsArray($tools);
-        $this->assertCount(3, $tools);
+        $this->assertCount(5, $tools);
 
         foreach ($tools as $t) {
             $this->assertNotEmpty($t['name']);

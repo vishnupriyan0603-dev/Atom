@@ -304,78 +304,205 @@ include_once __DIR__ . '/components/header.php';
     </div>
 </div>
 
-<!-- ATOM Brain Phase 3: Proactive Situation Reasoner & Minimalist Tool Sandbox -->
+<!-- ATOM Brain Phase 3: Proactive Situation Reasoner, Multi-Calculator & Tool Sandbox Studio -->
 <div class="row g-4 mb-4">
-    <!-- Real-World Calculation & EMI Simulator -->
+    <!-- Multi-Calculator Suite -->
     <div class="col-md-6">
         <div class="card bg-dark border-secondary text-white h-100 shadow">
             <div class="card-header border-secondary d-flex justify-content-between align-items-center">
-                <span class="fw-bold text-emerald-400"><i class="bi bi-calculator me-2"></i>Real-World Financial &amp; EMI Reasoner</span>
-                <span class="badge bg-emerald-950 text-emerald-300 border border-emerald-500/40">CALCULATION ENGINE</span>
+                <span class="fw-bold text-emerald-400"><i class="bi bi-calculator-fill me-2"></i>Real-World Situation &amp; Cost Calculators</span>
+                <ul class="nav nav-pills card-header-pills text-xs" id="calcTabs">
+                    <li class="nav-item">
+                        <button class="nav-link active py-1 px-2.5 btn-sm text-xs" onclick="switchCalcTab('emi')">Loan EMI</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-1 px-2.5 btn-sm text-xs text-muted" onclick="switchCalcTab('ev')">Fuel vs EV</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link py-1 px-2.5 btn-sm text-xs text-muted" onclick="switchCalcTab('server')">Server Sizing</button>
+                    </li>
+                </ul>
             </div>
             <div class="card-body">
-                <div class="row g-2 mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label text-muted text-xs fw-bold">PRINCIPAL (₹)</label>
-                        <input type="number" id="emiPrincipal" class="form-control form-control-sm bg-black text-white border-secondary" value="150000" step="1000">
+                <!-- Tab 1: EMI -->
+                <div id="tabEmi">
+                    <div class="row g-2 mb-2">
+                        <div class="col-4">
+                            <label class="form-label text-muted text-[11px] fw-bold">PRINCIPAL (₹)</label>
+                            <input type="number" id="emiPrincipal" class="form-control form-control-sm bg-black text-white border-secondary" value="150000" step="1000">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label text-muted text-[11px] fw-bold">INTEREST (%)</label>
+                            <input type="number" id="emiRate" class="form-control form-control-sm bg-black text-white border-secondary" value="9.5" step="0.1">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label text-muted text-[11px] fw-bold">MONTHS</label>
+                            <input type="number" id="emiTenure" class="form-control form-control-sm bg-black text-white border-secondary" value="36" step="1">
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label text-muted text-xs fw-bold">INTEREST RATE (%)</label>
-                        <input type="number" id="emiRate" class="form-control form-control-sm bg-black text-white border-secondary" value="9.5" step="0.1">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label text-muted text-xs fw-bold">TENURE (MONTHS)</label>
-                        <input type="number" id="emiTenure" class="form-control form-control-sm bg-black text-white border-secondary" value="36" step="1">
+                    <button class="btn btn-sm btn-outline-success fw-bold w-100 mb-2" onclick="simulateEmiCalculation()">
+                        <i class="bi bi-play-circle me-1"></i> Calculate EMI Breakdown
+                    </button>
+                    <div id="emiResultsBox" class="p-2 rounded bg-black border border-secondary text-xs" style="display:none;">
+                        <div class="row text-center mb-1">
+                            <div class="col-4">
+                                <div class="text-muted text-[10px]">Monthly EMI</div>
+                                <div class="fw-bold text-success font-monospace" id="emiMonthlyVal">₹0</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-muted text-[10px]">Total Interest</div>
+                                <div class="fw-bold text-warning font-monospace" id="emiInterestVal">₹0</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-muted text-[10px]">Total Payable</div>
+                                <div class="fw-bold text-info font-monospace" id="emiPayableVal">₹0</div>
+                            </div>
+                        </div>
+                        <div class="text-muted text-[10.5px] border-t border-secondary pt-1" id="emiAssumptionsList"></div>
                     </div>
                 </div>
-                <button class="btn btn-sm btn-outline-success fw-bold w-100 mb-3" onclick="simulateEmiCalculation()">
-                    <i class="bi bi-play-circle me-1"></i> Calculate EMI with Assumptions &amp; Breakdown
-                </button>
-                <div id="emiResultsBox" class="p-2 rounded bg-black border border-secondary text-xs" style="display:none;">
-                    <div class="row text-center mb-2">
-                        <div class="col-4">
-                            <div class="text-muted">Monthly EMI</div>
-                            <div class="fs-6 fw-bold text-success font-monospace" id="emiMonthlyVal">₹0</div>
+
+                <!-- Tab 2: Fuel vs EV -->
+                <div id="tabEv" style="display:none;">
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label text-muted text-[11px] fw-bold">DAILY DISTANCE (KM)</label>
+                            <input type="number" id="evDailyKm" class="form-control form-control-sm bg-black text-white border-secondary" value="35">
                         </div>
-                        <div class="col-4">
-                            <div class="text-muted">Total Interest</div>
-                            <div class="fs-6 fw-bold text-warning font-monospace" id="emiInterestVal">₹0</div>
-                        </div>
-                        <div class="col-4">
-                            <div class="text-muted">Total Payable</div>
-                            <div class="fs-6 fw-bold text-info font-monospace" id="emiPayableVal">₹0</div>
+                        <div class="col-6">
+                            <label class="form-label text-muted text-[11px] fw-bold">PETROL PRICE (₹/L)</label>
+                            <input type="number" id="evPetrolPrice" class="form-control form-control-sm bg-black text-white border-secondary" value="103">
                         </div>
                     </div>
-                    <div class="text-muted text-[11px] border-t border-secondary pt-1" id="emiAssumptionsList"></div>
+                    <button class="btn btn-sm btn-outline-info fw-bold w-100 mb-2" onclick="simulateEvCalculation()">
+                        <i class="bi bi-lightning-charge me-1"></i> Compare EV vs Petrol Running Costs
+                    </button>
+                    <div id="evResultsBox" class="p-2 rounded bg-black border border-secondary text-xs" style="display:none;">
+                        <div class="row text-center mb-1">
+                            <div class="col-4">
+                                <div class="text-muted text-[10px]">EV Running Cost</div>
+                                <div class="fw-bold text-success font-monospace" id="evPerKm">₹0.21/km</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-muted text-[10px]">Petrol Running Cost</div>
+                                <div class="fw-bold text-warning font-monospace" id="petrolPerKm">₹2.28/km</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-muted text-[10px]">Annual Savings</div>
+                                <div class="fw-bold text-emerald-400 font-monospace" id="evAnnualSavings">₹0</div>
+                            </div>
+                        </div>
+                        <div class="text-muted text-[10.5px] border-t border-secondary pt-1" id="evSummaryText"></div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Server Sizing -->
+                <div id="tabServer" style="display:none;">
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label text-muted text-[11px] fw-bold">CONCURRENT USERS</label>
+                            <input type="number" id="serverUsers" class="form-control form-control-sm bg-black text-white border-secondary" value="1000">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label text-muted text-[11px] fw-bold">REQ / USER / SEC</label>
+                            <input type="number" id="serverRps" class="form-control form-control-sm bg-black text-white border-secondary" value="2.5" step="0.5">
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-outline-warning fw-bold w-100 mb-2" onclick="simulateServerSizing()">
+                        <i class="bi bi-hdd-network me-1"></i> Calculate Cloud Architecture Sizing
+                    </button>
+                    <div id="serverResultsBox" class="p-2 rounded bg-black border border-secondary text-xs" style="display:none;">
+                        <div class="row text-center mb-1">
+                            <div class="col-4">
+                                <div class="text-muted text-[10px]">CPU Cores</div>
+                                <div class="fw-bold text-warning font-monospace" id="serverCores">4 vCPU</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-muted text-[10px]">RAM Capacity</div>
+                                <div class="fw-bold text-info font-monospace" id="serverRam">8 GB</div>
+                            </div>
+                            <div class="col-4">
+                                <div class="text-muted text-[10px]">Est. Bandwidth</div>
+                                <div class="fw-bold text-success font-monospace" id="serverBandwidth">0 Mbps</div>
+                            </div>
+                        </div>
+                        <div class="text-muted text-[10.5px] border-t border-secondary pt-1" id="serverSummaryText"></div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Minimalist Tool Sandbox Console -->
+    <!-- Minimalist Tool Sandbox & Trade-Off Studio -->
     <div class="col-md-6">
         <div class="card bg-dark border-secondary text-white h-100 shadow">
             <div class="card-header border-secondary d-flex justify-content-between align-items-center">
-                <span class="fw-bold text-purple-400"><i class="bi bi-tools me-2"></i>Minimalist Tool Sandbox</span>
-                <span class="badge bg-purple-950 text-purple-300 border border-purple-500/40">SAFE SANDBOX</span>
+                <span class="fw-bold text-purple-400"><i class="bi bi-tools me-2"></i>Minimalist Tool Sandbox Console</span>
+                <span class="badge bg-purple-950 text-purple-300 border border-purple-500/40">5 WHITELISTED TOOLS</span>
             </div>
             <div class="card-body">
                 <div class="input-group input-group-sm mb-2">
-                    <select id="sandboxToolSelect" class="form-select bg-black text-white border-secondary" style="max-width: 150px;">
+                    <select id="sandboxToolSelect" class="form-select bg-black text-white border-secondary" style="max-width: 140px;" onchange="onToolSelectChange()">
+                        <option value="calc">calc (Math/EMI)</option>
                         <option value="system_inspect">system_inspect</option>
-                        <option value="calc">calc</option>
                         <option value="code_diagnostics">code_diagnostics</option>
+                        <option value="regex_test">regex_test</option>
+                        <option value="json_validate">json_validate</option>
                     </select>
-                    <input type="text" id="sandboxToolParams" class="form-control bg-black text-white border-secondary" placeholder="Optional params (e.g. 24000 * 1.18 or target=backend)">
+                    <input type="text" id="sandboxToolParams" class="form-control bg-black text-white border-secondary" placeholder="e.g. 150000 * 0.18">
                     <button class="btn btn-purple btn-sm text-white fw-bold" style="background:#7C3AED;" onclick="executeSandboxTool()">
                         <i class="bi bi-cpu me-1"></i> Execute
                     </button>
                 </div>
                 <div class="text-xs text-muted mb-2">
                     <i class="bi bi-shield-check text-success me-1"></i>
-                    Rule 14 Enforcement: Invoked strictly for verifiable data, not conversational queries.
+                    Rule 14 &amp; 15: Sandboxed whitelisted tools strictly for verifiable system facts and calculations.
                 </div>
-                <pre id="toolOutputPre" class="p-2 bg-black border border-secondary rounded text-xs text-info custom-scroll mb-0" style="max-height: 110px; overflow-y:auto;">{"status": "Sandbox idle. Select a tool to evaluate."}</pre>
+                <pre id="toolOutputPre" class="p-2 bg-black border border-secondary rounded text-xs text-info custom-scroll mb-0" style="max-height: 140px; overflow-y:auto;">{"status": "Sandbox idle. Ready to evaluate tools."}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Interactive Architectural Decision & Trade-Off Studio -->
+<div class="card bg-dark border-secondary text-white mb-4 shadow">
+    <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+        <span class="fw-bold text-info"><i class="bi bi-diagram-3-fill me-2"></i>Architectural &amp; Technology Trade-Off Studio</span>
+        <button class="btn btn-outline-info btn-sm py-0 px-2 text-xs" onclick="evaluateTradeOffPreset()">
+            <i class="bi bi-sliders me-1"></i> Compare Sample Architecture
+        </button>
+    </div>
+    <div class="card-body p-3">
+        <div class="row g-3" id="tradeOffMatrixCards">
+            <div class="col-md-6">
+                <div class="p-3 rounded bg-black border border-secondary h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold text-white"><i class="bi bi-database text-info me-2"></i>Option A: MySQL 8.0 (Active Record)</span>
+                        <span class="badge bg-success text-dark fw-bold">RECOMMENDED</span>
+                    </div>
+                    <ul class="text-xs text-muted mb-2 space-y-1">
+                        <li><strong class="text-emerald-400">Pros:</strong> Native CodeIgniter integration, battle-tested read throughput, zero extra infrastructure overhead.</li>
+                        <li><strong class="text-amber-400">Cons:</strong> Horizontal scaling requires explicit sharding logic.</li>
+                    </ul>
+                    <div class="text-xs text-info border-t border-secondary/50 pt-1">
+                        <strong>Fit:</strong> Perfect for high-frequency transactional data in Atom core.
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="p-3 rounded bg-black border border-secondary h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold text-white"><i class="bi bi-hdd-stack text-purple-400 me-2"></i>Option B: PostgreSQL 16</span>
+                        <span class="badge bg-secondary">ALTERNATIVE</span>
+                    </div>
+                    <ul class="text-xs text-muted mb-2 space-y-1">
+                        <li><strong class="text-emerald-400">Pros:</strong> Native JSONB operators, advanced indexing, robust concurrency isolation.</li>
+                        <li><strong class="text-amber-400">Cons:</strong> Higher memory footprint per connection, migration complexity.</li>
+                    </ul>
+                    <div class="text-xs text-purple-300 border-t border-secondary/50 pt-1">
+                        <strong>Fit:</strong> Suited for specialized analytics and heavy JSON querying.
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -743,6 +870,68 @@ function simulateEmiCalculation() {
     }).catch(e => alert('Calculation error: ' + e.message));
 }
 
+function switchCalcTab(tab) {
+    document.getElementById('tabEmi').style.display = (tab === 'emi') ? 'block' : 'none';
+    document.getElementById('tabEv').style.display = (tab === 'ev') ? 'block' : 'none';
+    document.getElementById('tabServer').style.display = (tab === 'server') ? 'block' : 'none';
+
+    const buttons = document.querySelectorAll('#calcTabs .nav-link');
+    buttons.forEach((btn, idx) => {
+        const isActive = (tab === 'emi' && idx === 0) || (tab === 'ev' && idx === 1) || (tab === 'server' && idx === 2);
+        btn.className = isActive ? 'nav-link active py-1 px-2.5 btn-sm text-xs' : 'nav-link py-1 px-2.5 btn-sm text-xs text-muted';
+    });
+}
+
+function simulateEvCalculation() {
+    const km = parseFloat(document.getElementById('evDailyKm').value) || 35;
+    const petrol = parseFloat(document.getElementById('evPetrolPrice').value) || 103;
+
+    apiFetch('/brain/tool/execute', {
+        method: 'POST',
+        body: JSON.stringify({
+            tool: 'calc',
+            parameters: { expression: `((${km} / 45) * ${petrol}) - ((${km} / 35) * 7.5)` }
+        })
+    }).then(res => {
+        const petCostPerKm = petrol / 45;
+        const evCostPerKm = 7.5 / 35;
+        const dailySavings = (km * petCostPerKm) - (km * evCostPerKm);
+        const annualSavings = dailySavings * 365;
+
+        document.getElementById('evResultsBox').style.display = 'block';
+        document.getElementById('evPerKm').innerText = `₹${evCostPerKm.toFixed(2)}/km`;
+        document.getElementById('petrolPerKm').innerText = `₹${petCostPerKm.toFixed(2)}/km`;
+        document.getElementById('evAnnualSavings').innerText = `₹${Math.round(annualSavings).toLocaleString()}`;
+        document.getElementById('evSummaryText').innerHTML = `<strong>EV Efficiency:</strong> Saves ~₹${Math.round(annualSavings).toLocaleString()}/year over ${km} km daily commute (89% running cost reduction).`;
+    }).catch(e => alert('EV Calculation error: ' + e.message));
+}
+
+function simulateServerSizing() {
+    const users = parseInt(document.getElementById('serverUsers').value) || 1000;
+    const rps = parseFloat(document.getElementById('serverRps').value) || 2.5;
+
+    const totalRps = users * rps;
+    const cores = Math.max(2, Math.ceil(totalRps / 200));
+    const ram = Math.max(4, Math.ceil((users * 0.05 * 50) / 1024) + 2);
+    const mbps = (totalRps * 15 * 8) / 1024;
+
+    document.getElementById('serverResultsBox').style.display = 'block';
+    document.getElementById('serverCores').innerText = `${cores} vCPU`;
+    document.getElementById('serverRam').innerText = `${ram} GB`;
+    document.getElementById('serverBandwidth').innerText = `${mbps.toFixed(1)} Mbps`;
+    document.getElementById('serverSummaryText').innerHTML = `<strong>Architecture Spec:</strong> Dedicated ${cores} vCPU / ${ram} GB Cloud Droplet / VPS for ${users.toLocaleString()} users at ${totalRps.toLocaleString()} RPS.`;
+}
+
+function onToolSelectChange() {
+    const tool = document.getElementById('sandboxToolSelect').value;
+    const input = document.getElementById('sandboxToolParams');
+    if (tool === 'calc') input.placeholder = 'e.g. (150000 * 0.18) + 2500';
+    else if (tool === 'regex_test') input.placeholder = 'e.g. pattern=^[a-z0-9_]+$ & subject=user_123';
+    else if (tool === 'json_validate') input.placeholder = 'e.g. {"status":"ok","code":200}';
+    else if (tool === 'code_diagnostics') input.placeholder = 'target=backend';
+    else input.placeholder = 'No parameters required';
+}
+
 function executeSandboxTool() {
     const tool = document.getElementById('sandboxToolSelect').value;
     const paramsRaw = document.getElementById('sandboxToolParams').value.trim();
@@ -752,6 +941,10 @@ function executeSandboxTool() {
         params = { expression: paramsRaw || '150000 * 0.18' };
     } else if (tool === 'code_diagnostics') {
         params = { target: paramsRaw || 'backend' };
+    } else if (tool === 'regex_test') {
+        params = { pattern: paramsRaw || '^[a-zA-Z0-9_]+$', subject: 'atom_brain_user_42' };
+    } else if (tool === 'json_validate') {
+        params = { json: paramsRaw || '{"service":"Atom Brain","version":"3.0","status":"active"}' };
     }
 
     const pre = document.getElementById('toolOutputPre');
@@ -765,6 +958,42 @@ function executeSandboxTool() {
     }).catch(e => {
         pre.innerText = 'Error: ' + e.message;
     });
+}
+
+function evaluateTradeOffPreset() {
+    const matrix = document.getElementById('tradeOffMatrixCards');
+    matrix.innerHTML = `
+        <div class="col-md-6">
+            <div class="p-3 rounded bg-black border border-secondary h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-white"><i class="bi bi-cpu text-info me-2"></i>Option A: Monolith (PHP / CI4)</span>
+                    <span class="badge bg-success text-dark fw-bold">RECOMMENDED</span>
+                </div>
+                <ul class="text-xs text-muted mb-2 space-y-1">
+                    <li><strong class="text-emerald-400">Pros:</strong> Instant deployment, zero network latency between modules, single unified codebase.</li>
+                    <li><strong class="text-amber-400">Cons:</strong> Scaling requires scaling the entire container/server.</li>
+                </ul>
+                <div class="text-xs text-info border-t border-secondary/50 pt-1">
+                    <strong>Verdict:</strong> Maximum velocity and developer ergonomics for ATOM core.
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="p-3 rounded bg-black border border-secondary h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="fw-bold text-white"><i class="bi bi-boxes text-purple-400 me-2"></i>Option B: Microservices (gRPC / K8s)</span>
+                    <span class="badge bg-secondary">ALTERNATIVE</span>
+                </div>
+                <ul class="text-xs text-muted mb-2 space-y-1">
+                    <li><strong class="text-emerald-400">Pros:</strong> Independent language runtimes, modular scale boundaries.</li>
+                    <li><strong class="text-amber-400">Cons:</strong> High DevOps tax, distributed debugging complexity.</li>
+                </ul>
+                <div class="text-xs text-purple-300 border-t border-secondary/50 pt-1">
+                    <strong>Verdict:</strong> Reserved for specialized heavy workloads (e.g. Wasm Sandbox).
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 // Load on page ready

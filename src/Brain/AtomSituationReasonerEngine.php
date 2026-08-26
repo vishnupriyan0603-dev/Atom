@@ -102,6 +102,10 @@ class AtomSituationReasonerEngine
                 return $this->toolSystemInspect();
             case 'code_diagnostics':
                 return $this->toolCodeDiagnostics($params['target'] ?? 'backend');
+            case 'regex_test':
+                return $this->toolRegexTest($params['pattern'] ?? '', $params['subject'] ?? '');
+            case 'json_validate':
+                return $this->toolJsonValidate($params['json'] ?? ($params['content'] ?? ''));
             default:
                 return [
                     'success' => false,
@@ -133,6 +137,18 @@ class AtomSituationReasonerEngine
                 'description' => 'Inspects PHP syntax integrity and test suite readiness.',
                 'safety_level' => 'read_only',
                 'parameters' => ['target' => 'string (backend|frontend)'],
+            ],
+            [
+                'name' => 'regex_test',
+                'description' => 'Tests regular expressions against subject strings with match details.',
+                'safety_level' => 'safe_sandbox',
+                'parameters' => ['pattern' => 'string', 'subject' => 'string'],
+            ],
+            [
+                'name' => 'json_validate',
+                'description' => 'Validates and formats JSON payloads with syntax error diagnostics.',
+                'safety_level' => 'read_only',
+                'parameters' => ['json' => 'string'],
             ],
         ];
     }
@@ -375,4 +391,176 @@ class AtomSituationReasonerEngine
             'diagnostics_timestamp' => date('c'),
         ];
     }
+
+    /**
+     * Regex testing tool sandbox.
+     */
+    private function toolRegexTest(string $pattern, string $subject): array
+    {
+        if (empty($pattern)) {
+            return ['success' => false, 'error' => 'Pattern cannot be empty'];
+        }
+
+        // Add delimiters if missing
+        if (!preg_match('/^[\/~#%].*[\/~#%][a-z]*$/i', $pattern)) {
+            $pattern = '/' . preg_quote($pattern, '/') . '/i';
+        }
+
+        try {
+            $isMatch = @preg_match_all($pattern, $subject, $matches, PREG_OFFSET_CAPTURE);
+            if ($isMatch === false) {
+                return ['success' => false, 'error' => 'Invalid regular expression'];
+            }
+
+            return [
+                'success' => true,
+                'pattern' => $pattern,
+                'is_match' => !empty($matches[0]),
+                'match_count' => count($matches[0] ?? []),
+                'matches' => array_slice($matches[0] ?? [], 0, 20),
+            ];
+        } catch (\Throwable $e) {
+            return ['success' => false, 'error' => 'Regex error: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * JSON validation and formatter tool.
+     */
+    private function toolJsonValidate(string $jsonString): array
+    {
+        $clean = trim($jsonString);
+        if (empty($clean)) {
+            return ['success' => false, 'error' => 'Empty JSON payload'];
+        }
+
+        $decoded = @json_decode($clean, true);
+        $lastError = json_last_error_msg();
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return [
+                'success' => false,
+                'valid' => false,
+                'error' => $lastError,
+            ];
+        }
+
+        return [
+            'success' => true,
+            'valid' => true,
+            'type' => is_array($decoded) ? (array_is_list($decoded) ? 'array' : 'object') : gettype($decoded),
+            'element_count' => is_array($decoded) ? count($decoded) : 1,
+            'formatted' => json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+        ];
+    }
+
+    /**
+     * Real-World Fuel vs Electric Vehicle Cost & Savings Amortization.
+     */
+    public function calculateFuelVsEv(
+        float $dailyKm = 30.0,
+        float $petrolPrice = 103.0,
+        float $petrolMileage = 45.0,
+        float $electricityCostPerUnit = 7.5,
+        float $evRangePerKwh = 35.0
+    ): array {
+        $dailyKm = max(1.0, $dailyKm);
+        $petrolMileage = max(1.0, $petrolMileage);
+        $evRangePerKwh = max(1.0, $evRangePerKwh);
+
+        // Daily costs
+        $petrolCostDaily = ($dailyKm / $petrolMileage) * $petrolPrice;
+        $evCostDaily = ($dailyKm / $evRangePerKwh) * $electricityCostPerUnit;
+
+        // Monthly (30 days) & Annual (365 days)
+        $petrolMonthly = $petrolCostDaily * 30;
+        $evMonthly = $evCostDaily * 30;
+        $petrolAnnual = $petrolCostDaily * 365;
+        $evAnnual = $evCostDaily * 365;
+
+        $monthlySavings = $petrolMonthly - $evMonthly;
+        $annualSavings = $petrolAnnual - $evAnnual;
+
+        return [
+            'success' => true,
+            'daily_distance_km' => $dailyKm,
+            'petrol_cost' => [
+                'per_km' => round($petrolCostDaily / $dailyKm, 2),
+                'daily' => round($petrolCostDaily, 2),
+                'monthly' => round($petrolMonthly, 2),
+                'annual' => round($petrolAnnual, 2),
+            ],
+            'ev_cost' => [
+                'per_km' => round($evCostDaily / $dailyKm, 2),
+                'daily' => round($evCostDaily, 2),
+                'monthly' => round($evMonthly, 2),
+                'annual' => round($evAnnual, 2),
+            ],
+            'savings' => [
+                'monthly' => round($monthlySavings, 2),
+                'annual' => round($annualSavings, 2),
+                'savings_percentage' => round((($petrolAnnual - $evAnnual) / $petrolAnnual) * 100, 1),
+            ],
+            'assumptions' => [
+                "Petrol price: ₹{$petrolPrice}/L, Mileage: {$petrolMileage} km/L",
+                "Electricity tariff: ₹{$electricityCostPerUnit}/unit (kWh), EV efficiency: {$evRangePerKwh} km/kWh",
+                "Maintenance & battery depreciation not factored into direct fuel comparison",
+            ],
+            'formatted_summary' => sprintf(
+                "EV saves ₹%s/month (₹%s/year) with %.1f%% lower running cost (₹%.2f/km EV vs ₹%.2f/km Petrol).",
+                number_format(round($monthlySavings)),
+                number_format(round($annualSavings)),
+                round((($petrolAnnual - $evAnnual) / $petrolAnnual) * 100, 1),
+                round($evCostDaily / $dailyKm, 2),
+                round($petrolCostDaily / $dailyKm, 2)
+            ),
+        ];
+    }
+
+    /**
+     * Cloud Server & Resource Capacity Sizing Estimator.
+     */
+    public function calculateServerCapacity(
+        int $concurrentUsers = 500,
+        float $avgRequestsPerUser = 2.0,
+        float $avgPayloadKb = 15.0
+    ): array {
+        $concurrentUsers = max(1, $concurrentUsers);
+        $totalRps = $concurrentUsers * $avgRequestsPerUser;
+        $bandwidthMbps = ($totalRps * $avgPayloadKb * 8) / 1024;
+
+        // Sizing rules of thumb: 1 CPU core handles ~250 PHP-FPM RPS, ~50MB RAM per worker
+        $recommendedCores = max(2, ceil($totalRps / 200));
+        $recommendedRamGb = max(4, ceil(($concurrentUsers * 0.05 * 50) / 1024) + 2); // workers + OS buffer
+        $monthlyTransferGb = ($bandwidthMbps * 3600 * 24 * 30) / (8 * 1024);
+
+        return [
+            'success' => true,
+            'input' => [
+                'concurrent_users' => $concurrentUsers,
+                'requests_per_sec' => round($totalRps, 1),
+                'bandwidth_mbps' => round($bandwidthMbps, 2),
+            ],
+            'recommended_architecture' => [
+                'cpu_cores' => (int) $recommendedCores,
+                'ram_gb' => (int) $recommendedRamGb,
+                'php_fpm_max_children' => (int) ($concurrentUsers * 0.2),
+                'monthly_egress_gb' => round($monthlyTransferGb, 1),
+            ],
+            'assumptions' => [
+                'PHP 8.3 with OPcache & JIT enabled',
+                'Nginx / Apache HTTP/2 reverse proxy',
+                'Average request latency ~45ms',
+            ],
+            'formatted_summary' => sprintf(
+                "Recommended: %d vCPU / %d GB RAM Server for %d concurrent users (handling %.0f RPS / %.2f Mbps).",
+                $recommendedCores,
+                $recommendedRamGb,
+                $concurrentUsers,
+                $totalRps,
+                $bandwidthMbps
+            ),
+        ];
+    }
 }
+
