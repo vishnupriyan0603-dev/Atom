@@ -786,6 +786,11 @@ $routes->group('api/v1', ['filter' => 'auth'], static function ($routes) {
     $routes->get('brain/relationship', 'Api\Brain::relationship');
     $routes->post('brain/relationship/process', 'Api\Brain::processRelationship');
     $routes->post('brain/relationship/set', 'Api\Brain::setRelationship');
+
+    // Phase 103 — Autonomous Dynamic Web Crawler & Recursive Link Extractor Routes
+    $routes->post('search/crawler/crawl', 'Api\WebCrawler::crawl');
+    $routes->post('search/crawler/extract', 'Api\WebCrawler::extract');
+    $routes->get('search/crawler/status', 'Api\WebCrawler::status');
 });
 
 // Public unauthenticated error ingest route (ensures client-side errors log even if session is expired)

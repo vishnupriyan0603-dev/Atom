@@ -27,6 +27,7 @@
    - [Flaw Detection & Metric Logging](#flaw-detection--metric-logging)
    - [A/B Sandbox Experiments](#ab-sandbox-experiments)
    - [Human Authorization Safety Gate](#human-authorization-safety-gate)
+   - [Web Admin Dashboard — 3D Neural Brain Model](#61-web-admin-dashboard--3d-neural-brain-model)
 7. [Desktop WPF Assistant Application](#7-desktop-wpf-assistant-application)
 8. [CLI Spark Commands Reference](#8-cli-spark-commands-reference)
 9. [REST API Endpoints Guide](#9-rest-api-endpoints-guide)
@@ -146,6 +147,16 @@ ATOM supports multi-format PDF and document parsing with automatic semantic chun
 
 ---
 
+## 6.1 Web Admin Dashboard — 3D Neural Brain Model
+
+`frontend/web/admin/index.php` renders a live, procedurally-generated 3D particle brain (no external 3D asset required):
+- **Color** reflects the live Brain Health score (same value CLI `/status` shows) — red near 50%, amber mid, green near 100%.
+- **Neuron count** scales with the actual `atom_document_chunks` row count.
+- **Connecting lines** between nearby neurons are colored on a warm (close/strong) → cool (far/weak) gradient — a visual-only "connection strength" indicator, not tied to conversation sentiment.
+- A subset of points pulse as "firing synapses" to suggest active recall.
+
+---
+
 ## 7. Desktop WPF Assistant Application
 
 The WPF app (`src/PersonalAIAssistant`) features:
@@ -247,6 +258,19 @@ ATOM supports a rich suite of interactive Slash Commands in both the Terminal CL
 | `/rbac:token:validate <jwt>` | Validate token signature, expiry, and scope claims | `/rbac:token:validate eyJhbGciOi...` |
 | `/rbac:tenants` | List tenant workspaces and active isolation state | `/rbac:tenants` |
 
+### 🔀 AI Provider Switching Commands
+Switch which AI provider answers your messages for the rest of the session — available identically in the Terminal CLI and as the model dropdown on the Web chat page (`frontend/web/chat.php`).
+
+| Command | Description | Example |
+| :--- | :--- | :--- |
+| `/model` | Show the active session provider and live status (online/offline, key configured) of Groq and Gemini | `/model` |
+| `/model <groq\|gemini\|atom>` | Switch the active provider for this session (no angle brackets — type the word itself, e.g. `/model gemini`) | `/model gemini` |
+| `/provider set <groq\|gemini\|atom>` | Same as `/model` — full form of the same command | `/provider set atom` |
+| `/provider test` | Ping the current primary provider and report latency | `/provider test` |
+| `/provider mode <local\|balanced\|collaborative>` | Change the AI collaboration routing mode (separate from provider selection) | `/provider mode balanced` |
+
+Selecting `atom` (Atom Universal Brain) doesn't pin to one vendor — it lets AtomBrain's own routing choose the best available provider per message, the same behavior as the "Atom Universal Brain" option in the Web chat dropdown.
+
 ### 🔐 Zero-Knowledge Vault & Differential Sync
 | Command | Description | Example |
 | :--- | :--- | :--- |
@@ -280,6 +304,25 @@ ATOM incorporates an autonomous **Full-Duplex Audio & Voice Duplex Brain**:
   - `SPEECH_CLARITY`: Boosts $1\text{kHz} - 4\text{kHz}$ intelligibility range while cutting low-end rumble.
   - `VOCAL_ENHANCE`: Smooth presence boost for voice recording and playback.
   - `NOISE_REDUCTION`: High-cut and low-cut filters eliminating ambient fan noise and electrical hum.
+
+---
+
+## 15.1 Phase 103: Autonomous Web Crawler & Recursive Link Extractor
+
+ATOM includes an autonomous multi-hop web crawler and recursive link extractor for deep technical documentation research and knowledge grounding.
+
+### Key Capabilities:
+* **Recursive Breadth-First Crawling**: Multi-hop traversal with depth limiting ($1 \le \text{depth} \le 3$) and page quotas ($1 \le \text{pages} \le 20$).
+* **DOM Content Extraction**: Parses titles, meta descriptions, headings (`H1`-`H6`), code blocks (`<pre><code>`), and markdown tables.
+* **Noise Stripping**: Automatically removes `<script>`, `<style>`, `<noscript>`, `<nav>`, `<footer>`, `<header>`, and cookie banners.
+* **SSRF Defense**: Strict blocking of loopback, link-local, and RFC 1918 private IP ranges (`127.0.0.0/8`, `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, `169.254.0.0/16`).
+* **Secret Redaction**: Integrates with `SecretRedactor` to protect credentials in crawled URLs and page text.
+* **Admin Studio**: Dedicated interactive UI at `frontend/web/admin/web_crawler_studio.php` with live page rendering, code snippet inspector, and link graph explorer.
+
+### REST API Endpoints:
+* `POST /api/v1/search/crawler/crawl`: Dispatches a multi-hop recursive crawl.
+* `POST /api/v1/search/crawler/extract`: Extracts structured content from raw HTML or single page.
+* `GET /api/v1/search/crawler/status`: Returns crawler engine health and safety parameters.
 
 ---
 

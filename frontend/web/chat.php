@@ -202,7 +202,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                        . "• Secret Redaction: Active in output stream\n"
                        . "• [Launch Vault Studio](admin/vault.php)";
             } else {
-                $isAtomBrain = str_starts_with($model, 'atom-brain-');
+                // 'atom-core' is the "Atom Universal Brain" dropdown option — let AtomBrain's
+                // own routing choose the provider instead of pinning to one vendor.
+                $isAtomBrain = str_starts_with($model, 'atom-brain-') || $model === 'atom-core';
                 $brainMode = 'assistant';
                 if ($model === 'atom-brain-teach') $brainMode = 'teach';
                 elseif ($model === 'atom-brain-level') $brainMode = 'level';
@@ -239,36 +241,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
                     $localRes = $assistantEngine->generateLocalResponse($message, $brainMode);
                     $reply = $localRes['reply'];
                 } else {
-                    // Check if LLM API Key is configured for direct inference
-                    $apiKey = \Atom\Config\Config::get('GROQ_API_KEY') ?: \Atom\Config\Config::get('LLM_API_KEY');
-                    if (!empty($apiKey)) {
-                        $apiUrl = \Atom\Config\Config::get('GROQ_API_URL') ?: 'https://api.groq.com/openai/v1';
-                        $actualModel = $isAtomBrain ? (\Atom\Config\Config::get('GROQ_MODEL') ?: 'openai/gpt-oss-120b') : $model;
+                    // Model dropdown value -> ModelManager provider alias. Authoritative
+                    // server-side so every listed model actually routes to its own
+                    // provider instead of always hitting Groq (see AGENTS.md cross-client
+                    // parity rule — this uses the same AtomBrainFactory as the REST API).
+                    $modelProviderMap = [
+                        'openai/gpt-oss-120b'     => 'groq',
+                        'llama-3.3-70b-versatile' => 'groq',
+                        'gemini-2.0-flash'        => 'gemini',
+                        'gpt-4o-mini'             => 'openai',
+                        'llama3.1'                => 'local',
+                    ];
+                    $resolvedProvider = $isAtomBrain ? null : ($modelProviderMap[$model] ?? $provider);
+                    $resolvedModel = $isAtomBrain ? null : $model;
 
-                        $systemPrompt = \Atom\Brain\AtomPersonalAssistantEngine::SYSTEM_PROMPT . "\n\n" . $memoryEngine->getContextualPromptInjection($message);
-
-                        $payload = [
-                            'model' => $actualModel,
-                            'messages' => [
-                                ['role' => 'system', 'content' => $systemPrompt],
-                                ['role' => 'user', 'content' => $effectiveMessage]
-                            ],
-                            'temperature' => 0.7,
-                            'max_tokens' => 1500
-                        ];
-
-                        $headers = [
-                            'Content-Type'  => 'application/json',
-                            'Authorization' => 'Bearer ' . $apiKey
-                        ];
-
-                        $raw = safeHttpPost(rtrim($apiUrl, '/') . '/chat/completions', $payload, $headers, 12);
-                        if ($raw) {
-                            $res = json_decode($raw, true);
-                            if (isset($res['choices'][0]['message']['content'])) {
-                                $reply = $res['choices'][0]['message']['content'];
-                            }
-                        }
+                    try {
+                        $brain = \Atom\Brain\AtomBrainFactory::create($workspaceRoot);
+                        $brainHistory = [];
+                        $reply = $brain->process($effectiveMessage, $brainHistory, $resolvedProvider, $resolvedModel);
+                    } catch (\Throwable $e) {
+                        $reply = '';
                     }
 
                     if (empty($reply)) {
@@ -517,6 +509,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
   <script src="<?= $getBaseUrl() ?>/admin/js/shared.js"></script>
   <script>
     let activeChatId = null;
+
+    // Mirrors the server-side $modelProviderMap in the send_message handler below —
+    // used only for display/storage; the server resolves the real dispatch provider.
+    const MODEL_PROVIDER_LABELS = {
+      'atom-core': 'Atom',
+      'openai/gpt-oss-120b': 'Groq',
+      'llama-3.3-70b-versatile': 'Groq',
+      'gemini-2.0-flash': 'Gemini',
+      'gpt-4o-mini': 'OpenAI',
+      'llama3.1': 'Ollama',
+    };
+    function providerForModel(model) {
+      return MODEL_PROVIDER_LABELS[model] || 'Groq';
+    }
     let allChats = [];
     let isTtsEnabled = false;
     let isDuplexRecording = false;
@@ -838,7 +844,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
       const model = document.getElementById('chatModel').value;
       const json = await fetchApiWithFallback('/chats', {
         method: 'POST',
-        body: JSON.stringify({ title, model, provider: 'Groq' })
+        body: JSON.stringify({ title, model, provider: providerForModel(model) })
       });
 
       if (json.success && json.data && json.data.id) {
@@ -970,7 +976,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action'])) {
             message: text,
             model: model,
             persona_level: currentPersonaLevel,
-            provider: 'Groq'
+            provider: providerForModel(model)
           })
         });
 
