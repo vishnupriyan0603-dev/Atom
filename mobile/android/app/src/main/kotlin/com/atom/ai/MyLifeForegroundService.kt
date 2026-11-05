@@ -175,3 +175,4 @@ class MyLifeForegroundService : Service(), SensorEventListener {
 
     override fun onBind(intent: Intent?): IBinder? = null
 }
+

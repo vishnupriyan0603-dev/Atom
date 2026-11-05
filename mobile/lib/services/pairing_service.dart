@@ -128,3 +128,4 @@ class PairingService {
     return expectedDigest.toLowerCase() == signature.toLowerCase();
   }
 }
+

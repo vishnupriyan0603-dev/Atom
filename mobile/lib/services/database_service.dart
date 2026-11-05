@@ -450,11 +450,108 @@ class DatabaseService {
   }
 
   // --------------------------------------------------------------------------
-  // MODULE-SPECIFIC METHODS
+  // MODULE-SPECIFIC METHODS (ALL 14 MODULES)
   // --------------------------------------------------------------------------
+  
+  // Module 01: Identity
+  Future<Map<String, dynamic>> getProfile() async {
+    final db = await database;
+    final res = await db.query('life_identity_profile', limit: 1);
+    return res.isNotEmpty ? res.first : {
+      'full_name': 'Vishnupriyan R',
+      'preferred_name': 'Vishnupriyan',
+      'timezone': 'Asia/Kolkata',
+    };
+  }
+
+  Future<int> updateProfile(Map<String, dynamic> data) async {
+    final db = await database;
+    data['updated_at'] = DateTime.now().toIso8601String();
+    return await db.update('life_identity_profile', data, where: 'id = 1');
+  }
+
+  Future<List<Map<String, dynamic>>> getImportantDates() async {
+    final db = await database;
+    return await db.query('life_important_dates', orderBy: 'event_date ASC');
+  }
+
+  Future<int> addImportantDate(String title, String eventDate, {String category = 'Personal', String? notes}) async {
+    final db = await database;
+    return await db.insert('life_important_dates', {
+      'title': title,
+      'event_date': eventDate,
+      'category': category,
+      'notes': notes,
+    });
+  }
+
+  // Module 02: Finance
+  Future<List<Map<String, dynamic>>> getAccounts() async {
+    final db = await database;
+    return await db.query('life_accounts', where: 'is_active = 1');
+  }
+
+  Future<List<Map<String, dynamic>>> getTransactions({int limit = 50, String? category}) async {
+    final db = await database;
+    if (category != null) {
+      return await db.query('life_transactions', where: 'category = ?', whereArgs: [category], orderBy: 'transaction_date DESC', limit: limit);
+    }
+    return await db.query('life_transactions', orderBy: 'transaction_date DESC', limit: limit);
+  }
+
   Future<int> insertTransaction(Map<String, dynamic> row) async {
     final db = await database;
-    return await db.insert('life_transactions', row);
+    final id = await db.insert('life_transactions', row);
+    // Update account balance
+    final accountId = row['account_id'];
+    final amount = (row['amount'] as num).toDouble();
+    final type = row['type'] ?? 'EXPENSE';
+    final sign = (type == 'INCOME') ? '+' : '-';
+    await db.rawUpdate('UPDATE life_accounts SET balance = balance $sign ? WHERE id = ?', [amount, accountId]);
+    return id;
+  }
+
+  Future<Map<String, dynamic>> getFinanceSummary(String period) async {
+    final db = await database;
+    final nowStr = DateTime.now().toIso8601String().substring(0, 7); // YYYY-MM
+    final accounts = await getAccounts();
+    double totalBalance = 0.0;
+    for (var a in accounts) {
+      totalBalance += (a['balance'] as num?)?.toDouble() ?? 0.0;
+    }
+
+    final expenseRes = await db.rawQuery("SELECT SUM(amount) as sum FROM life_transactions WHERE type = 'EXPENSE' AND transaction_date LIKE ?", ['$nowStr%']);
+    final incomeRes = await db.rawQuery("SELECT SUM(amount) as sum FROM life_transactions WHERE type = 'INCOME' AND transaction_date LIKE ?", ['$nowStr%']);
+
+    final catRes = await db.rawQuery('''
+      SELECT category, SUM(amount) as total FROM life_transactions 
+      WHERE type = 'EXPENSE' AND transaction_date LIKE ? GROUP BY category ORDER BY total DESC
+    ''', ['$nowStr%']);
+
+    return {
+      'period': period,
+      'total_balance': totalBalance,
+      'month_expenses': (expenseRes.first['sum'] as num?)?.toDouble() ?? 0.0,
+      'month_income': (incomeRes.first['sum'] as num?)?.toDouble() ?? 0.0,
+      'category_breakdown': catRes,
+      'accounts': accounts,
+    };
+  }
+
+  // Module 03: Health
+  Future<int> logHealthMetric(String type, double value, {String? notes}) async {
+    final db = await database;
+    return await db.insert('life_health_metrics', {
+      'metric_type': type,
+      'metric_value': value,
+      'recorded_at': DateTime.now().toIso8601String(),
+      'notes': notes,
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getHealthMetrics(String type, {int limit = 30}) async {
+    final db = await database;
+    return await db.query('life_health_metrics', where: 'metric_type = ?', whereArgs: [type], orderBy: 'recorded_at DESC', limit: limit);
   }
 
   Future<int> logWaterIntake(int amountMl) async {
@@ -467,39 +564,250 @@ class DatabaseService {
     });
   }
 
-  Future<int> checkInHabit(int habitId) async {
+  Future<int> logSleepRecord(DateTime start, DateTime end, {int? quality, String? notes}) async {
     final db = await database;
-    final nowStr = DateTime.now().toIso8601String().substring(0, 10);
-    return await db.insert('life_habit_logs', {
-      'habit_id': habitId,
-      'log_date': nowStr,
-      'status': 'COMPLETED',
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert('life_sleep_records', {
+      'sleep_start': start.toIso8601String(),
+      'sleep_end': end.toIso8601String(),
+      'quality_score': quality ?? 7,
+      'notes': notes,
+    });
   }
 
-  Future<int> insertTask(String title, {String priority = 'MEDIUM', String? dueDate}) async {
+  // Module 04: Mental Wellbeing
+  Future<int> logMood(int rating, String primaryEmotion, {String? entry}) async {
+    final db = await database;
+    final nowStr = DateTime.now().toIso8601String().substring(0, 10);
+    return await db.insert('life_mood_journal', {
+      'log_date': nowStr,
+      'mood_rating': rating,
+      'primary_emotion': primaryEmotion,
+      'journal_entry': entry,
+      'logged_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getMoodLogs({int limit = 30}) async {
+    final db = await database;
+    return await db.query('life_mood_journal', orderBy: 'logged_at DESC', limit: limit);
+  }
+
+  Future<int> logGratitude(String entryText) async {
+    final db = await database;
+    return await db.insert('life_gratitude_entries', {
+      'entry_text': entryText,
+      'recorded_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  // Module 05: Location & Travel
+  Future<List<Map<String, dynamic>>> getPlaces() async {
+    final db = await database;
+    return await db.query('life_places', orderBy: 'id ASC');
+  }
+
+  Future<int> addPlace(String name, double lat, double lon, {double radius = 150.0, String category = 'Frequent'}) async {
+    final db = await database;
+    return await db.insert('life_places', {
+      'name': name,
+      'latitude': lat,
+      'longitude': lon,
+      'radius_meters': radius,
+      'category': category,
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getRecentBreadcrumbs({int limit = 50}) async {
+    final db = await database;
+    return await db.query('life_location_breadcrumbs', orderBy: 'recorded_at DESC', limit: limit);
+  }
+
+  Future<int> logBreadcrumb(double lat, double lon, {double? accuracy, double? speed}) async {
+    final db = await database;
+    return await db.insert('life_location_breadcrumbs', {
+      'latitude': lat,
+      'longitude': lon,
+      'accuracy_meters': accuracy,
+      'speed_mps': speed,
+      'recorded_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  // Module 06: Activities & Tasks
+  Future<int> insertTask(String title, {String priority = 'MEDIUM', String? dueDate, String? description}) async {
     final db = await database;
     return await db.insert('life_tasks', {
       'title': title,
+      'description': description,
       'priority': priority,
       'due_date': dueDate,
       'status': 'PENDING',
     });
   }
 
-  Future<List<Map<String, dynamic>>> getHabits() async {
+  Future<int> updateTaskStatus(int taskId, String status) async {
     final db = await database;
-    return await db.query('life_habits', where: 'is_active = 1');
+    return await db.update('life_tasks', {
+      'status': status,
+      'completed_at': (status == 'COMPLETED') ? DateTime.now().toIso8601String() : null,
+    }, where: 'id = ?', whereArgs: [taskId]);
   }
 
   Future<List<Map<String, dynamic>>> getTasks({String? status}) async {
     final db = await database;
     if (status != null) {
-      return await db.query('life_tasks', where: 'status = ?', whereArgs: [status]);
+      return await db.query('life_tasks', where: 'status = ?', whereArgs: [status], orderBy: 'id DESC');
     }
     return await db.query('life_tasks', orderBy: 'id DESC', limit: 50);
   }
 
+  // Module 07: Habits
+  Future<List<Map<String, dynamic>>> getHabits() async {
+    final db = await database;
+    return await db.query('life_habits', where: 'is_active = 1', orderBy: 'id ASC');
+  }
+
+  Future<int> addHabit(String name, {String frequency = 'DAILY', String? description}) async {
+    final db = await database;
+    return await db.insert('life_habits', {
+      'name': name,
+      'description': description,
+      'frequency': frequency,
+      'current_streak': 0,
+      'longest_streak': 0,
+      'is_active': 1,
+    });
+  }
+
+  Future<int> checkInHabit(int habitId) async {
+    final db = await database;
+    final nowStr = DateTime.now().toIso8601String().substring(0, 10);
+    final res = await db.insert('life_habit_logs', {
+      'habit_id': habitId,
+      'log_date': nowStr,
+      'status': 'COMPLETED',
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+    // Increment streak
+    await db.rawUpdate('UPDATE life_habits SET current_streak = current_streak + 1 WHERE id = ?', [habitId]);
+    return res;
+  }
+
+  // Module 08: Education & GATE Preparation
+  Future<List<Map<String, dynamic>>> getLearningSubjects({String? track}) async {
+    final db = await database;
+    if (track != null) {
+      return await db.query('life_learning_subjects', where: 'track = ?', whereArgs: [track]);
+    }
+    return await db.query('life_learning_subjects', orderBy: 'id ASC');
+  }
+
+  Future<int> logStudySession(int subjectId, String topic, int durationMinutes, {int problemsSolved = 0, String? notes}) async {
+    final db = await database;
+    final id = await db.insert('life_study_sessions', {
+      'subject_id': subjectId,
+      'topic': topic,
+      'duration_minutes': durationMinutes,
+      'problems_solved': problemsSolved,
+      'notes': notes,
+      'recorded_at': DateTime.now().toIso8601String(),
+    });
+    // Update completed hours
+    final hours = durationMinutes / 60.0;
+    await db.rawUpdate('UPDATE life_learning_subjects SET completed_hours = completed_hours + ? WHERE id = ?', [hours, subjectId]);
+    return id;
+  }
+
+  // Module 09: Career
+  Future<Map<String, dynamic>> getCareerSummary() async {
+    final db = await database;
+    final skills = await db.query('life_skills_inventory');
+    final clients = await db.query('life_freelance_clients');
+    final employment = await db.query('life_employment_history');
+    return {
+      'skills': skills,
+      'clients': clients,
+      'employment': employment,
+    };
+  }
+
+  // Module 10: Social
+  Future<List<Map<String, dynamic>>> getContacts() async {
+    final db = await database;
+    return await db.query('life_contacts', orderBy: 'name ASC');
+  }
+
+  Future<int> addContact(String name, String relationship, {String? phone, String? email, String? birthday}) async {
+    final db = await database;
+    return await db.insert('life_contacts', {
+      'name': name,
+      'relationship': relationship,
+      'phone': phone,
+      'email': email,
+      'birthday': birthday,
+    });
+  }
+
+  // Module 11: Food & Nutrition
+  Future<int> logMeal(String type, String items, {double? calories, double? cost}) async {
+    final db = await database;
+    return await db.insert('life_meals', {
+      'meal_type': type,
+      'food_items': items,
+      'estimated_calories': calories,
+      'cost': cost,
+      'logged_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<List<Map<String, dynamic>>> getTodayMeals() async {
+    final db = await database;
+    final nowStr = DateTime.now().toIso8601String().substring(0, 10);
+    return await db.query('life_meals', where: 'logged_at LIKE ?', whereArgs: ['$nowStr%'], orderBy: 'logged_at ASC');
+  }
+
+  // Module 12: Digital Life
+  Future<int> recordDeviceStats(int battery, bool isCharging, int freeMb, int totalMb) async {
+    final db = await database;
+    return await db.insert('life_device_stats', {
+      'battery_level': battery,
+      'is_charging': isCharging ? 1 : 0,
+      'storage_free_mb': freeMb,
+      'storage_total_mb': totalMb,
+      'recorded_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  // Module 13: Documents Vault
+  Future<List<Map<String, dynamic>>> getDocuments({String? category}) async {
+    final db = await database;
+    if (category != null) {
+      return await db.query('life_documents', where: 'category = ?', whereArgs: [category], orderBy: 'created_at DESC');
+    }
+    return await db.query('life_documents', orderBy: 'created_at DESC');
+  }
+
+  Future<int> insertDocument(Map<String, dynamic> doc) async {
+    final db = await database;
+    return await db.insert('life_documents', doc);
+  }
+
+  // Module 14: AI Insights
+  Future<List<Map<String, dynamic>>> getInsights({int limit = 10}) async {
+    final db = await database;
+    return await db.query('life_ai_insights', orderBy: 'created_at DESC', limit: limit);
+  }
+
+  Future<int> addInsight(String type, String title, String content) async {
+    final db = await database;
+    return await db.insert('life_ai_insights', {
+      'insight_type': type,
+      'title': title,
+      'content': content,
+    });
+  }
+
+  // Audit Logs
   Future<void> logAudit(String moduleId, String action, String actor, String? details) async {
     final db = await database;
     await db.insert('life_audit_logs', {
@@ -510,3 +818,4 @@ class DatabaseService {
     });
   }
 }
+

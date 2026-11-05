@@ -19,3 +19,4 @@ class MyLifeActionReceiver : BroadcastReceiver() {
         context.startService(serviceIntent)
     }
 }
+

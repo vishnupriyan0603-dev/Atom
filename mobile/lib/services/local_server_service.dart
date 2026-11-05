@@ -192,7 +192,25 @@ class LocalServerService {
       }
     });
 
-    // 8. Finance Transactions (Protected)
+    // 8. Finance Transactions & Summary (Protected)
+    router.get('/api/v1/finance/summary', (Request request) async {
+      final period = request.url.queryParameters['period'] ?? 'month';
+      final summary = await DatabaseService().getFinanceSummary(period);
+      return _jsonResponse({'success': true, 'data': summary});
+    });
+
+    router.get('/api/v1/finance/transactions', (Request request) async {
+      final limit = int.tryParse(request.url.queryParameters['limit'] ?? '50') ?? 50;
+      final category = request.url.queryParameters['category'];
+      final trans = await DatabaseService().getTransactions(limit: limit, category: category);
+      return _jsonResponse({'success': true, 'data': trans});
+    });
+
+    router.get('/api/v1/finance/accounts', (Request request) async {
+      final accounts = await DatabaseService().getAccounts();
+      return _jsonResponse({'success': true, 'data': accounts});
+    });
+
     router.post('/api/v1/finance/transactions', (Request request) async {
       try {
         final body = jsonDecode(await request.readAsString());
@@ -207,6 +225,148 @@ class LocalServerService {
         final transId = await DatabaseService().insertTransaction(row);
         await DatabaseService().logAudit('02_finance', 'CREATE_TRANSACTION', 'ATOM_API', 'Recorded ${row['type']}: ${row['amount']}');
         return _jsonResponse({'success': true, 'transaction_id': transId}, status: 201);
+      } catch (e) {
+        return _jsonResponse({'success': false, 'error': e.toString()}, status: 400);
+      }
+    });
+
+    // 9. Identity Endpoints (Module 01)
+    router.get('/api/v1/identity', (Request request) async {
+      final profile = await DatabaseService().getProfile();
+      return _jsonResponse({'success': true, 'data': profile});
+    });
+
+    router.put('/api/v1/identity', (Request request) async {
+      try {
+        final body = jsonDecode(await request.readAsString());
+        await DatabaseService().updateProfile(body);
+        return _jsonResponse({'success': true, 'message': 'Identity profile updated'});
+      } catch (e) {
+        return _jsonResponse({'success': false, 'error': e.toString()}, status: 400);
+      }
+    });
+
+    // 10. Health & Vitals (Module 03)
+    router.get('/api/v1/health/today', (Request request) async {
+      final summary = await DatabaseService().getAggregatedSummary();
+      return _jsonResponse({'success': true, 'data': summary['health']});
+    });
+
+    router.post('/api/v1/health/metrics', (Request request) async {
+      try {
+        final body = jsonDecode(await request.readAsString());
+        final type = body['metric_type'] ?? 'WEIGHT_KG';
+        final val = (body['metric_value'] as num).toDouble();
+        await DatabaseService().logHealthMetric(type, val, notes: body['notes']);
+        return _jsonResponse({'success': true, 'metric': type, 'value': val});
+      } catch (e) {
+        return _jsonResponse({'success': false, 'error': e.toString()}, status: 400);
+      }
+    });
+
+    // 11. Mental Wellbeing (Module 04)
+    router.get('/api/v1/wellbeing/mood', (Request request) async {
+      final logs = await DatabaseService().getMoodLogs();
+      return _jsonResponse({'success': true, 'data': logs});
+    });
+
+    router.post('/api/v1/wellbeing/mood', (Request request) async {
+      try {
+        final body = jsonDecode(await request.readAsString());
+        final rating = (body['mood_rating'] as num?)?.toInt() ?? 4;
+        final emotion = body['primary_emotion'] ?? 'Calm';
+        await DatabaseService().logMood(rating, emotion, entry: body['journal_entry']);
+        return _jsonResponse({'success': true, 'message': 'Mood logged'});
+      } catch (e) {
+        return _jsonResponse({'success': false, 'error': e.toString()}, status: 400);
+      }
+    });
+
+    // 12. Location (Module 05)
+    router.get('/api/v1/location/places', (Request request) async {
+      final places = await DatabaseService().getPlaces();
+      return _jsonResponse({'success': true, 'data': places});
+    });
+
+    router.post('/api/v1/location/breadcrumbs', (Request request) async {
+      try {
+        final body = jsonDecode(await request.readAsString());
+        final lat = (body['latitude'] as num).toDouble();
+        final lon = (body['longitude'] as num).toDouble();
+        await DatabaseService().logBreadcrumb(lat, lon, accuracy: (body['accuracy'] as num?)?.toDouble());
+        return _jsonResponse({'success': true});
+      } catch (e) {
+        return _jsonResponse({'success': false, 'error': e.toString()}, status: 400);
+      }
+    });
+
+    // 13. Education & GATE (Module 08)
+    router.get('/api/v1/learning/progress', (Request request) async {
+      final subjects = await DatabaseService().getLearningSubjects();
+      return _jsonResponse({'success': true, 'data': subjects});
+    });
+
+    router.post('/api/v1/learning/study-session', (Request request) async {
+      try {
+        final body = jsonDecode(await request.readAsString());
+        final subjectId = (body['subject_id'] as num).toInt();
+        final topic = body['topic'] ?? 'GATE Study';
+        final duration = (body['duration_minutes'] as num).toInt();
+        await DatabaseService().logStudySession(subjectId, topic, duration, problemsSolved: (body['problems_solved'] as num?)?.toInt() ?? 0);
+        return _jsonResponse({'success': true, 'message': 'Study session logged'});
+      } catch (e) {
+        return _jsonResponse({'success': false, 'error': e.toString()}, status: 400);
+      }
+    });
+
+    // 14. Career & Social (Modules 09 & 10)
+    router.get('/api/v1/career/summary', (Request request) async {
+      final career = await DatabaseService().getCareerSummary();
+      return _jsonResponse({'success': true, 'data': career});
+    });
+
+    router.get('/api/v1/social/contacts', (Request request) async {
+      final contacts = await DatabaseService().getContacts();
+      return _jsonResponse({'success': true, 'data': contacts});
+    });
+
+    // 15. Nutrition (Module 11)
+    router.get('/api/v1/nutrition/today', (Request request) async {
+      final meals = await DatabaseService().getTodayMeals();
+      return _jsonResponse({'success': true, 'data': meals});
+    });
+
+    router.post('/api/v1/nutrition/meals', (Request request) async {
+      try {
+        final body = jsonDecode(await request.readAsString());
+        await DatabaseService().logMeal(
+          body['meal_type'] ?? 'LUNCH',
+          body['food_items'] ?? 'Meal',
+          calories: (body['calories'] as num?)?.toDouble(),
+          cost: (body['cost'] as num?)?.toDouble(),
+        );
+        return _jsonResponse({'success': true, 'message': 'Meal logged'});
+      } catch (e) {
+        return _jsonResponse({'success': false, 'error': e.toString()}, status: 400);
+      }
+    });
+
+    // 16. Documents & Insights (Modules 13 & 14)
+    router.get('/api/v1/documents', (Request request) async {
+      final docs = await DatabaseService().getDocuments();
+      return _jsonResponse({'success': true, 'data': docs});
+    });
+
+    router.get('/api/v1/insights', (Request request) async {
+      final insights = await DatabaseService().getInsights();
+      return _jsonResponse({'success': true, 'data': insights});
+    });
+
+    router.post('/api/v1/insights', (Request request) async {
+      try {
+        final body = jsonDecode(await request.readAsString());
+        await DatabaseService().addInsight(body['insight_type'] ?? 'DAILY_SUMMARY', body['title'] ?? 'Insight', body['content'] ?? '');
+        return _jsonResponse({'success': true, 'message': 'Insight recorded'});
       } catch (e) {
         return _jsonResponse({'success': false, 'error': e.toString()}, status: 400);
       }
@@ -290,3 +450,4 @@ class LocalServerService {
     );
   }
 }
+
