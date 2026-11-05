@@ -243,6 +243,29 @@ class CommandRouter
                     $this->handleGovernance($command, $args);
                     return true;
 
+                // ── Phase 104-109 ARC Automation & System Dev Commands ────────
+                case '/arc':
+                case '/arc:status':
+                case '/arc:git':
+                case '/arc:desktop':
+                case '/arc:sys':
+                case '/arc:dev':
+                case '/arc:ports':
+                case '/arc:toolchain':
+                case '/arc:top':
+                case '/arc:ps':
+                    $this->handleArcCommand($command, $args);
+                    return true;
+
+                // ── Phase 110 Full System Access & Permission Commands ────────
+                case '/permission':
+                case '/permission:status':
+                case '/permission:grant-session':
+                case '/permission:grant':
+                case '/permission:revoke':
+                    $this->handlePermissionCommand($command, $args);
+                    return true;
+
                 // ── Phase 23 — Personal AI Brain Commands ─────────────────────
                 case '/brain':
                 case '/brain:status':
@@ -2589,6 +2612,109 @@ class CommandRouter
     }
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Phase 104-109 ARC Automation & Advanced Developer System Controller
+    // ─────────────────────────────────────────────────────────────────────────
+    private function handleArcCommand(string $command, string $args): void
+    {
+        $arc = new \Atom\Arc\ArcMasterController();
+
+        if ($command === '/arc:git') {
+            $this->ui->highlight("⚡ ARC ONE — Git Controller");
+            $sub = !empty($args) ? trim($args) : 'status';
+            $res = $arc->dispatch("git.{$sub}");
+            $this->ui->writeLine(json_encode($res, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        } elseif ($command === '/arc:desktop') {
+            $this->ui->highlight("🖥️ ARC TWO — Desktop Controller");
+            $text = !empty($args) ? $args : "Hi Vichu";
+            $res = $arc->arcTwo()->runMilestoneOne($text, function($msg) {
+                $this->ui->writeLine("  {$msg}");
+            });
+            $this->ui->writeLine("  Result: " . ($res['success'] ? 'SUCCESS' : 'FAILED'));
+        } elseif ($command === '/arc:ports') {
+            $this->ui->highlight("🌐 ARC THREE — Active Listening Ports");
+            $res = $arc->arcThree()->getListeningPorts();
+            $this->ui->writeLine(sprintf("  %-8s %-20s %-8s %s", "PROTO", "LOCAL ADDRESS", "PID", "PROCESS"));
+            $this->ui->writeLine("  " . str_repeat("─", 50));
+            foreach (array_slice($res['ports'] ?? [], 0, 15) as $p) {
+                $addr = ($p['local_address'] ?? '0.0.0.0') . ':' . ($p['port'] ?? 0);
+                $this->ui->writeLine(sprintf("  %-8s %-20s %-8s %s", $p['protocol'] ?? 'TCP', $addr, $p['pid'] ?? '-', $p['process_name'] ?? 'System'));
+            }
+        } elseif ($command === '/arc:toolchain') {
+            $this->ui->highlight("🛠️ ARC THREE — Developer Toolchain Discovery");
+            $res = $arc->arcThree()->detectDeveloperToolchain();
+            foreach ($res['toolchain'] ?? [] as $tool => $info) {
+                $status = !empty($info['installed']) ? "✓ v{$info['version']}" : "✗ Not Found";
+                $this->ui->writeLine(sprintf("  • %-10s : %s", strtoupper($tool), $status));
+            }
+        } elseif ($command === '/arc:top' || $command === '/arc:ps') {
+            $this->ui->highlight("📊 ARC THREE — OS Process Monitor");
+            $res = $arc->arcThree()->listProcesses(!empty($args) ? $args : null, 15);
+            $this->ui->writeLine(sprintf("  %-8s %-25s %-12s %s", "PID", "PROCESS", "MEMORY (MB)", "THREADS"));
+            $this->ui->writeLine("  " . str_repeat("─", 55));
+            foreach ($res['processes'] ?? [] as $p) {
+                $this->ui->writeLine(sprintf("  %-8s %-25s %-12s %s", $p['pid'], substr($p['name'], 0, 24), $p['memory_mb'], $p['threads']));
+            }
+        } elseif ($command === '/arc:sys' || $command === '/arc:dev') {
+            $this->ui->highlight("💻 ARC THREE — Hardware & System Telemetry");
+            $res = $arc->arcThree()->getHardwareTelemetry();
+            $t = $res['telemetry'] ?? [];
+            $cpu = $t['cpu'] ?? [];
+            $ram = $t['ram'] ?? [];
+            $this->ui->writeLine("  • CPU : " . ($cpu['name'] ?? 'Processor') . " (" . ($cpu['cores_physical'] ?? '-') . " Cores / " . ($cpu['cores_logical'] ?? '-') . " Threads)");
+            $this->ui->writeLine("  • RAM : " . ($ram['used_gb'] ?? 0) . " GB Used / " . ($ram['total_gb'] ?? 0) . " GB Total (" . ($ram['used_percent'] ?? 0) . "%)");
+            $this->ui->writeLine("  • Disks : " . count($t['disks'] ?? []) . " Active Partition(s)");
+        } else {
+            $this->ui->highlight("⚛ ARC Master Automation & Control System (Phase 104-109)");
+            $state = $arc->getSystemState();
+            $this->ui->writeLine("  Controller : " . $state['controller']);
+            $this->ui->writeLine("  Version    : " . $state['version']);
+            $this->ui->writeLine("  Platform   : " . $state['platform']);
+            $this->ui->writeLine();
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /arc:status                  Show complete ARC system state");
+            $this->ui->writeLine("    /arc:git [status|diff|stage] ARC ONE: Safe local Git operations");
+            $this->ui->writeLine("    /arc:desktop [text]          ARC TWO: Windows desktop automation (Milestone 1)");
+            $this->ui->writeLine("    /arc:ports                   ARC THREE: Listening network ports & sockets");
+            $this->ui->writeLine("    /arc:toolchain               ARC THREE: Discovered dev tools (.NET/Node/PHP/Docker)");
+            $this->ui->writeLine("    /arc:top [filter]            ARC THREE: Real-time OS process monitor");
+            $this->ui->writeLine("    /arc:sys                     ARC THREE: Hardware compute & memory telemetry");
+        }
+        $this->ui->writeLine();
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Phase 110 Full System Access & Security Permission Gate
+    // ─────────────────────────────────────────────────────────────────────────
+    private function handlePermissionCommand(string $command, string $args): void
+    {
+        $arc = new \Atom\Arc\ArcMasterController();
+        $gate = $arc->getPermissionGate();
+
+        if ($command === '/permission:grant-session' || $command === '/permission:grant') {
+            $cat = !empty($args) ? trim($args) : 'all';
+            $gate->grantSessionPermission($cat);
+            $this->ui->success("✔ Session Permission GRANTED for category '{$cat}'.");
+            $this->ui->writeLine("  All modifying OS and developer commands in this category will execute autonomously.");
+        } elseif ($command === '/permission:revoke') {
+            $gate->revokePermissions();
+            $this->ui->warning("✔ All session permissions REVOKED.");
+            $this->ui->writeLine("  ATOM will prompt for explicit user approval before executing modifying system actions.");
+        } else {
+            $this->ui->highlight("🛡️ ATOM Security & Permission Governor (Phase 110)");
+            $st = $gate->getStatus();
+            $grants = !empty($st['active_session_grants']) ? implode(', ', $st['active_session_grants']) : 'None (Prompt per action)';
+            $this->ui->writeLine("  Architecture    : " . $st['gate']);
+            $this->ui->writeLine("  Session Grants  : " . $grants);
+            $this->ui->writeLine("  Pending Requests: " . count($st['pending_requests']));
+            $this->ui->writeLine("  Audit Trail Log : " . $st['audit_log_count'] . " entries");
+            $this->ui->writeLine();
+            $this->ui->writeLine("  Commands:");
+            $this->ui->writeLine("    /permission:status           View active system access permission status");
+            $this->ui->writeLine("    /permission:grant-session    Authorize full system access for current session");
+            $this->ui->writeLine("    /permission:revoke           Revoke active session permissions (enforce prompt per action)");
+        }
+        $this->ui->writeLine();
+    }
 }
 
 

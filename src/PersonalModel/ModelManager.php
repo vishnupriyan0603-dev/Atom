@@ -71,6 +71,26 @@ class ModelManager
         return null;
     }
 
+    /** @var array<string, int> Provider cooldown expiration timestamps */
+    private array $cooldowns = [];
+
+    public function markProviderRateLimited(string $providerName, int $cooldownSeconds = 60): void
+    {
+        $this->cooldowns[strtolower($providerName)] = time() + $cooldownSeconds;
+    }
+
+    public function isProviderCoolingDown(string $providerName): bool
+    {
+        $key = strtolower($providerName);
+        if (isset($this->cooldowns[$key])) {
+            if (time() < $this->cooldowns[$key]) {
+                return true;
+            }
+            unset($this->cooldowns[$key]);
+        }
+        return false;
+    }
+
     /**
      * Executes generation for a role with automatic provider failover.
      *
@@ -90,18 +110,40 @@ class ModelManager
             }
         }
 
-        $response = $model->generate($messages);
-
-        // Primary failed (rate limited / offline / transient error) -> fail over
-        if (!$response->isSuccess() && $role === 'primary') {
-            $lastError = $response->getError();
+        // Check if primary model is cooling down due to rate limit
+        if ($this->isProviderCoolingDown($model->getProviderName()) && $role === 'primary') {
             foreach ($this->getFailoverCandidates($model) as $candidate) {
-                if (!$candidate->isAvailable()) {
+                if (!$candidate->isAvailable() || $this->isProviderCoolingDown($candidate->getProviderName())) {
                     continue;
                 }
                 $candidateResponse = $candidate->generate($messages);
                 if ($candidateResponse->isSuccess()) {
                     return $candidateResponse;
+                }
+            }
+        }
+
+        $response = $model->generate($messages);
+
+        // Primary failed (rate limited / offline / transient error) -> fail over
+        if (!$response->isSuccess() && $role === 'primary') {
+            $err = strtolower($response->getError() ?? '');
+            if (str_contains($err, 'rate-limit') || str_contains($err, 'quota') || str_contains($err, '429')) {
+                $this->markProviderRateLimited($model->getProviderName(), 60);
+            }
+
+            $lastError = $response->getError();
+            foreach ($this->getFailoverCandidates($model) as $candidate) {
+                if (!$candidate->isAvailable() || $this->isProviderCoolingDown($candidate->getProviderName())) {
+                    continue;
+                }
+                $candidateResponse = $candidate->generate($messages);
+                if ($candidateResponse->isSuccess()) {
+                    return $candidateResponse;
+                }
+                $candErr = strtolower($candidateResponse->getError() ?? '');
+                if (str_contains($candErr, 'rate-limit') || str_contains($candErr, 'quota') || str_contains($candErr, '429')) {
+                    $this->markProviderRateLimited($candidate->getProviderName(), 60);
                 }
                 $lastError = $candidateResponse->getError();
             }
@@ -164,9 +206,16 @@ class ModelManager
                 $lastError = $model->getProviderName() . ' is unavailable';
                 continue;
             }
+            if ($this->isProviderCoolingDown($model->getProviderName())) {
+                continue;
+            }
             $response = $model->generate($messages);
             if ($response->isSuccess()) {
                 return $response;
+            }
+            $err = strtolower($response->getError() ?? '');
+            if (str_contains($err, 'rate-limit') || str_contains($err, 'quota') || str_contains($err, '429')) {
+                $this->markProviderRateLimited($model->getProviderName(), 60);
             }
             $lastError = $response->getError();
         }
@@ -177,12 +226,16 @@ class ModelManager
             if (in_array($candidate, $tried, true)) {
                 continue;
             }
-            if (!$candidate->isAvailable()) {
+            if (!$candidate->isAvailable() || $this->isProviderCoolingDown($candidate->getProviderName())) {
                 continue;
             }
             $candidateResponse = $candidate->generate($messages);
             if ($candidateResponse->isSuccess()) {
                 return $candidateResponse;
+            }
+            $candErr = strtolower($candidateResponse->getError() ?? '');
+            if (str_contains($candErr, 'rate-limit') || str_contains($candErr, 'quota') || str_contains($candErr, '429')) {
+                $this->markProviderRateLimited($candidate->getProviderName(), 60);
             }
             $lastError = $candidateResponse->getError();
         }

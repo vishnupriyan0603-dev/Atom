@@ -1,16 +1,43 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <SolidColorBrush x:Key="AppBackgroundBrush" Color="#0F141D" />
-    <SolidColorBrush x:Key="SidebarBrush" Color="#111827" />
-    <SolidColorBrush x:Key="SurfaceBrush" Color="#182131" />
-    <SolidColorBrush x:Key="PanelBrush" Color="#202B3D" />
-    <SolidColorBrush x:Key="ElevatedBrush" Color="#253247" />
-    <SolidColorBrush x:Key="TextBrush" Color="#F7FAFF" />
-    <SolidColorBrush x:Key="MutedTextBrush" Color="#B6C1D2" />
-    <SolidColorBrush x:Key="BorderBrush" Color="#334155" />
-    <SolidColorBrush x:Key="AccentBrush" Color="#38BDF8" />
-    <SolidColorBrush x:Key="AccentTextBrush" Color="#06131D" />
-    <SolidColorBrush x:Key="AccentSoftBrush" Color="#12334A" />
-    <SolidColorBrush x:Key="SelectionBrush" Color="#1E4D68" />
-    <SolidColorBrush x:Key="ControlHoverBrush" Color="#2D3B52" />
+    <!-- Cyberpunk Obsidian Dark Palette -->
+    <SolidColorBrush x:Key="AppBackgroundBrush" Color="#07090E" />
+    <SolidColorBrush x:Key="SidebarBrush" Color="#0B0F17" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="#111622" />
+    <SolidColorBrush x:Key="PanelBrush" Color="#161D2B" />
+    <SolidColorBrush x:Key="ElevatedBrush" Color="#1E273A" />
+    
+    <!-- Neon Highlights & Gradients -->
+    <SolidColorBrush x:Key="AccentBrush" Color="#00F2FE" />
+    <SolidColorBrush x:Key="AccentPurpleBrush" Color="#A855F7" />
+    <SolidColorBrush x:Key="AccentGreenBrush" Color="#10B981" />
+    <SolidColorBrush x:Key="AccentRoseBrush" Color="#F43F5E" />
+    <SolidColorBrush x:Key="AccentTextBrush" Color="#03080F" />
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#0D2B3E" />
+    <SolidColorBrush x:Key="AccentSoftPurpleBrush" Color="#2A144E" />
+    
+    <!-- Text and Borders -->
+    <SolidColorBrush x:Key="TextBrush" Color="#F8FAFC" />
+    <SolidColorBrush x:Key="MutedTextBrush" Color="#94A3B8" />
+    <SolidColorBrush x:Key="DimTextBrush" Color="#64748B" />
+    <SolidColorBrush x:Key="BorderBrush" Color="#1E293B" />
+    <SolidColorBrush x:Key="BorderGlowBrush" Color="#00F2FE" />
+    <SolidColorBrush x:Key="ControlHoverBrush" Color="#1E283A" />
+    <SolidColorBrush x:Key="SelectionBrush" Color="#0E3A52" />
+
+    <!-- Gradient Accents -->
+    <LinearGradientBrush x:Key="NeonCyanGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#00F2FE" Offset="0.0" />
+        <GradientStop Color="#4FACFE" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="NeuralPurpleGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#A855F7" Offset="0.0" />
+        <GradientStop Color="#6366F1" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="DarkCardGradient" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#141B29" Offset="0.0" />
+        <GradientStop Color="#0F141F" Offset="1.0" />
+    </LinearGradientBrush>
 </ResourceDictionary>

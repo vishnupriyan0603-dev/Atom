@@ -42,6 +42,6 @@ class GeminiModel implements ModelInterface
         if (method_exists($this->provider, 'isAvailable')) {
             return $this->provider->isAvailable();
         }
-        return false;
+        return true;
     }
 }

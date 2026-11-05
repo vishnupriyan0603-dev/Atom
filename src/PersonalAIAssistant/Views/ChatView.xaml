@@ -1,26 +1,46 @@
 <UserControl x:Class="PersonalAIAssistant.Views.ChatView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <Grid Margin="24">
+    <Grid Margin="28,20,28,24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <TextBlock Text="Chat" Style="{StaticResource SectionTitleText}" Foreground="{DynamicResource TextBrush}" />
-        <ListBox Grid.Row="1" ItemsSource="{Binding Messages}" Background="Transparent" BorderThickness="0">
+
+        <!-- Header -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Neural Dialogue Console" Style="{StaticResource SectionTitleText}" Margin="0" />
+                <Border Background="{DynamicResource AccentSoftBrush}" BorderBrush="{DynamicResource AccentBrush}" BorderThickness="1" CornerRadius="6" Padding="8,3" Margin="14,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Text="HOLD-TO-TALK ACTIVE" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource AccentBrush}" />
+                </Border>
+            </StackPanel>
+            <Button Content="Clear History" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="12,6" MinHeight="32" />
+        </DockPanel>
+
+        <!-- Message List -->
+        <ListBox Grid.Row="1" ItemsSource="{Binding Messages}" Background="Transparent" BorderThickness="0" Margin="0,0,0,16">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <Border Style="{StaticResource Card}" MaxWidth="820" HorizontalAlignment="Left">
+                    <Border Style="{StaticResource Card}" MaxWidth="880" HorizontalAlignment="Left" Margin="0,4,0,12" Padding="16,14">
                         <StackPanel>
-                            <TextBlock Text="{Binding Role}" Foreground="{DynamicResource MutedTextBrush}" FontWeight="SemiBold" />
-                            <TextBlock Text="{Binding Content}" TextWrapping="Wrap" Margin="0,8,0,0" />
+                            <DockPanel Margin="0,0,0,6">
+                                <TextBlock Text="{Binding Role}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource AccentBrush}" />
+                                <TextBlock Text="ATOM Knowledge Graph &bull; Match: 0.94" FontSize="10" Foreground="{DynamicResource AccentPurpleBrush}" HorizontalAlignment="Right" />
+                            </DockPanel>
+                            <TextBlock Text="{Binding Content}" TextWrapping="Wrap" LineHeight="20" FontSize="14" Foreground="{DynamicResource TextBrush}" />
                         </StackPanel>
                     </Border>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="8" Padding="12">
+
+        <!-- Floating Modern Prompt Bar -->
+        <Border Grid.Row="2" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="16" Padding="12" Margin="0,4,0,0">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000" BlurRadius="24" ShadowDepth="6" Opacity="0.6" />
+            </Border.Effect>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
@@ -29,11 +49,16 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <Button Content="Attach" Style="{StaticResource SecondaryButton}" />
-                <TextBox Grid.Column="1" Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}" MinHeight="44" AcceptsReturn="True" TextWrapping="Wrap" Margin="10,0" />
-                <Button Grid.Column="2" Content="Mic" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" />
-                <Button Grid.Column="3" Content="Stop" Command="{Binding StopCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" />
-                <Button Grid.Column="4" Content="Send" Command="{Binding SendCommand}" Style="{StaticResource PrimaryButton}" />
+
+                <Button Content="📎 Attach" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" />
+                
+                <TextBox Grid.Column="1" Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
+                         MinHeight="46" AcceptsReturn="True" TextWrapping="Wrap" VerticalContentAlignment="Center"
+                         Margin="4,0,8,0" FontSize="14" />
+                
+                <Button Grid.Column="2" Content="🎙️ Push to Talk" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" ToolTip="Hold to record voice" />
+                <Button Grid.Column="3" Content="⏹ Stop" Command="{Binding StopCommand}" Style="{StaticResource SecondaryButton}" Margin="0,0,8,0" />
+                <Button Grid.Column="4" Content="🚀 Send" Command="{Binding SendCommand}" Style="{StaticResource PrimaryButton}" Padding="20,10" />
             </Grid>
         </Border>
     </Grid>

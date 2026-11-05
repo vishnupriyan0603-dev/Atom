@@ -60,6 +60,9 @@ class AtomBrainFactory
         $toolManager->registerTool($phpLintTool);
         $toolManager->registerTool($createFileTool);
         $toolManager->registerTool($patchFileTool);
+        $toolManager->registerTool(new \Atom\Tools\ArcDesktopTool());
+        $toolManager->registerTool(new \Atom\Tools\ArcGitTool());
+        $toolManager->registerTool(new \Atom\Tools\ArcSystemDevTool());
 
         // Knowledge Search
         $kSearch = new \Atom\Knowledge\KnowledgeSearch($dbConnection);
@@ -134,11 +137,48 @@ class AtomBrainFactory
         $localModelName = \Atom\Config\Config::get('LLM_LOCAL_MODEL', 'llama3.1');
         $localModel = new \Atom\PersonalModel\AtomLocalModel($localEndpoint, $localModelName, 'Ollama');
         $modelManager->registerModel('local', $localModel);
+        $modelManager->registerModel('ollama', $localModel);
+
+        // --- ATOM Neural Personal AI Model Registration ---
+        $primaryRef = $modelManager->getModelForRole('primary') ?: $localModel;
+        $modelManager->registerModel('atom', $primaryRef);
+        $modelManager->registerModel('atom-neural-v2', $primaryRef);
+        $modelManager->registerModel('atom-bot', $primaryRef);
+
+        if ($activeProvider === 'atom' || $activeProvider === 'atom-neural-v2') {
+            $modelManager->setRole('primary', 'atom');
+            $hasProvider = true;
+        }
 
         if (!$hasProvider) {
             $modelManager->setRole('primary', 'local');
         } else {
-            $modelManager->setRole('fallback', 'local');
+            // Intelligent cloud fallback hierarchy: if primary hits rate-limit, seamlessly switch to next configured provider
+            if ($activeProvider === 'groq') {
+                if (!empty($geminiKey)) {
+                    $modelManager->setRole('fallback', 'gemini');
+                } elseif (!empty($openaiKey)) {
+                    $modelManager->setRole('fallback', 'openai');
+                } else {
+                    $modelManager->setRole('fallback', 'local');
+                }
+            } elseif ($activeProvider === 'gemini') {
+                if (!empty($groqKey)) {
+                    $modelManager->setRole('fallback', 'groq');
+                } elseif (!empty($openaiKey)) {
+                    $modelManager->setRole('fallback', 'openai');
+                } else {
+                    $modelManager->setRole('fallback', 'local');
+                }
+            } else {
+                if (!empty($geminiKey)) {
+                    $modelManager->setRole('fallback', 'gemini');
+                } elseif (!empty($groqKey)) {
+                    $modelManager->setRole('fallback', 'groq');
+                } else {
+                    $modelManager->setRole('fallback', 'local');
+                }
+            }
         }
 
         // Personal Model

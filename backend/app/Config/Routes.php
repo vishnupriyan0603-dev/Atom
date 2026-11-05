@@ -14,11 +14,14 @@ $routes->get('health', 'Api\Health::index');
 $routes->get('api', 'Api\Health::index');
 $routes->get('api/health', 'Api\Health::index');
 
-// Web frontend pages mapping
+// Web frontend & Desktop shell pages mapping
 $routes->get('/', 'Home::index');
 $routes->get('index.php', 'Home::index');
 $routes->get('chat', 'Home::chat');
 $routes->get('chat.php', 'Home::chat');
+$routes->get('desktop', 'Home::desktop');
+$routes->get('desktop/(:any)', 'Home::desktop/$1');
+$routes->get('assets/(:any)', 'Home::desktopAssets/$1');
 $routes->get('admin.php', 'Home::admin/index');
 $routes->get('admin', 'Home::admin/index');
 $routes->get('admin/(:any)', 'Home::admin/$1');
@@ -35,6 +38,9 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
     // AI operations (auth required — avoids anonymous LLM quota burn)
     $routes->post('ai/complete', 'Api\AiChat::complete');
     $routes->post('ai/models', 'Api\AiChat::listModels');
+    $routes->post('chat/(:num)/send', 'Api\AiChat::send/$1');
+    $routes->post('chat/(:num)/preview', 'Api\AiChat::preview/$1');
+    $routes->post('chat/(:num)/stream', 'Api\AiChat::stream/$1');
 
     // Knowledge Records & Documents management
     $routes->get('knowledge', 'Api\Knowledge::index');

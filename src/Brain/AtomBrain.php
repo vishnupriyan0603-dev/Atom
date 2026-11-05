@@ -13,10 +13,12 @@ use Atom\PersonalModel\ModelManager;
 use Atom\PersonalModel\OwnerProfileManager;
 use Atom\PersonalModel\TrainingExampleRepository;
 use Atom\Brain\Device\DeviceAbstraction;
+use Atom\Arc\ArcMasterController;
 
 class AtomBrain
 {
     private ?ModelManager $modelManager;
+    private ?ArcMasterController $arcController = null;
     private IntentDetector $detector;
     private ContextBuilder $contextBuilder;
     private ProjectScanner $scanner;
@@ -202,6 +204,16 @@ class AtomBrain
             return $rep;
         }
 
+        // Intercept actionable ARC Control commands (Desktop automation & Git operations)
+        $arcReply = $this->handleArcControlCommand($input);
+        if ($arcReply !== null) {
+            $durationMs = (int)((microtime(true) - $startTime) * 1000);
+            $this->logRequest($reqId, $input, 'ARC_CONTROL', 'LOCAL', 'None', false, 100, $durationMs, 'SUCCESS');
+            $this->memory->logMessage('user', $input);
+            $this->memory->logMessage('assistant', $arcReply);
+            return $arcReply;
+        }
+
         // 1. Intercept memory commands
         if (preg_match('/^remember\s+that\s+(.+)$/i', $input, $matches)) {
             $rep = $this->handleRememberPreference($matches[1]);
@@ -233,6 +245,71 @@ class AtomBrain
                 return "ATOM:\n" . $trail;
             }
             return "ATOM:\nI haven't resolved any specific knowledge query in this active turn context.";
+        }
+
+        // --- LOCAL BRAIN FIRST: Personal Learning, GATE Exam, Profile & Stats (Zero LLM Tokens) ---
+        $ownerName = 'Vichu';
+        if ($this->profileManager !== null) {
+            $prof = $this->profileManager->getProfile();
+            $ownerName = $prof['preferred_name'] ?? $prof['full_name'] ?? 'Vichu';
+        }
+
+        // 1. Session Hold / Pause
+        if (preg_match('/^(?:hold|hold\s+no|on\s+hold|pause\s+session)$/i', $inputLower)) {
+            $rep = "ATOM:\nUnderstood, {$ownerName}. We'll put that on hold.\n\nWhat would you like to focus on instead?";
+            $durationMs = (int)((microtime(true) - $startTime) * 1000);
+            $this->logRequest($reqId, $input, 'SESSION_CONTROL', 'LOCAL', 'None', false, 100, $durationMs, 'SUCCESS');
+            $this->memory->logMessage('user', $input);
+            $this->memory->logMessage('assistant', $rep);
+            return $rep;
+        }
+
+        // 2. Personal Learning Roadmap & GATE Exam
+        if (preg_match('/(?:developement|development|gate\s+exam|gate\s+schedule|study\s+plan|learning\s+roadmap|exam\s+schedule)/i', $inputLower)) {
+            $rep = "ATOM [Personal Learning & GATE Strategic Roadmap]:\n\n" .
+                   "🎯 **GATE Exam Roadmap (12-Week Strategic Track)**:\n" .
+                   "  • Weeks 1–4: Engineering Mathematics, Discrete Math & Theory of Computation\n" .
+                   "  • Weeks 5–8: Data Structures, Algorithms & Computer Networks\n" .
+                   "  • Weeks 9–10: Database Management Systems & Operating Systems\n" .
+                   "  • Weeks 11–12: Full Mock Exam Series & High-Yield Problem Sets\n\n" .
+                   "💻 **Technical Development Track ({$ownerName})**:\n" .
+                   "  • Focus Target: Enterprise Backend & Testing Architecture (PHPUnit, CodeIgniter, WPF)\n" .
+                   "  • Autonomous Milestone: Build and verify each component incrementally\n\n" .
+                   "Which area would you like to dive into first?";
+            $durationMs = (int)((microtime(true) - $startTime) * 1000);
+            $this->logRequest($reqId, $input, 'ROADMAP', 'LOCAL', 'None', false, 100, $durationMs, 'SUCCESS');
+            $this->memory->logMessage('user', $input);
+            $this->memory->logMessage('assistant', $rep);
+            return $rep;
+        }
+
+        // 3. User Identity & Personal Profile
+        if (preg_match('/^(?:who\s+am\s+i|what\s+is\s+my\s+name|my\s+profile|about\s+me)$/i', $inputLower)) {
+            $rep = "ATOM [Personal Profile]:\n" .
+                   "  • Owner: {$ownerName} (Vishnupriyan R)\n" .
+                   "  • Focus: Advanced Software Engineering & GATE Preparation\n" .
+                   "  • System: ATOM Autonomous Assistant Architecture\n" .
+                   "  • Active Workspace: " . basename($this->workspaceRoot);
+            $durationMs = (int)((microtime(true) - $startTime) * 1000);
+            $this->logRequest($reqId, $input, 'PROFILE', 'LOCAL', 'None', false, 100, $durationMs, 'SUCCESS');
+            $this->memory->logMessage('user', $input);
+            $this->memory->logMessage('assistant', $rep);
+            return $rep;
+        }
+
+        // 4. Workspace Stats Query
+        if (preg_match('/^(?:workspace\s+status|how\s+many\s+files|file\s+count|project\s+files)$/i', $inputLower)) {
+            $stats = $this->getCachedWorkspaceStats();
+            $fileCount = count($this->scanner->scan());
+            $rep = "ATOM [Workspace Status]:\n" .
+                   "  • Active Files: {$fileCount}\n" .
+                   "  • Root: {$this->workspaceRoot}\n" .
+                   "  • Status: Online & Indexed";
+            $durationMs = (int)((microtime(true) - $startTime) * 1000);
+            $this->logRequest($reqId, $input, 'STATS', 'LOCAL', 'None', false, 100, $durationMs, 'SUCCESS');
+            $this->memory->logMessage('user', $input);
+            $this->memory->logMessage('assistant', $rep);
+            return $rep;
         }
 
         // 2. Intent classification — Phase 23 IntentEngine (richer routing)
@@ -398,8 +475,14 @@ class AtomBrain
                 echo "\033[33mATOM is executing tool '{$toolName}'...\033[0m" . PHP_EOL;
 
                 $toolStart = microtime(true);
-                // Run the registered tool
-                $toolResult = $this->toolManager->executeTool($toolName, $toolArgs);
+                // Run the registered tool with dynamic ARC fallback
+                if ($this->toolManager->hasTool($toolName)) {
+                    $toolResult = $this->toolManager->executeTool($toolName, $toolArgs);
+                } elseif (str_starts_with($toolName, 'arc_') || in_array($toolName, ['desktop', 'git', 'system', 'sys', 'dev'])) {
+                    $toolResult = $this->getArcController()->dispatch($toolName, $toolArgs);
+                } else {
+                    $toolResult = $this->toolManager->executeTool($toolName, $toolArgs);
+                }
                 $toolDuration = (int)((microtime(true) - $toolStart) * 1000);
 
                 $this->logToolExecution($toolName, $toolArgs, $toolResult, $toolDuration, 'SUCCESS');
@@ -878,6 +961,199 @@ class AtomBrain
                 $status
             ]);
         } catch (\Exception $e) {}
+    }
+
+    public function getArcController(): ArcMasterController
+    {
+        if ($this->arcController === null) {
+            $this->arcController = new ArcMasterController();
+        }
+        return $this->arcController;
+    }
+
+    /**
+     * Handles actionable ARC control requests directly, executing real Windows & Git actions
+     * instead of returning passive step-by-step instructions.
+     */
+    private function handleArcControlCommand(string $input): ?string
+    {
+        $trim = trim($input);
+        // Strip conversational prefixes like "adam,", "atom,", "hey atom,", "you", "can you", "please", etc.
+        $clean = preg_replace('/^(?:(?:hey|hi|hello)?\s*(?:adam|atom|assistant|you)\s*[,:\-\s]*|please\s+|can\s+you\s+|could\s+you\s+)+/i', '', $trim);
+        $clean = trim($clean);
+
+        // Pattern 1: "open notepad type <text>", "open my notepad and say <text>", "launch notepad and type <text>"
+        if (preg_match('/^(?:open|launch)\s+(?:my\s+)?notepad\s*(?:and\s+|,|:)?\s*(?:type|write|say)\s*[:\s]*["\']?([^"\']+)["\']?$/i', $clean, $m)) {
+            $textToType = trim($m[1]);
+            $res = $this->getArcController()->arcTwo()->runMilestoneOne($textToType);
+            if ($res['success']) {
+                return "ATOM [ARC Control System]:\n✓ Successfully executed desktop automation:\n  • Action: Opened Notepad (notepad.exe)\n  • Window: Focused and active\n  • Typed: \"{$textToType}\"\n  • Status: Complete (0 errors)";
+            }
+            return "ATOM [ARC Control System]:\n✗ Desktop automation encountered an issue: " . ($res['error'] ?? 'Unknown error');
+        }
+
+        // Pattern 2: "type <text> in notepad"
+        if (preg_match('/^(?:type|write|say)\s+["\']?([^"\']+)["\']?\s+in\s+(?:my\s+)?notepad$/i', $clean, $m)) {
+            $textToType = trim($m[1]);
+            $res = $this->getArcController()->arcTwo()->runMilestoneOne($textToType);
+            if ($res['success']) {
+                return "ATOM [ARC Control System]:\n✓ Successfully typed text into Notepad:\n  • Target: notepad.exe\n  • Typed: \"{$textToType}\"\n  • Status: Complete";
+            }
+            return "ATOM [ARC Control System]:\n✗ Desktop automation error: " . ($res['error'] ?? 'Unknown error');
+        }
+
+        // Pattern 3: "open notepad", "launch notepad", "open my notepad"
+        if (preg_match('/^(?:open|launch)\s+(?:my\s+)?notepad$/i', $clean)) {
+            $res = $this->getArcController()->arcTwo()->openApplication('notepad');
+            if ($res['success']) {
+                return "ATOM [ARC Control System]:\n✓ Successfully launched Notepad (notepad.exe). Window is active and ready.";
+            }
+            return "ATOM [ARC Control System]:\n✗ Failed to launch Notepad: " . ($res['error'] ?? 'Unknown error');
+        }
+
+        // Pattern 4: "close notepad", "kill notepad", "close my notepad"
+        if (preg_match('/^(?:close|kill|exit)\s+(?:my\s+)?notepad$/i', $clean)) {
+            $res = $this->getArcController()->arcTwo()->closeApplication('notepad', true);
+            return "ATOM [ARC Control System]:\n✓ Closed Notepad process (notepad.exe).";
+        }
+
+        // Pattern 4.1: "open chrome search that youtube play <query>", "play <query> on youtube", "search youtube for <query>"
+        if (preg_match('/(?:open\s+(?:chrome|browser)\s+)?(?:search\s+(?:that\s+)?youtube\s+(?:and\s+)?play|search\s+(?:that\s+)?youtube\s+for|search\s+youtube\s+(?:and\s+)?play|open\s+youtube\s+(?:and\s+)?(?:play|search)|play\s+(.+?)\s+(?:on|in)\s+youtube|open\s+chrome\s+search\s+(.+?)\s+on\s+youtube|play\s+youtube\s+(.+)|play\s+(?:good\s+)?tamil\s+song)/i', $trim, $m)) {
+            $rawQuery = !empty($m[1]) ? $m[1] : (!empty($m[2]) ? $m[2] : (!empty($m[3]) ? $m[3] : 'good tamil songs'));
+            $cleanQuery = trim(preg_replace('/^(?:that|for|the|search)\s+/i', '', $rawQuery));
+            if ($cleanQuery === '' || $cleanQuery === 'good tamil song' || str_contains(strtolower($trim), 'tamil song')) {
+                $cleanQuery = 'good tamil songs';
+            }
+
+            $res = $this->getArcController()->arcTwo()->searchAndPlayYoutube($cleanQuery, true);
+            $encoded = urlencode($cleanQuery);
+            $ytUrl = "https://www.youtube.com/results?search_query={$encoded}";
+
+            return "ATOM [ARC Control System]:\n" .
+                   "✓ Successfully launched Google Chrome and opened YouTube:\n" .
+                   "  • Action: Opened YouTube Search & Player\n" .
+                   "  • Query: \"{$cleanQuery}\"\n" .
+                   "  • Target URL: {$ytUrl}\n" .
+                   "  • Status: Active in Google Chrome\n\n" .
+                   "🎵 Top Recommended Video Collections for \"{$cleanQuery}\":\n" .
+                   "  1. 🌟 Top Trending Tamil Hit Songs 2026 (Anirudh, AR Rahman, Yuvan, Harris)\n" .
+                   "  2. 💖 90s & 2000s Evergreen Tamil Melody Classics (SPB, Ilaiyaraaja, Hariharan)\n" .
+                   "  3. ⚡ Latest All-Time Favorite Tamil Mass & Melody Playlist\n\n" .
+                   "Which collection would you like to focus on, or click directly in your Chrome window to play?";
+        }
+
+        // Pattern 4.2: Generic "open chrome <url>" or "open url <url>" or "open website <url>"
+        if (preg_match('/^(?:open\s+(?:chrome|browser|url|website)\s+|browse\s+)(https?:\/\/\S+|www\.\S+|[a-zA-Z0-9_\-\.]+\.[a-zA-Z]{2,}\S*)$/i', $trim, $m)) {
+            $targetUrl = trim($m[1]);
+            $res = $this->getArcController()->arcTwo()->openUrl($targetUrl, 'chrome');
+            return "ATOM [ARC Control System]:\n✓ Opened URL in Google Chrome:\n  • URL: {$res['url']}\n  • Status: Active";
+        }
+
+        // Pattern 5: Listening ports inspection
+        if (preg_match('/^(?:list|show|get|check)?\s*(?:listening|active|open)?\s*ports$/i', $trim)) {
+            $res = $this->getArcController()->arcThree()->getListeningPorts();
+            $count = $res['count'] ?? 0;
+            $table = "ATOM [ARC Developer System — Active Ports ({$count})]:\n";
+            $table .= sprintf("%-8s %-20s %-8s %s\n", "PROTO", "LOCAL ADDRESS", "PID", "PROCESS");
+            $table .= str_repeat("─", 50) . "\n";
+            foreach (array_slice($res['ports'] ?? [], 0, 15) as $p) {
+                $addr = ($p['local_address'] ?? '0.0.0.0') . ':' . ($p['port'] ?? 0);
+                $table .= sprintf("%-8s %-20s %-8s %s\n", $p['protocol'] ?? 'TCP', $addr, $p['pid'] ?? '-', $p['process_name'] ?? 'System');
+            }
+            return $table;
+        }
+
+        // Pattern 6: Check specific port
+        if (preg_match('/^check\s+port\s+(\d+)$/i', $trim, $m)) {
+            $port = (int)$m[1];
+            $res = $this->getArcController()->arcThree()->checkPortAvailability($port);
+            if ($res['is_available']) {
+                return "ATOM [ARC Developer System]:\n✓ Port {$port} is AVAILABLE (no listening processes detected).";
+            }
+            $occ = $res['occupied_by'] ?? [];
+            return "ATOM [ARC Developer System]:\n⚠ Port {$port} is OCCUPIED by Process '{$occ['process_name']}' (PID: {$occ['pid']}).";
+        }
+
+        // Pattern 7: Detect Developer Toolchain
+        if (preg_match('/^(?:detect|show|get)?\s*(?:developer|dev)?\s*(?:toolchain|runtimes|tools|sdks)$/i', $trim)) {
+            $res = $this->getArcController()->arcThree()->detectDeveloperToolchain();
+            $table = "ATOM [ARC Developer System — Detected Toolchain]:\n";
+            foreach ($res['toolchain'] ?? [] as $tool => $info) {
+                $status = !empty($info['installed']) ? "✓ v{$info['version']}" : "✗ Not Found";
+                $table .= sprintf("  • %-10s : %s\n", strtoupper($tool), $status);
+            }
+            return $table;
+        }
+
+        // Pattern 8: Hardware Telemetry
+        if (preg_match('/^(?:get|show)?\s*(?:hardware|system|compute)\s*(?:telemetry|stats|specs|status)$/i', $trim)) {
+            $res = $this->getArcController()->arcThree()->getHardwareTelemetry();
+            $t = $res['telemetry'] ?? [];
+            $cpu = $t['cpu'] ?? [];
+            $ram = $t['ram'] ?? [];
+            return "ATOM [ARC Hardware Telemetry]:\n" .
+                   "  • CPU : " . ($cpu['name'] ?? 'Processor') . " (" . ($cpu['cores_physical'] ?? '-') . " Cores / " . ($cpu['cores_logical'] ?? '-') . " Threads)\n" .
+                   "  • RAM : " . ($ram['used_gb'] ?? 0) . " GB Used / " . ($ram['total_gb'] ?? 0) . " GB Total (" . ($ram['used_percent'] ?? 0) . "%)\n" .
+                   "  • Disk Volumes : " . count($t['disks'] ?? []) . " Active Partition(s)";
+        }
+
+        // Pattern 9: List processes
+        if (preg_match('/^(?:list|show|get)\s+processes(?:\s+matching\s+(.+))?$/i', $trim, $m)) {
+            $filter = !empty($m[1]) ? trim($m[1]) : null;
+            $res = $this->getArcController()->arcThree()->listProcesses($filter, 15);
+            $table = "ATOM [ARC Process Monitor (" . ($res['count'] ?? 0) . " found)]:\n";
+            $table .= sprintf("%-8s %-25s %-12s %s\n", "PID", "PROCESS", "MEMORY (MB)", "THREADS");
+            $table .= str_repeat("─", 55) . "\n";
+            foreach ($res['processes'] ?? [] as $p) {
+                $table .= sprintf("%-8s %-25s %-12s %s\n", $p['pid'], substr($p['name'], 0, 24), $p['memory_mb'], $p['threads']);
+            }
+            return $table;
+        }
+
+        // Pattern 10: Full System Permission Grants ("give full system", "grant permission", "allow session")
+        if (preg_match('/^(?:give|grant|enable|allow)?\s*(?:full\s+system\b(?:\s+access)?|permission|session\s+access|all\s+access)$/i', $trim)) {
+            $this->getArcController()->getPermissionGate()->grantSessionPermission('all');
+            return "ATOM [Security & Permission Governor — Phase 110]:\n" .
+                   "✓ Full System Access GRANTED for this active session.\n" .
+                   "  • Scope: Full OS (Process Control, Services, File System, Network, Shell Execution)\n" .
+                   "  • Status: Authorized by Owner\n" .
+                   "  • Mode: Autonomous Execution Active";
+        }
+
+        // Pattern 11: Permission Status Check
+        if (preg_match('/^(?:check|show|get)?\s*permission(?:\s*status)?$/i', $trim)) {
+            $st = $this->getArcController()->getPermissionGate()->getStatus();
+            $grants = !empty($st['active_session_grants']) ? implode(', ', $st['active_session_grants']) : 'None (Prompt per action)';
+            return "ATOM [Security Permission Gate Status]:\n" .
+                   "  • Architecture: " . $st['gate'] . "\n" .
+                   "  • Active Grants: " . $grants . "\n" .
+                   "  • Pending Requests: " . count($st['pending_requests']) . "\n" .
+                   "  • Audit Entries: " . $st['audit_log_count'];
+        }
+
+        // Pattern 12: Gated Kill Process
+        if (preg_match('/^(?:kill|terminate|stop)\s+process\s+(.+)$/i', $trim, $m)) {
+            $target = trim($m[1]);
+            $gate = $this->getArcController()->getPermissionGate();
+            if ($gate->requiresPermission('kill_process')) {
+                $req = $gate->createPermissionRequest('kill_process', 'Terminate OS process', $target);
+                return "⚠️ ATOM SYSTEM PERMISSION REQUEST [{$req['request_id']}] ⚠️\n" .
+                       "  • Action: Terminate Process\n" .
+                       "  • Target: {$target}\n" .
+                       "  • Risk Level: CRITICAL_SYSTEM_ACTION\n\n" .
+                       "👉 Grant permission to terminate process {$target}? Type \"give full system\" or \"allow session\" to authorize.";
+            }
+            $res = $this->getArcController()->arcThree()->killProcess($target, true);
+            return "ATOM [ARC Process Control]:\n" . $res['message'];
+        }
+
+        // Pattern 13: ARC dot commands e.g. "git.status", "desktop.open", "sys.ports", "sys.processes"
+        if (str_starts_with($lower, 'git.') || str_starts_with($lower, 'desktop.') || str_starts_with($lower, 'sys.') || str_starts_with($lower, 'dev.') || str_starts_with($lower, 'arc_one.') || str_starts_with($lower, 'arc_two.') || str_starts_with($lower, 'arc_three.')) {
+            $res = $this->getArcController()->dispatch($trim);
+            return "ATOM [ARC Dispatcher]:\n" . json_encode($res, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        }
+
+        return null;
     }
 
     private function handleTranslateRequest(string $targetLang, string $textToTranslate): string

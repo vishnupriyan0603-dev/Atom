@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Atom AI Assistant</title>
+  <title>ATOM AI Assistant - 3D Cyber Desktop</title>
   <hta:application
     id="AtomDesktopApp"
-    applicationname="Atom"
+    applicationname="Atom AI Assistant"
     border="thin"
     borderstyle="normal"
     caption="yes"
@@ -17,101 +17,312 @@
     windowstate="normal"
   />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta charset="utf-8" />
   <link rel="stylesheet" href="assets/atom.css" />
+  <!-- Three.js 3D WebGL Library -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
 </head>
 <body>
+  <!-- Ambient Interactive Particle Background -->
+  <canvas id="bgParticleCanvas"></canvas>
+
   <div class="app">
+    <!-- Sidebar Navigation -->
     <div class="sidebar">
       <div class="sidebar-top">
         <div class="brand">
           <div class="brand-box">A</div>
-          <span class="brand-name">Atom</span>
+          <span class="brand-name">ATOM</span>
         </div>
         <div class="status-bar">
-          <span class="status-dot"></span>
-          <span id="statusText">System Online</span>
+          <span class="status-dot" id="statusDot"></span>
+          <span id="statusText">System Initializing</span>
         </div>
       </div>
 
       <div class="sidebar-nav">
-        <div class="nav-item active" data-tab="assistant"><span class="nav-icon">&#9679;</span> Assistant</div>
-        <div class="nav-item" data-tab="automation"><span class="nav-icon">&#9881;</span> Automation</div>
-        <div class="nav-item" data-tab="knowledge"><span class="nav-icon">&#128214;</span> Knowledge <span class="nav-badge">3</span></div>
-        <div class="nav-item" data-tab="settings"><span class="nav-icon">&#9878;</span> Settings</div>
+        <div class="nav-item active" data-tab="assistant">
+          <span class="nav-icon">&#9679;</span> Assistant
+        </div>
+        <div class="nav-item" data-tab="automation">
+          <span class="nav-icon">&#9881;</span> Automation
+        </div>
+        <div class="nav-item" data-tab="knowledge">
+          <span class="nav-icon">&#128214;</span> Knowledge <span class="nav-badge">Docs</span>
+        </div>
+        <div class="nav-item" data-tab="settings">
+          <span class="nav-icon">&#9878;</span> Settings
+        </div>
       </div>
 
-      <div class="sidebar-footer"></div>
+      <div class="sidebar-footer">
+        <span>ATOM v2.5 3D Shell</span>
+        <span style="color:#22c55e;">● SECURE</span>
+      </div>
     </div>
 
+    <!-- Main Content Area -->
     <div class="main">
       <div class="main-top">
         <div class="main-head">
-          <h1>AI Assistant</h1>
-          <p>Atom AI Assistant - connected to backend API for chat, models, and knowledge features.</p>
+          <h1 id="pageTitle">AI Assistant <span style="font-size:12px; font-weight:600; color:#38bdf8; background:rgba(8,47,73,0.7); padding:2px 8px; border-radius:10px; border:1px solid #38bdf8;">3D Core Active</span></h1>
+          <p id="pageDesc">Atom AI Assistant - real-time multi-model chat, interactive 3D avatar & reasoning engine.</p>
         </div>
         <div class="main-actions">
           <span class="badge badge-green" id="statusBadge">&#9679; Connected</span>
         </div>
       </div>
 
-      <div class="workspace">
-        <div class="col-console">
-          <div class="card">
-            <div class="card-head"><span class="dot"></span> Assistant Console</div>
-            <div class="card-body">
-              <div id="msgBox" class="msg-box">
-                <div class="welcome">Welcome to Atom AI Assistant. Type a message below to get started.</div>
+      <div class="views-container">
+        <!-- View 1: Assistant & 3D Avatar Viewport -->
+        <div class="view-panel active" id="view-assistant">
+          <!-- Left Column: Chat Console -->
+          <div class="col-console">
+            <div class="card">
+              <div class="card-head">
+                <div class="card-head-title">
+                  <span class="dot"></span> Neural Assistant Console
+                  <span id="quickLangBadge" class="lang-pill active-auto" onclick="window.toggleVoiceLang()" title="Click to toggle language (Auto / Tamil / English)">EN/தமிழ்</span>
+                </div>
+                <button class="btn-ghost" onclick="clearChat()">Clear Console</button>
               </div>
-              <div id="typingIndicator" class="typing" style="display:none">
-                <span>Atom is typing</span>
-                <span class="typing-dots"><span></span><span></span><span></span></span>
-              </div>
-              <div class="input-row">
-                <input id="msgInput" type="text" placeholder="Type a message for the assistant..." onkeydown="if(event.key==='Enter')sendMsg()" />
-                <button class="btn btn-p" onclick="sendMsg()">Send</button>
-              </div>
-              <div class="quick-bar">
-                <button class="btn btn-s" onclick="quickAct('help')">Help</button>
-                <button class="btn btn-s" onclick="quickAct('status')">Status</button>
-                <button class="btn btn-s" onclick="quickAct('clear')">Clear</button>
+              <div class="card-body">
+                <div id="msgBox" class="msg-box">
+                  <div class="welcome">
+                    <div class="welcome-icon">&#9889;</div>
+                    <h3>ATOM Neural Console Ready</h3>
+                    <p>Type a message or instruction below to interact with the assistant.</p>
+                  </div>
+                </div>
+
+                <!-- Audio Waveform Spectrum Bar -->
+                <div class="audio-visualizer-bar" title="Real-time Audio & Telemetry Spectrum">
+                  <canvas id="audioWaveCanvas"></canvas>
+                </div>
+
+                <div id="typingIndicator" class="typing" style="display:none;">
+                  <span>Atom Neural Core is processing</span>
+                  <span class="typing-dots"><span></span><span></span><span></span></span>
+                </div>
+                <div class="input-row">
+                  <input id="msgInput" type="text" placeholder="Ask Atom anything, test coding, or trigger workflows..." />
+                  <button id="btnHoldToTalk" class="btn btn-mic" title="Hold down to speak, release to send immediately">🎙️ Hold to Speak</button>
+                  <button id="btnSend" class="btn btn-p" onclick="sendMsg()">Send</button>
+                </div>
+                <div class="quick-bar">
+                  <button class="btn btn-s" onclick="quickAct('help')">Help</button>
+                  <button class="btn btn-s" onclick="quickAct('status')">Telemetry</button>
+                  <button class="btn btn-s" onclick="quickAct('models')">Models</button>
+                  <button class="btn btn-s" onclick="quickAct('clear')">Clear</button>
+                </div>
               </div>
               <div class="card-foot">
-                <span class="ft">Atom v1.0 &mdash; Desktop Shell</span>
-                <button class="btn-ghost" onclick="clearChat()">Clear Chat</button>
+                <span class="ft">ATOM Personal AI Platform &mdash; 3D Glass HUD</span>
+                <span class="ft" style="color:#22c55e;">REST API: 8080 Active</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Interactive 3D WebGL Avatar -->
+          <div class="col-bot">
+            <div class="bot-card">
+              <div class="bot3d-stage" id="bot3dContainer" title="Click & Drag to rotate 3D model. Double-click to reset view.">
+                <!-- 3D Mode Switcher Overlay -->
+                <div class="bot3d-controls">
+                  <div class="mode-pills">
+                    <button class="mode-btn active" data-mode="bot" onclick="atom3D.setMode('bot')">🤖 Bot</button>
+                    <button class="mode-btn" data-mode="brain" onclick="atom3D.setMode('brain')">🧠 Cortex</button>
+                    <button class="mode-btn" data-mode="core" onclick="atom3D.setMode('core')">⚛️ Core</button>
+                  </div>
+                  <div class="view-actions">
+                    <button class="btn-mini" onclick="atom3D.toggleWireframe()" title="Toggle Wireframe Mesh">Wire</button>
+                    <button class="btn-mini" onclick="atom3D.resetCamera()" title="Reset Camera Orientation">Reset</button>
+                  </div>
+                </div>
+
+                <!-- 3D WebGL Canvas -->
+                <canvas id="bot3dCanvas"></canvas>
+              </div>
+
+              <div class="bot-info">
+                <div class="bot-info-row">
+                  <span class="bot-name">ATOM 3D Neural Agent</span>
+                  <span class="bot-tag" id="botTag">Online</span>
+                </div>
+                <div class="bot-desc">Interactive WebGL 3D Model with real-time cursor tracking and reactor pulses.</div>
+                <div class="bot-stats">
+                  <div class="bot-stat">
+                    <div class="bot-stat-val" id="msgCount">0</div>
+                    <div class="bot-stat-lbl">Messages</div>
+                  </div>
+                  <div class="bot-stat">
+                    <div class="bot-stat-val" id="sessions">1</div>
+                    <div class="bot-stat-lbl">Session</div>
+                  </div>
+                  <div class="bot-stat">
+                    <div class="bot-stat-val" id="uptime">0m</div>
+                    <div class="bot-stat-lbl">Uptime</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="col-bot">
-          <div class="bot-card">
-            <div class="bot-stage">
-              <div class="bot-fig">
-                <div class="b-ant"></div><div class="b-ant-dot"></div>
-                <div class="b-head"><div class="b-eye l"></div><div class="b-eye r"></div><div class="b-mouth"></div></div>
-                <div class="b-arm l"></div><div class="b-arm r"></div>
-                <div class="b-body"><div class="b-core"><div class="b-core-dot"></div></div></div>
-                <div class="b-base"></div>
-              </div>
+        <!-- View 2: Automation Panel -->
+        <div class="view-panel" id="view-automation">
+          <div class="card" style="width: 100%;">
+            <div class="card-head">
+              <div class="card-head-title"><span class="dot"></span> Automation Tools & Diagnostic Controls</div>
             </div>
-            <div class="bot-info">
-              <div class="bot-info-row">
-                <span class="bot-name">Atom Bot</span>
-                <span class="bot-tag">Online</span>
+            <div class="card-body">
+              <div class="auto-grid">
+                <div class="auto-card">
+                  <div class="auto-card-title">&#128737; System Health Check</div>
+                  <div class="auto-card-desc">Ping backend REST API services, check database connectivity and model endpoints.</div>
+                  <button class="btn btn-s" onclick="runAutomation('health')">Run Health Check</button>
+                </div>
+                <div class="auto-card">
+                  <div class="auto-card-title">&#128640; Self-Improvement Scan</div>
+                  <div class="auto-card-desc">Trigger autonomous code analysis, flaw detection and reasoning telemetry scan.</div>
+                  <button class="btn btn-s" onclick="runAutomation('self-improve')">Trigger Scan</button>
+                </div>
+                <div class="auto-card">
+                  <div class="auto-card-title">&#129302; Model Registry Check</div>
+                  <div class="auto-card-desc">Query registered LLM providers (Groq, Ollama, Gemini, OpenAI) and verify quotas.</div>
+                  <button class="btn btn-s" onclick="runAutomation('models')">Verify Models</button>
+                </div>
+                <div class="auto-card">
+                  <div class="auto-card-title">&#128465; Memory Cache Flush</div>
+                  <div class="auto-card-desc">Discard temporary speech/audio and conversational prompt buffers cleanly.</div>
+                  <button class="btn btn-s" onclick="runAutomation('clear-buffers')">Flush Buffers</button>
+                </div>
               </div>
-              <div class="bot-desc">Built-in desktop avatar. Pure CSS. No external files needed.</div>
-              <div class="bot-stats">
-                <div class="bot-stat"><div class="bot-stat-val" id="msgCount">0</div><div class="bot-stat-lbl">Messages</div></div>
-                <div class="bot-stat"><div class="bot-stat-val" id="sessions">1</div><div class="bot-stat-lbl">Session</div></div>
-                <div class="bot-stat"><div class="bot-stat-val" id="uptime">0m</div><div class="bot-stat-lbl">Uptime</div></div>
+              <div style="font-size: 11px; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">Live Diagnostic Terminal:</div>
+              <div class="terminal-box" id="terminalBox">ATOM Automation Subsystem Initialized.
+3D Visual FX Engine Active.
+Ready for diagnostic workflows.
+</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- View 3: Knowledge Panel -->
+        <div class="view-panel" id="view-knowledge">
+          <div class="card" style="width: 100%;">
+            <div class="card-head">
+              <div class="card-head-title"><span class="dot"></span> Knowledge Base & Memory Search</div>
+            </div>
+            <div class="card-body">
+              <div class="knowledge-search">
+                <input id="knowledgeInput" type="text" placeholder="Search architecture, skills, and memory..." onkeydown="if(event.key==='Enter'||event.keyCode===13)searchKnowledge()" />
+                <button class="btn btn-p" onclick="searchKnowledge()">Search Knowledge</button>
+              </div>
+              <div class="knowledge-list" id="knowledgeResults">
+                <div class="knowledge-item">
+                  <div class="knowledge-item-title">ATOM Architecture Overview</div>
+                  <div class="knowledge-item-content">Four synchronized client viewers (CLI, Web, Mobile, Desktop) powered by a unified PHP 8.3 & CodeIgniter 4 backend REST API.</div>
+                </div>
+                <div class="knowledge-item">
+                  <div class="knowledge-item-title">Autonomous Self-Learning & Reasoning</div>
+                  <div class="knowledge-item-content">Multi-turn memory retention, AST transformation, Graph-of-Thoughts reasoning, and predictive telemetry analysis.</div>
+                </div>
+                <div class="knowledge-item">
+                  <div class="knowledge-item-title">Model Provider Gateway</div>
+                  <div class="knowledge-item-content">Universal routing across Groq, Google Gemini, Ollama, OpenAI, and Anthropic Claude with automatic failover.</div>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- View 4: Settings Panel -->
+        <div class="view-panel" id="view-settings">
+          <div class="card" style="width: 100%;">
+            <div class="card-head">
+              <div class="card-head-title"><span class="dot"></span> Desktop Client Settings</div>
+            </div>
+            <div class="card-body">
+              <div class="settings-form">
+                <div class="form-group">
+                  <label class="form-label">Backend API Base URL</label>
+                  <input class="form-control" id="settingApiUrl" type="text" value="http://localhost:8080/api" />
+                  <span class="form-desc">Default REST API server for ATOM backend queries and LLM proxy.</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Active AI Model</label>
+                  <select class="form-control" id="settingModel">
+                    <option value="atom-neural-v2" selected>ATOM AI Bot (Personal Neural Core)</option>
+                    <option value="openai/gpt-oss-120b">GPT-OSS 120B (Groq - Website Active)</option>
+                    <option value="llama-3.3-70b-versatile">LLaMA 3.3 70B Versatile (Groq)</option>
+                    <option value="gemini-3.6-flash">Gemini 3.6 Flash (Google)</option>
+                    <option value="gemini-2.5-flash">Gemini 2.5 Flash (Google)</option>
+                    <option value="gpt-4o-mini">GPT-4o Mini (OpenAI)</option>
+                    <option value="llama3.1">LLaMA 3.1 (Ollama Local)</option>
+                  </select>
+                  <span class="form-desc">Primary neural model used for completing desktop assistant chats.</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Active Provider</label>
+                  <select class="form-control" id="settingProvider">
+                    <option value="ATOM" selected>ATOM (Personal AI Brain & Bot)</option>
+                    <option value="Groq">Groq High-Speed Cloud (Website Default)</option>
+                    <option value="Gemini">Google Gemini API</option>
+                    <option value="OpenAI">OpenAI API</option>
+                    <option value="Ollama">Ollama (Local)</option>
+                    <option value="Anthropic">Anthropic Claude</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Voice Language (மொழி)</label>
+                  <select class="form-control" id="settingVoiceLang">
+                    <option value="auto" selected>Bilingual Auto-Detect (English &amp; தமிழ்)</option>
+                    <option value="en-US">English (US / Global)</option>
+                    <option value="ta-IN">Tamil (தமிழ் - India)</option>
+                  </select>
+                  <span class="form-desc">Speech synthesis &amp; Hold-to-Talk speech recognition language mode.</span>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">ATOM Voice Persona</label>
+                  <select class="form-control" id="settingVoice">
+                    <optgroup label="English Personas">
+                      <option value="atom-cyber-neural" selected>ATOM Cyber Neural (Unique English AI)</option>
+                      <option value="atom-jarvis-studio">ATOM Jarvis Studio (Deep Executive Male)</option>
+                      <option value="atom-nova-synth">ATOM Nova Synthetic (Natural Female AI)</option>
+                      <option value="atom-quantum-core">ATOM Quantum Core (Resonant Matrix)</option>
+                    </optgroup>
+                    <optgroup label="Tamil (தமிழ்) Personas">
+                      <option value="ta-IN-Ben10-Heroic">ATOM Ben 10 Heroic (தமிழ் Heroic Reference)</option>
+                      <option value="ta-IN-Valluvar-Wisdom">ATOM Valluvar Wisdom (தமிழ் Executive/Calm)</option>
+                      <option value="ta-IN-Ananya-Neural">ATOM Ananya Neural (தமிழ் Conversational Female)</option>
+                    </optgroup>
+                  </select>
+                  <span class="form-desc">Acoustic pitch, speech rate, and timbre DSP profile.</span>
+                </div>
+                <div class="form-group">
+                  <label class="toggle-switch-row">
+                    <input type="checkbox" id="toggleAutoSpeak" />
+                    <span class="form-label" style="cursor:pointer;">Auto-Speak Responses (Aloud on receive)</span>
+                  </label>
+                </div>
+                <div style="margin-top: 10px; display: flex; gap: 10px;">
+                  <button class="btn btn-p" onclick="saveSettings()">Save Configuration</button>
+                  <button class="btn btn-s" onclick="runAutomation('health')">Test Connection</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
+
   <div id="toast" class="toast"></div>
+
+  <!-- Application Logic & 3D Engine -->
   <script src="assets/atom.js"></script>
+  <script src="assets/atom3d.js"></script>
+  <script src="assets/atom_voice.js"></script>
 </body>
 </html>

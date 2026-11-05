@@ -15,8 +15,12 @@ class Auth extends BaseApiController
 
     public function register()
     {
-        $data = $this->request->getJSON(true);
-        $result = $this->authService->register($data ?? []);
+        $raw = $this->request->getBody();
+        $data = !empty($raw) ? json_decode($raw, true) : [];
+        if (!is_array($data)) {
+            $data = [];
+        }
+        $result = $this->authService->register($data);
 
         if (!$result['success']) {
             return $this->respondError($result['message'], 400);
@@ -30,8 +34,12 @@ class Auth extends BaseApiController
 
     public function login()
     {
-        $data = $this->request->getJSON(true);
-        $result = $this->authService->login($data ?? []);
+        $raw = $this->request->getBody();
+        $data = !empty($raw) ? json_decode($raw, true) : [];
+        if (!is_array($data)) {
+            $data = [];
+        }
+        $result = $this->authService->login($data);
 
         if (!$result['success']) {
             return $this->respondError($result['message'], 401);

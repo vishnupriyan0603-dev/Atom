@@ -4,13 +4,23 @@ namespace Atom\CLI;
 
 class TerminalUI
 {
-    public const COLOR_RESET = "\033[0m";
-    public const COLOR_GREEN = "\033[32m";
-    public const COLOR_RED = "\033[31m";
-    public const COLOR_YELLOW = "\033[33m";
-    public const COLOR_BLUE = "\033[34m";
-    public const COLOR_CYAN = "\033[36m";
-    public const COLOR_BOLD = "\033[1m";
+    public const COLOR_RESET   = "\033[0m";
+    public const COLOR_GREEN   = "\033[32m";
+    public const COLOR_RED     = "\033[31m";
+    public const COLOR_YELLOW  = "\033[33m";
+    public const COLOR_BLUE    = "\033[34m";
+    public const COLOR_MAGENTA = "\033[35m";
+    public const COLOR_CYAN    = "\033[36m";
+    public const COLOR_BOLD    = "\033[1m";
+    public const COLOR_DIM     = "\033[2m";
+
+    public function __construct()
+    {
+        // Enforce UTF-8 Code Page 65001 on Windows console to support box drawing & unicode glyphs
+        if (function_exists('sapi_windows_cp_set')) {
+            @sapi_windows_cp_set(65001);
+        }
+    }
 
     /**
      * Prints text followed by a newline, optional color.
@@ -58,8 +68,6 @@ class TerminalUI
         if (empty($color)) {
             return $text;
         }
-
-        // Direct stream checks aren't always perfect on Windows CLI, but standard ANSI supports Windows 10/11
         return $color . $text . self::COLOR_RESET;
     }
 
@@ -72,29 +80,36 @@ class TerminalUI
 
     public function renderHeader(array $status): void
     {
-        $this->writeLine("╔════════════════════════════════════════════════════╗", self::COLOR_BLUE);
-        $this->writeLine("║                     A T O M                        ║", self::COLOR_BLUE);
-        $this->writeLine("║                                                    ║", self::COLOR_BLUE);
-        $this->writeLine("║            Personal AI System for Vichu            ║", self::COLOR_BLUE);
-        $this->writeLine("╠════════════════════════════════════════════════════╣", self::COLOR_BLUE);
+        $providerName = $status['provider_name'] ?? 'Groq';
+        $colMode = strtoupper($status['collaboration_mode'] ?? 'BALANCED');
+        $safeMode = ($status['mode'] ?? 'SAFE') . " MODE";
+        $knowledgeLevel = strtoupper($status['knowledge_level'] ?? 'ADVANCED');
+        $workspaceFiles = $status['workspace_files'] ?? 0;
+        $pdfDocs = $status['pdf_library'] ?? 0;
+        $memoriesCount = $status['memories_count'] ?? 0;
+
+        $this->writeLine("╔════════════════════════════════════════════════════╗", self::COLOR_CYAN);
+        $this->writeLine("║                     A T O M                        ║", self::COLOR_BOLD . self::COLOR_CYAN);
+        $this->writeLine("║                                                    ║", self::COLOR_CYAN);
+        $this->writeLine("║            Personal AI System for Vichu            ║", self::COLOR_BOLD . self::COLOR_GREEN);
+        $this->writeLine("╠════════════════════════════════════════════════════╣", self::COLOR_CYAN);
         $this->writeLine();
-        $this->writeLine("  Core            READY");
-        $this->writeLine("  Workspace       READY");
-        $this->writeLine("  Memory          READY");
-        $this->writeLine("  Knowledge       READY");
-        $this->writeLine("  Learning Engine READY");
+        $this->writeLine("  Core            READY", self::COLOR_GREEN);
+        $this->writeLine("  Workspace       READY", self::COLOR_GREEN);
+        $this->writeLine("  Memory          READY", self::COLOR_GREEN);
+        $this->writeLine("  Knowledge       READY", self::COLOR_GREEN);
+        $this->writeLine("  Learning Engine READY", self::COLOR_GREEN);
         $this->writeLine();
-        $this->writeLine("  AI Provider     " . $status['provider_name']);
-        $this->writeLine("  Collaboration   " . strtoupper($status['collaboration_mode']));
-        $this->writeLine("  Safe Mode       " . $status['mode'] . " MODE");
+        $this->writeLine("  AI Provider     " . $providerName, self::COLOR_CYAN);
+        $this->writeLine("  Collaboration   " . $colMode, self::COLOR_YELLOW);
+        $this->writeLine("  Safe Mode       " . $safeMode, self::COLOR_GREEN);
         $this->writeLine();
-        $this->writeLine("  Knowledge Level " . strtoupper($status['knowledge_level']));
+        $this->writeLine("  Knowledge Level " . $knowledgeLevel, self::COLOR_MAGENTA);
         $this->writeLine();
-        $this->writeLine("  Workspace       " . $status['workspace_files'] . " files");
-        $this->writeLine("  PDF Library     " . $status['pdf_library'] . " documents");
-        $this->ui_mem = $status['memories_count'] ?? 0;
-        $this->writeLine("  Memories        " . $this->ui_mem . " memories");
-        $this->writeLine("╚════════════════════════════════════════════════════╝", self::COLOR_BLUE);
+        $this->writeLine("  Workspace       " . $workspaceFiles . " files");
+        $this->writeLine("  PDF Library     " . $pdfDocs . " documents");
+        $this->writeLine("  Memories        " . $memoriesCount . " memories");
+        $this->writeLine("╚════════════════════════════════════════════════════╝", self::COLOR_CYAN);
         $this->writeLine();
     }
 }

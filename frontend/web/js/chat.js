@@ -418,11 +418,12 @@ function onModelChange() {
   var parts = (sel.value || '').split(':');
   selectedModel = parts[0] || sel.value;
   var val = sel.value;
-  if (val.indexOf('gemini') === 0) selectedProvider = 'Gemini';
+  if (val.indexOf('atom') === 0) selectedProvider = 'ATOM';
+  else if (val.indexOf('gemini') === 0) selectedProvider = 'Gemini';
   else if (val.indexOf('openai/') === 0) selectedProvider = 'Groq';
   else if (val.indexOf('gpt-') === 0) selectedProvider = 'OpenAI';
   else if (val.indexOf('llama-') === 0) selectedProvider = 'Ollama';
-  else selectedProvider = 'Ollama';
+  else selectedProvider = 'ATOM';
   localStorage.setItem('atom_web_model', selectedModel);
   if (activeChatId) {
     apiFetch('/chats/' + activeChatId, 'PUT', { model: selectedModel, provider: selectedProvider });

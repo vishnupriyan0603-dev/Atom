@@ -9,15 +9,28 @@ use App\Models\SettingModel;
 
 class AiChatService
 {
-    private ChatModel $chatModel;
-    private MessageModel $messageModel;
-    private AiModelModel $aiModelModel;
+    private ?ChatModel $chatModel = null;
+    private ?MessageModel $messageModel = null;
+    private ?AiModelModel $aiModelModel = null;
 
     public function __construct()
     {
-        $this->chatModel     = new ChatModel();
-        $this->messageModel  = new MessageModel();
-        $this->aiModelModel  = new AiModelModel();
+    }
+
+    private function getChatModel(): ?ChatModel
+    {
+        if ($this->chatModel === null) {
+            try { $this->chatModel = new ChatModel(); } catch (\Throwable $e) { return null; }
+        }
+        return $this->chatModel;
+    }
+
+    private function getMessageModel(): ?MessageModel
+    {
+        if ($this->messageModel === null) {
+            try { $this->messageModel = new MessageModel(); } catch (\Throwable $e) { return null; }
+        }
+        return $this->messageModel;
     }
 
     /**
@@ -48,7 +61,13 @@ class AiChatService
 
     public function process(int $chatId, string $message, ?int $userId = null): array
     {
-        $chat = $this->chatModel->find($chatId);
+        $chatModel = $this->getChatModel();
+        $messageModel = $this->getMessageModel();
+        if (!$chatModel || !$messageModel) {
+            return $this->directComplete('atom-neural-v2', 'ATOM', $message);
+        }
+
+        $chat = $chatModel->find($chatId);
         if (!$chat) {
             return ['success' => false, 'message' => 'Chat not found'];
         }
@@ -58,16 +77,16 @@ class AiChatService
             return ['success' => false, 'message' => 'Chat not found'];
         }
 
-        $this->messageModel->insert([
+        $messageModel->insert([
             'chat_id' => $chatId,
             'user_id' => $userId,
             'role'    => 'user',
             'content' => $message,
         ]);
 
-        $dbHistory = $this->messageModel
+        $dbHistory = $messageModel
             ->where('chat_id', $chatId)
-            ->where('id !=', $this->messageModel->getInsertID())
+            ->where('id !=', $messageModel->getInsertID())
             ->orderBy('created_at', 'ASC')
             ->findAll();
 

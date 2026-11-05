@@ -49,8 +49,13 @@ class Health extends BaseApiController
             'local'  => true, // Ollama assumed reachable until a live probe is implemented
         ];
 
+        $activeProvider = ucfirst(strtolower(\Atom\Config\Config::get('LLM_PROVIDER', 'groq')));
+        $activeModel    = \Atom\Config\Config::get('LLM_MODEL', 'openai/gpt-oss-120b');
+
         return $this->respondSuccess([
-            'status'   => $dbConnected ? 'ok' : 'degraded',
+            'status'          => $dbConnected ? 'ok' : 'degraded',
+            'active_provider' => $activeProvider,
+            'active_model'    => $activeModel,
             'services' => [
                 'database'  => $dbConnected,
                 'knowledge' => $knowledgeOk,

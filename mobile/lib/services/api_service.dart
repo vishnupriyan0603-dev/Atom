@@ -2,7 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String baseUrl = "http://localhost:8080/api/v1";
+  static String _customBaseUrl = "http://192.168.29.91:8080/api/v1";
+  static String get baseUrl => _customBaseUrl;
+
+  static void setBaseUrl(String url) {
+    _customBaseUrl = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+  }
 
   Future<Map<String, dynamic>> fetchTelemetryMetrics() async {
     try {

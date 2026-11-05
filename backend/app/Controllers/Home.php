@@ -158,4 +158,66 @@ class Home extends BaseController
             ->setHeader('Cache-Control', 'max-age=3600, public')
             ->setBody($content);
     }
+
+    public function desktop(...$segments)
+    {
+        $candidates = [
+            realpath(dirname(FCPATH) . '/../frontend/desktop'),
+            realpath(ROOTPATH . '../frontend/desktop'),
+            realpath(ROOTPATH . 'frontend/desktop'),
+            realpath(dirname(FCPATH, 2) . '/frontend/desktop'),
+            'E:/xampp/htdocs/my work/Atom/frontend/desktop',
+        ];
+        $desktopDir = '';
+        foreach ($candidates as $c) {
+            if ($c && is_dir($c)) {
+                $desktopDir = $c;
+                break;
+            }
+        }
+
+        $path = implode('/', $segments);
+        if (empty($path) || $path === '/') {
+            $path = 'index.html';
+        }
+
+        $cleanPath = ltrim($path, '/\\');
+        $filePath = realpath($desktopDir . '/' . $cleanPath);
+        if (!$filePath || !file_exists($filePath)) {
+            $filePath = $desktopDir . '/' . $cleanPath;
+        }
+
+        if (!file_exists($filePath)) {
+            return $this->response->setStatusCode(404)->setBody('Desktop asset not found: ' . esc($path));
+        }
+
+        $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $mimeTypes = [
+            'html'  => 'text/html; charset=UTF-8',
+            'css'   => 'text/css; charset=UTF-8',
+            'js'    => 'application/javascript; charset=UTF-8',
+            'json'  => 'application/json',
+            'png'   => 'image/png',
+            'jpg'   => 'image/jpeg',
+            'jpeg'  => 'image/jpeg',
+            'gif'   => 'image/gif',
+            'svg'   => 'image/svg+xml',
+            'ico'   => 'image/x-icon',
+            'woff'  => 'font/woff',
+            'woff2' => 'font/woff2',
+        ];
+
+        $content = file_get_contents($filePath);
+        return $this->response
+            ->setContentType($mimeTypes[$ext] ?? 'application/octet-stream')
+            ->setHeader('Access-Control-Allow-Origin', '*')
+            ->setBody($content);
+    }
+
+    public function desktopAssets(...$segments)
+    {
+        $path = 'assets/' . implode('/', $segments);
+        return $this->desktop($path);
+    }
 }
+

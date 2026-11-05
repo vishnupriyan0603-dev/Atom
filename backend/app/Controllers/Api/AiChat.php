@@ -8,18 +8,18 @@ use App\Models\AiModelModel;
 class AiChat extends BaseApiController
 {
     private AiChatService $aiChatService;
-    private AiModelModel $aiModelModel;
+    private ?AiModelModel $aiModelModel = null;
 
     public function __construct()
     {
         $this->aiChatService = new AiChatService();
-        $this->aiModelModel  = new AiModelModel();
     }
 
     public function complete()
     {
-        $data = $this->request->getJSON(true);
-        if (empty($data) || empty($data['message'])) {
+        $raw = $this->request->getBody();
+        $data = !empty($raw) ? json_decode($raw, true) : [];
+        if (!is_array($data) || empty($data['message'])) {
             return $this->respondError('Message is required', 400);
         }
 
@@ -37,8 +37,15 @@ class AiChat extends BaseApiController
 
     public function listModels()
     {
-        $models = $this->aiModelModel->where('is_enabled', 1)->findAll();
-        return $this->respondSuccess($models);
+        try {
+            if ($this->aiModelModel === null) {
+                $this->aiModelModel = new AiModelModel();
+            }
+            $models = $this->aiModelModel->where('is_enabled', 1)->findAll();
+            return $this->respondSuccess($models);
+        } catch (\Throwable $e) {
+            return $this->respondSuccess([]);
+        }
     }
 
     public function send(int $chatId = null)

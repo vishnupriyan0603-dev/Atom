@@ -103,6 +103,9 @@ class Application
         $this->toolManager->registerTool($this->phpLintTool);
         $this->toolManager->registerTool($this->createFileTool);
         $this->toolManager->registerTool($this->patchFileTool);
+        $this->toolManager->registerTool(new \Atom\Tools\ArcDesktopTool());
+        $this->toolManager->registerTool(new \Atom\Tools\ArcGitTool());
+        $this->toolManager->registerTool(new \Atom\Tools\ArcSystemDevTool());
 
         // 6. Initialize Knowledge Services
         $extractor = new PdfExtractor();
@@ -170,7 +173,31 @@ class Application
         if (!$hasProvider) {
             $modelManager->setRole('primary', 'local');
         } else {
-            $modelManager->setRole('fallback', 'local');
+            if ($activeProvider === 'groq') {
+                if (!empty($geminiKey)) {
+                    $modelManager->setRole('fallback', 'gemini');
+                } elseif (!empty($openaiKey)) {
+                    $modelManager->setRole('fallback', 'openai');
+                } else {
+                    $modelManager->setRole('fallback', 'local');
+                }
+            } elseif ($activeProvider === 'gemini') {
+                if (!empty($groqKey)) {
+                    $modelManager->setRole('fallback', 'groq');
+                } elseif (!empty($openaiKey)) {
+                    $modelManager->setRole('fallback', 'openai');
+                } else {
+                    $modelManager->setRole('fallback', 'local');
+                }
+            } else {
+                if (!empty($geminiKey)) {
+                    $modelManager->setRole('fallback', 'gemini');
+                } elseif (!empty($groqKey)) {
+                    $modelManager->setRole('fallback', 'groq');
+                } else {
+                    $modelManager->setRole('fallback', 'local');
+                }
+            }
         }
 
         // 8. Initialize Brain Services

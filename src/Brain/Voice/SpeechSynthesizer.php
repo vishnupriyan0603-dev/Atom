@@ -15,11 +15,17 @@ class SpeechSynthesizer
     public const DEFAULT_VOICE = 'en-US-Neural2-F';
 
     public const AVAILABLE_VOICES = [
-        'en-US-Neural2-F'   => ['name' => 'ATOM Female (US)', 'lang' => 'en-US', 'gender' => 'female', 'pitch' => 1.0, 'rate' => 1.0],
-        'en-US-Neural2-D'   => ['name' => 'ATOM Male (US)', 'lang' => 'en-US', 'gender' => 'male', 'pitch' => 1.0, 'rate' => 1.0],
-        'en-IN-Standard-A'  => ['name' => 'ATOM Indian English (Female)', 'lang' => 'en-IN', 'gender' => 'female', 'pitch' => 1.0, 'rate' => 1.0],
-        'en-IN-Standard-B'  => ['name' => 'ATOM Indian English (Male)', 'lang' => 'en-IN', 'gender' => 'male', 'pitch' => 1.0, 'rate' => 1.0],
-        'ta-IN-Ben10-Heroic' => ['name' => 'ATOM Ben 10 Heroic (Tamil Base Reference Voice)', 'lang' => 'ta-IN', 'gender' => 'male', 'pitch' => 1.18, 'rate' => 1.18],
+        'atom-cyber-neural'  => ['name' => 'ATOM Cyber Neural (Unique AI Persona)', 'lang' => 'en-US', 'gender' => 'neutral', 'pitch' => 1.05, 'rate' => 1.02, 'profile' => 'cyber_neural'],
+        'atom-jarvis-studio' => ['name' => 'ATOM Jarvis Studio (Deep Executive AI)', 'lang' => 'en-US', 'gender' => 'male', 'pitch' => 0.88, 'rate' => 0.96, 'profile' => 'jarvis_studio'],
+        'atom-nova-synth'    => ['name' => 'ATOM Nova Synthetic (Natural Female AI)', 'lang' => 'en-US', 'gender' => 'female', 'pitch' => 1.12, 'rate' => 1.04, 'profile' => 'nova_synth'],
+        'atom-quantum-core'  => ['name' => 'ATOM Quantum Core (Resonant Matrix)', 'lang' => 'en-US', 'gender' => 'neutral', 'pitch' => 0.95, 'rate' => 1.08, 'profile' => 'quantum_core'],
+        'en-US-Neural2-F'    => ['name' => 'ATOM Female (US Studio)', 'lang' => 'en-US', 'gender' => 'female', 'pitch' => 1.0, 'rate' => 1.0, 'profile' => 'standard_female'],
+        'en-US-Neural2-D'    => ['name' => 'ATOM Male (US Studio)', 'lang' => 'en-US', 'gender' => 'male', 'pitch' => 1.0, 'rate' => 1.0, 'profile' => 'standard_male'],
+        'en-IN-Standard-A'   => ['name' => 'ATOM Indian English (Female)', 'lang' => 'en-IN', 'gender' => 'female', 'pitch' => 1.0, 'rate' => 1.0, 'profile' => 'indian_female'],
+        'en-IN-Standard-B'   => ['name' => 'ATOM Indian English (Male)', 'lang' => 'en-IN', 'gender' => 'male', 'pitch' => 1.0, 'rate' => 1.0, 'profile' => 'indian_male'],
+        'ta-IN-Ben10-Heroic'    => ['name' => 'ATOM Ben 10 Heroic (Tamil Base Reference Voice)', 'lang' => 'ta-IN', 'gender' => 'male', 'pitch' => 1.18, 'rate' => 1.18, 'profile' => 'tamil_heroic'],
+        'ta-IN-Valluvar-Wisdom' => ['name' => 'ATOM Valluvar Wisdom (Tamil Executive/Calm)', 'lang' => 'ta-IN', 'gender' => 'male', 'pitch' => 0.90, 'rate' => 0.95, 'profile' => 'tamil_wisdom'],
+        'ta-IN-Ananya-Neural'   => ['name' => 'ATOM Ananya Neural (Tamil Conversational Female)', 'lang' => 'ta-IN', 'gender' => 'female', 'pitch' => 1.12, 'rate' => 1.05, 'profile' => 'tamil_female'],
     ];
 
     /**

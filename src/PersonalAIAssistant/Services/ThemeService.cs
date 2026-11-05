@@ -6,14 +6,13 @@ public sealed class ThemeService(ISettingsService settingsService) : IThemeServi
 {
     public async Task ApplySavedThemeAsync()
     {
-        var theme = await settingsService.GetAsync("Theme", "Auto");
-        await SetThemeAsync(theme);
+        await SetThemeAsync("Dark");
     }
 
     public async Task SetThemeAsync(string themeName)
     {
-        var resolvedTheme = themeName == "Auto" ? ResolveWindowsTheme() : themeName;
-        var uri = new Uri($"Resources/Themes/{resolvedTheme}.xaml", UriKind.Relative);
+        // Enforce pure Dark theme throughout desktop app
+        var uri = new Uri("Resources/Themes/Dark.xaml", UriKind.Relative);
         var dictionaries = Application.Current.Resources.MergedDictionaries;
         var existing = dictionaries.FirstOrDefault(d => d.Source?.OriginalString.Contains("Resources/Themes/") == true);
 
@@ -23,14 +22,6 @@ public sealed class ThemeService(ISettingsService settingsService) : IThemeServi
         }
 
         dictionaries.Insert(0, new ResourceDictionary { Source = uri });
-        await settingsService.SaveAsync("Theme", themeName);
-    }
-
-    private static string ResolveWindowsTheme()
-    {
-        const string key = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
-        using var personalize = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(key);
-        var value = personalize?.GetValue("AppsUseLightTheme");
-        return value is int intValue && intValue == 0 ? "Dark" : "Light";
+        await settingsService.SaveAsync("Theme", "Dark");
     }
 }

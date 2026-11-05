@@ -166,6 +166,25 @@ The WPF app (`src/PersonalAIAssistant`) features:
 
 ---
 
+## 7.1 Standalone 3D Cyber Desktop Frontend Shell (`frontend/desktop`)
+
+A state-of-the-art desktop client window located in `frontend/desktop/`:
+- **Launch Command**: `frontend\desktop\run-atom-desktop.bat`
+- **Execution Engines**: Automatically detects Microsoft Edge / Chrome in dedicated standalone window mode (`--app=...`); falls back cleanly to Windows MSHTA (`Atom.hta`) or default browser.
+- **Panels**:
+  - **Assistant Console**: Direct REST API multi-model chat completions with offline fallback.
+  - **Automation**: One-click System Health Checks, Self-Improvement scans, and buffer flushing.
+  - **Knowledge**: Live semantic search across indexed records.
+  - **Settings**: Dynamic API base URL, model switching, and provider selection.
+- **Interactive 3D WebGL Avatar & Visual FX**:
+  - **3D Cyber Bot Mode**: Metallic robot avatar with cursor-tracking head/eyes, floating hover, and pulsing reactor core.
+  - **3D Neural Cortex Mode**: Procedural dual-hemisphere 1,800+ particle brain with gyri/sulci harmonic folds.
+  - **3D Quantum Core Mode**: Tri-axial gyroscopic nested neon torus rings.
+  - **Audio Spectrum Visualizer**: Dynamic 16-band real-time audio waveform canvas.
+  - **Ambient Particle Grid & Glassmorphism HUD**: Frosted glass cards with glowing cyber neon styling.
+
+---
+
 ## 8. CLI Spark Commands Reference
 
 | Command | Purpose | Example Usage |
@@ -325,6 +344,94 @@ ATOM includes an autonomous multi-hop web crawler and recursive link extractor f
 * `GET /api/v1/search/crawler/status`: Returns crawler engine health and safety parameters.
 
 ---
+
+## 15.2 Phase 109: ARC System Dev Controller (Advanced OS & Toolchain Control)
+
+ATOM includes a low-level developer system and operating system controller (`ArcSystemDevController`) for deep technical diagnostics, process lifecycle management, socket inspection, and developer toolchain discovery.
+
+### Capabilities & Commands:
+* **Active Listening Ports (`/arc:ports` | `sys.ports`)**:
+  - Lists all listening TCP/UDP ports, PIDs, and associated application processes (e.g. 80, 8080, 3306, 11434).
+* **Port Availability Check (`check port <num>` | `sys.check_port`)**:
+  - Determines if a network port is free or occupied.
+* **Developer Toolchain Discovery (`/arc:toolchain` | `sys.toolchain`)**:
+  - Automatically identifies installed runtimes and CLI versions: PHP, Composer, Node.js, NPM, .NET SDK, Python, Git, Docker.
+* **Process & Thread Monitor (`/arc:top` | `/arc:ps` | `sys.processes`)**:
+  - Real-time process telemetry with PID, Memory (MB), Thread count, and CPU time.
+* **Safe Process Termination (`sys.kill_process`)**:
+  - Terminates or forces process shutdown by PID or process name.
+* **Hardware Compute & Storage Telemetry (`/arc:sys` | `sys.telemetry`)**:
+  - CPU model, logical & physical core topology, RAM breakdown (used/free/total), and active disk volume usage.
+
+---
+
+## 15.3 Phase 110: Full System Access & Interactive User Permission Gate
+
+ATOM provides a unified **Full System Access & Security Permission Gate** (`SystemPermissionGate`) that grants comprehensive OS-level automation while strictly enforcing human-in-the-loop permission verification before executing sensitive or critical actions.
+
+### Risk Levels & Granular Classification:
+* **Level 0 (Read-Only)**: Autonomous execution (telemetry, hardware stats, listening ports, toolchain discovery, file reading).
+* **Level 1 (Safe Desktop)**: Autonomous execution (launching Chrome/Notepad, opening YouTube URLs, focusing windows, typing in approved apps).
+* **Level 2 (Sensitive Write)**: Permission required (writing arbitrary system files outside workspace, modifying environment variables).
+* **Level 3 (Critical System)**: Explicit confirmation required (killing processes, restarting Windows services, executing raw shell scripts).
+
+### CLI & Interactive Controls:
+* `/permission:status` — View active session permission grants and pending requests.
+* `/permission:grant-session [all|<category>]` — Authorize full system access for current active session.
+* `/permission:revoke` — Revoke active session permissions and enforce confirmation prompts for every modifying operation.
+* **Natural Language Grant**: Saying `"give full system access"`, `"grant permission"`, or `"allow session"` activates session-level authorization immediately.
+
+---
+
+## 15.4 Phase 111: Bilingual (English & Tamil) AI Voice Personas & Hold-to-Talk Engine
+
+ATOM incorporates high-fidelity bilingual AI voice synthesis with customizable acoustic DSP parameters, automatic language script detection, and an ultra-secure **Hold-to-Talk (Push-to-Talk)** audio engine across all client interfaces.
+
+### Bilingual Voice Personas (English & தமிழ்)
+* **English AI Personas**:
+  - **`atom-cyber-neural` (Default)**: Futuristic AI persona with tailored pitch (1.06) and tempo (1.02) optimized for crisp reasoning responses.
+  - **`atom-jarvis-studio`**: Deep, resonant executive AI male persona (pitch: 0.85, rate: 0.95).
+  - **`atom-nova-synth`**: Warm, natural female synthetic persona (pitch: 1.14, rate: 1.05).
+  - **`atom-quantum-core`**: High-rate resonant matrix persona (pitch: 0.92, rate: 1.10).
+* **Tamil (தமிழ்) AI Personas**:
+  - **`ta-IN-Ben10-Heroic`**: Heroic Tamil reference persona with punchy cadence (pitch: 1.18, rate: 1.18).
+  - **`ta-IN-Valluvar-Wisdom`**: Classical calm, executive Tamil AI persona (pitch: 0.90, rate: 0.95).
+  - **`ta-IN-Ananya-Neural`**: Natural conversational female Tamil AI persona (pitch: 1.12, rate: 1.05).
+
+### Automatic Script & Phonetic Detection
+- **Auto-Detect Mode (`auto`)**: Automatically analyzes text for Tamil Unicode (`U+0B80` to `U+0BFF`) or Tanglish phonetics and routes synthesis to the active Tamil profile.
+- **Explicit Override (`en-US` / `ta-IN`)**: Forces English or Tamil output and switches the SpeechRecognition language accordingly.
+- **Quick Language HUD Badge**: Click `EN / தமிழ்` in the console header for instant one-touch language switching.
+
+### Hold-to-Talk Privacy & Zero-Persistence Rules
+1. **Push-to-Talk Only**: Audio capture activates exclusively while holding down the `🎙️ Hold to Speak` button or UI trigger. Capture terminates immediately upon release.
+2. **Instant Transcription & Buffer Discard**: Captured audio chunks are routed straight to real-time speech-to-text; temporary buffers are discarded from memory immediately after dispatch.
+3. **Synchronized 3D Avatar & Spectrum Visualizer**: Voice activity is synchronized in real-time with the 16-band WebGL audio spectrum analyzer and 3D robot avatar animations.
+
+---
+
+### 15.1 ARC Live Laptop Control & Desktop Shell Automation
+ATOM includes the **ARC (Autonomous Robotic Controller)** engine for active, visible on-screen laptop automation and browser control.
+
+#### 1. Launching the Desktop Shell
+- **URL**: `http://localhost:8080/desktop`
+- **Batch Launcher**: Double-click `frontend/desktop/run-atom-desktop.bat`
+
+#### 2. Supported Live Automation Commands
+| Natural Language Command | Triggered Subsystem | Action Performed |
+| :--- | :--- | :--- |
+| `"open notepad type hi vichu"` | `ArcTwoDesktopController` | Launches Notepad on screen, focuses the active window, and types `"hi vichu"`. |
+| `"open my notepad and say <text>"` | `ArcTwoDesktopController` | Opens Notepad in visible foreground and types specified content. |
+| `"open chrome search that youtube play <song>"` | `ArcTwoDesktopController` | Opens Google Chrome and plays the requested YouTube video / music. |
+| `"close notepad"` | `ArcTwoDesktopController` | Cleanly terminates the Notepad process. |
+| `"list ports"` / `"check port 8080"` | `ArcThreeDeveloperEngine` | Inspects active listening ports and process ownership. |
+| `"give full system"` / `"grant permission"` | `SystemPermissionGate` | Grants session-level autonomous authorization for critical system actions. |
+
+#### 3. Execution Standard: Foreground Visible Only
+All desktop applications, browsers, and text editors opened by ATOM launch strictly in the visible foreground on the user's active monitor using `ShowWindowAsync` and `SetForegroundWindow`. Background, minimized, or hidden execution is strictly prohibited.
+
+---
+
 
 ## 16. How to Add & Update New Commands (Developer Guide)
 

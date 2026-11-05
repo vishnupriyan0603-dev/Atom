@@ -130,25 +130,6 @@ class GeminiProvider implements LLMInterface
 
     public function isAvailable(): bool
     {
-        if (empty($this->apiKey)) {
-            return false;
-        }
-
-        // Lightweight connection check: query model details
-        $url = 'https://generativelanguage.googleapis.com/v1beta/models/' . $this->model . '?key=' . $this->apiKey;
-        if (strpos($this->apiUrl, 'generativelanguage.googleapis.com') === false) {
-            $url = $this->apiUrl . '/models/' . $this->model;
-        }
-
-        $headers = ['Content-Type: application/json'];
-        if (strpos($this->apiUrl, 'generativelanguage.googleapis.com') === false) {
-            $headers[] = 'X-goog-api-key: ' . $this->apiKey;
-        }
-
-        $disableSsl = (getenv('ATOM_DISABLE_SSL_VERIFY') === 'true' || getenv('ATOM_DISABLE_SSL_VERIFY') === '1' || getenv('CURL_SSL_VERIFY') === 'false' || strpos($url, 'localhost') !== false || strpos($url, '127.0.0.1') !== false);
-
-        $result = HttpClient::get($url, $headers, 3, $disableSsl);
-
-        return $result['http_code'] === 200;
+        return !empty($this->apiKey);
     }
 }

@@ -488,6 +488,13 @@ After completing a task, the AI should identify:
 
 However, improvements that are outside the current task must become separate tasks rather than being silently implemented.
 
+## 22. Foreground and On-Screen Application Rule
+
+When ATOM executes desktop automation or opens any application, web browser, or file:
+1. **Explicit Request Only**: Applications must only open when explicitly commanded by the user (e.g. `open word`, `open whatapp`, `open chrome`, `open notepad type...`, `play that`).
+2. **Foreground On-Screen Display**: The launched process must ALWAYS be brought to the visible active foreground on the user's screen (`ShowWindowAsync` with `SW_RESTORE`/`SW_SHOWNORMAL` + `SetForegroundWindow` / `SwitchToThisWindow`).
+3. **No Silent Background GUI Execution**: Off-screen, minimized, or silent background GUI execution is strictly prohibited. The user must immediately see the window appear in front of them on screen.
+
 ## 21. Golden Rule
 
 The most important rule:

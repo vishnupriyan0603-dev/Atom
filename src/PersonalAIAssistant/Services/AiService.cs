@@ -18,6 +18,9 @@ public sealed class AiService(IChatRepository chatRepository, ISettingsService s
             "ollama" => await CallOllamaAsync(model, history, message),
             "openai" => await CallOpenAiAsync(model, history, message),
             "anthropic" => await CallAnthropicAsync(model, history, message),
+            "groq" => await CallGroqAsync(model, history, message),
+            "google" or "gemini" => await CallGoogleGeminiAsync(model, history, message),
+            "atom" or "backend" => await CallAtomBackendAsync(model, history, message),
             _ => await CallGenericEndpointAsync(provider, model, history, message),
         };
 
@@ -26,6 +29,85 @@ public sealed class AiService(IChatRepository chatRepository, ISettingsService s
         await chatRepository.AddMessageAsync(chatId, "assistant", content);
 
         return content;
+    }
+
+    private async Task<string?> CallGroqAsync(string model, IReadOnlyList<ChatMessage> history, string message)
+    {
+        try
+        {
+            var apiKey = await settingsService.GetAsync("groq_api_key", "");
+            if (string.IsNullOrEmpty(apiKey)) return null;
+
+            _http.DefaultRequestHeaders.Remove("Authorization");
+            _http.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+
+            var messages = BuildHistory(history, message);
+            var payload = new { model = string.IsNullOrEmpty(model) ? "llama-3.3-70b-versatile" : model, messages, stream = false };
+            var resp = await _http.PostAsJsonAsync("https://api.groq.com/openai/v1/chat/completions", payload);
+            if (!resp.IsSuccessStatusCode) return null;
+
+            var json = await resp.Content.ReadFromJsonAsync<JsonElement>();
+            return json.TryGetProperty("choices", out var choices) && choices.GetArrayLength() > 0
+                ? choices[0].TryGetProperty("message", out var msg) && msg.TryGetProperty("content", out var c) ? c.GetString() : null
+                : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task<string?> CallGoogleGeminiAsync(string model, IReadOnlyList<ChatMessage> history, string message)
+    {
+        try
+        {
+            var apiKey = await settingsService.GetAsync("google_api_key", "") ?? await settingsService.GetAsync("gemini_api_key", "");
+            if (string.IsNullOrEmpty(apiKey)) return null;
+
+            var targetModel = string.IsNullOrEmpty(model) ? "gemini-2.5-flash" : model;
+            var url = $"https://generativelanguage.googleapis.com/v1beta/models/{targetModel}:generateContent?key={apiKey}";
+
+            var contents = history
+                .Where(m => !string.IsNullOrEmpty(m.Content))
+                .Select(m => new { role = m.Role == "assistant" ? "model" : "user", parts = new[] { new { text = m.Content } } })
+                .ToList();
+            contents.Add(new { role = "user", parts = new[] { new { text = message } } });
+
+            var payload = new { contents };
+            var resp = await _http.PostAsJsonAsync(url, payload);
+            if (!resp.IsSuccessStatusCode) return null;
+
+            var json = await resp.Content.ReadFromJsonAsync<JsonElement>();
+            if (json.TryGetProperty("candidates", out var candidates) && candidates.GetArrayLength() > 0)
+            {
+                var first = candidates[0];
+                if (first.TryGetProperty("content", out var content) && content.TryGetProperty("parts", out var parts) && parts.GetArrayLength() > 0)
+                {
+                    return parts[0].TryGetProperty("text", out var text) ? text.GetString() : null;
+                }
+            }
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task<string?> CallAtomBackendAsync(string model, IReadOnlyList<ChatMessage> history, string message)
+    {
+        try
+        {
+            var payload = new { message, provider = model };
+            var resp = await _http.PostAsJsonAsync("http://localhost/my%20work/Atom/frontend/web/chat_api.php", payload);
+            if (resp.IsSuccessStatusCode)
+            {
+                var json = await resp.Content.ReadFromJsonAsync<JsonElement>();
+                if (json.TryGetProperty("response", out var r)) return r.GetString();
+            }
+        }
+        catch { }
+        return null;
     }
 
     private async Task<string?> CallOllamaAsync(string model, IReadOnlyList<ChatMessage> history, string message)
@@ -150,10 +232,12 @@ public sealed class AiService(IChatRepository chatRepository, ISettingsService s
             I'm running in preview mode with {providerName} ({modelName}).
 
             To connect a real AI provider:
+              - **Google / Gemini**: Set your API key in Settings
+              - **Groq**: Set your API key in Settings
               - **Ollama**: Run `ollama serve` on localhost:11434
               - **OpenAI**: Set your API key in Settings
               - **Anthropic**: Set your API key in Settings
-              - **LM Studio**: Start the local server
+              - **ATOM Web Backend**: Start Apache / XAMPP
 
             Your message has been saved to the local database. Once a provider is connected, I'll respond intelligently.
             """;

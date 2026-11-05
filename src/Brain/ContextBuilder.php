@@ -45,7 +45,10 @@ class ContextBuilder
         "- 'php_lint': Validates PHP syntax. Args: {\"file_path\": \"filename\"}",
         "- 'create_file': Creates a new file. Args: {\"file_path\": \"filename\", \"content\": \"text\"}",
         "- 'patch_file': Replaces code block. Args: {\"file_path\": \"filename\", \"target_content\": \"old\", \"replacement_content\": \"new\", \"interactive\": true}",
+        "- 'arc_desktop': Controls local Windows desktop applications (Notepad, etc.). Args: {\"action\": \"open_application|type_text|close_application|milestone_1\", \"text\": \"string\", \"app\": \"string\"}",
+        "- 'arc_git': Performs safe Git repository operations. Args: {\"action\": \"status|diff|changed_files|stage|commit\", \"message\": \"string\"}",
         "Do NOT call tools that are not listed here.",
+        "When the user requests to open an application or type text (e.g. 'open notepad type Hi vichu'), execute it directly via ARC instead of giving manual keystroke instructions.",
     ];
 
     public function __construct(string $workspaceRoot)
