@@ -1,0 +1,312 @@
+openapi: 3.0.3
+info:
+  title: MyLife OS Embedded Local REST API
+  description: >
+    Private Local-First REST API hosted by Samsung Galaxy M31 on port 8765.
+    Powers ATOM Windows AI integration and personal life management.
+  version: 1.0.0
+servers:
+  - url: http://mylife-os.local:8765/api/v1
+    description: Primary Local mDNS Server
+  - url: http://127.0.0.1:8765/api/v1
+    description: On-Device Loopback
+
+security:
+  - HmacSignatureAuth: []
+
+paths:
+  /ping:
+    get:
+      summary: Health check and latency probe
+      security: []
+      responses:
+        '200':
+          description: Server online
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: "ok" }
+                  device: { type: string, example: "Samsung Galaxy M31" }
+                  uptime_seconds: { type: integer, example: 3420 }
+
+  /pair:
+    post:
+      summary: Initial device pairing handshake
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, device_name, client_fingerprint, signature, timestamp]
+              properties:
+                client_id: { type: string, example: "ATOM-WINDOWS" }
+                device_name: { type: string, example: "Vishnu-Desktop-PC" }
+                client_fingerprint: { type: string, example: "atom-win-a89c01bf" }
+                timestamp: { type: integer, example: 1793912400 }
+                signature: { type: string }
+      responses:
+        '200':
+          description: Device paired successfully
+        '401':
+          description: Invalid pairing signature
+
+  /status:
+    get:
+      summary: Detailed server, battery, and tracking status
+      responses:
+        '200':
+          description: Status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  battery:
+                    type: object
+                    properties:
+                      level: { type: integer, example: 84 }
+                      charging: { type: boolean, example: false }
+                  storage:
+                    type: object
+                    properties:
+                      free_mb: { type: integer, example: 45210 }
+                      total_mb: { type: integer, example: 128000 }
+                  tracking:
+                    type: object
+                    properties:
+                      gps_active: { type: boolean, example: true }
+                      step_counter_active: { type: boolean, example: true }
+                      is_paused: { type: boolean, example: false }
+
+  /modules/summary:
+    get:
+      summary: Aggregated executive summary across all 14 modules
+      responses:
+        '200':
+          description: Consolidated 14-module snapshot
+
+  /identity:
+    get:
+      summary: Get personal identity profile (Module 01)
+      responses:
+        '200':
+          description: Profile retrieved
+    put:
+      summary: Update personal identity profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Profile updated
+
+  /finance/summary:
+    get:
+      summary: Financial totals, account balances, and budget status (Module 02)
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [today, week, month, year]
+            default: month
+      responses:
+        '200':
+          description: Finance summary retrieved
+
+  /finance/transactions:
+    get:
+      summary: List filtered transactions
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: category
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Transactions list
+    post:
+      summary: Record new transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [account_id, type, category, amount, transaction_date]
+      responses:
+        '201':
+          description: Transaction created
+
+  /health/today:
+    get:
+      summary: Today's health vitals, steps, sleep, and water count (Module 03)
+      responses:
+        '200':
+          description: Health stats retrieved
+
+  /health/water:
+    post:
+      summary: Log water intake in ml
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount_ml]
+              properties:
+                amount_ml: { type: integer, example: 250 }
+      responses:
+        '200':
+          description: Water logged
+
+  /wellbeing/mood:
+    get:
+      summary: Mood and wellbeing logs (Module 04)
+    post:
+      summary: Check in daily emotional state and journal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mood_rating, primary_emotion]
+      responses:
+        '201':
+          description: Mood recorded
+
+  /location/recent:
+    get:
+      summary: Recent location breadcrumbs and visited hubs (Module 05)
+      responses:
+        '200':
+          description: Locations list
+
+  /activities/today:
+    get:
+      summary: Tasks, routines, and scheduled time blocks for today (Module 06)
+  /activities/tasks:
+    post:
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+      responses:
+        '201':
+          description: Task created
+
+  /habits:
+    get:
+      summary: Active habits and streaks (Module 07)
+  /habits/{id}/checkin:
+    post:
+      summary: Check in a habit for today
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Habit checked in
+
+  /learning/progress:
+    get:
+      summary: GATE CS and technical roadmap progress (Module 08)
+  /learning/study-session:
+    post:
+      summary: Log completed study session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subject_id, topic, duration_minutes]
+      responses:
+        '201':
+          description: Study session logged
+
+  /career/summary:
+    get:
+      summary: Employment history, skill inventory, and freelance clients (Module 09)
+
+  /social/contacts:
+    get:
+      summary: Contact roster, birthdays, and last interactions (Module 10)
+
+  /nutrition/today:
+    get:
+      summary: Logged meals and dietary preferences (Module 11)
+  /nutrition/meals:
+    post:
+      summary: Log meal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meal_type, food_items]
+      responses:
+        '201':
+          description: Meal logged
+
+  /digital/usage:
+    get:
+      summary: Screen time and app usage stats via UsageStatsManager (Module 12)
+
+  /documents:
+    get:
+      summary: List indexed documents in vault (Module 13)
+    post:
+      summary: Upload new encrypted document
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [title, category, file]
+      responses:
+        '201':
+          description: Document stored in encrypted vault
+
+  /backup/export:
+    post:
+      summary: Stream password-encrypted `.mylife.enc` backup bundle
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [passphrase]
+      responses:
+        '200':
+          description: Binary `.mylife.enc` archive stream
+
+components:
+  securitySchemes:
+    HmacSignatureAuth:
+      type: apiKey
+      in: header
+      name: X-MyLife-Signature
+      description: >
+        HMAC-SHA256 signature calculated using the shared pairing secret.
+        Must also include X-MyLife-Client and X-MyLife-Timestamp headers.
