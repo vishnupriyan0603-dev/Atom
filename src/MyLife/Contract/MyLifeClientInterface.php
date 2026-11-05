@@ -49,3 +49,4 @@ interface MyLifeClientInterface
      */
     public function downloadEncryptedBackup(string $passphrase, string $destinationPath): MyLifeResponse;
 }
+

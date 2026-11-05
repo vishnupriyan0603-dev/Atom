@@ -44,3 +44,4 @@ enum MyLifeModuleEnum: string
         };
     }
 }
+

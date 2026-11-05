@@ -310,3 +310,4 @@ components:
       description: >
         HMAC-SHA256 signature calculated using the shared pairing secret.
         Must also include X-MyLife-Client and X-MyLife-Timestamp headers.
+

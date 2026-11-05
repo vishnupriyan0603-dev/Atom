@@ -13,7 +13,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **Phase 0** | Inspection & Grill-Me Alignment | **COMPLETED** | 100% | Architecture Report, Grill-Me consensus, 7 core technical decisions approved. |
 | **Phase 1** | Specifications, Database Schemas & Contracts | **COMPLETED** | 100% | SQLCipher SQLite DDL for 14 modules, OpenAPI 3.0 spec, DTOs & Pairing spec. |
-| **Phase 2** | Android Core Server & Local SQLCipher DB | **PROPOSED** | 0% | Embedded Dart/Shelf server (port 8765), Android Keystore, SQLCipher database manager. |
+| **Phase 2** | Android Core Server & Local SQLCipher DB | **COMPLETED** | 100% | Embedded Dart/Shelf server (port 8765), Android Keystore, SQLCipher database manager. |
 | **Phase 3** | All 14 Life Modules Implementation (Android) | **PROPOSED** | 0% | Repositories, CRUD services, and Flutter module UI for all 14 domains. |
 | **Phase 4** | ATOM Windows Connector & Brain Tools | **PROPOSED** | 0% | `MyLifeClient.php`, `MyLifeOSTool.php`, `ContextBuilder` provider, CLI `/mylife`. |
 | **Phase 5** | Adaptive Background Trackers & Sensors | **PROPOSED** | 0% | Kotlin Foreground Service, hardware step counter, geofenced GPS, `UsageStatsManager`. |
@@ -69,9 +69,18 @@
 - `src/MyLife/Contract/MyLifeSummaryDto.php`
 - `src/MyLife/Contract/MyLifeClientInterface.php`
 - `backend/tests/unit/MyLifeContractsTest.php`
+- `mobile/android/app/src/main/kotlin/com/atom/ai/MyLifeForegroundService.kt`
+- `mobile/android/app/src/main/kotlin/com/atom/ai/MyLifeActionReceiver.kt`
+- `mobile/lib/services/pairing_service.dart`
+- `mobile/lib/services/database_service.dart`
+- `mobile/lib/services/local_server_service.dart`
+- `mobile/lib/screens/mylife_server_screen.dart`
 
 ### Modified Files:
-*(None)*
+- `mobile/pubspec.yaml`
+- `mobile/android/app/src/main/AndroidManifest.xml`
+- `mobile/android/app/src/main/kotlin/com/atom/ai/MainActivity.kt`
+- `mobile/lib/main.dart`
 
 ---
 

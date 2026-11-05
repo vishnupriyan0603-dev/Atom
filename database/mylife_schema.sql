@@ -444,3 +444,4 @@ CREATE TABLE IF NOT EXISTS life_ai_insights (
     is_actionable INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+

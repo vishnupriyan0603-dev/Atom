@@ -110,3 +110,4 @@ Every mutating action (`CREATE`, `UPDATE`, `DELETE`, `EXPORT`) is written to `li
 - `details`: Redacted summary of mutated fields.
 
 This guarantees that the user has complete visibility on the phone screen of every request made by ATOM.
+

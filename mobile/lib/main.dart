@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'services/api_service.dart';
+import 'screens/mylife_server_screen.dart';
 
 void main() {
   runApp(const AtomApp());
@@ -45,6 +46,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 
   final List<Widget> _screens = [
     const MobileDashboardScreen(),
+    const MyLifeServerScreen(),
     const MobileChatScreen(),
     const MobileMemoryScreen(),
     const MobileApprovalsScreen(),
@@ -67,6 +69,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.dashboard_rounded), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.dns_rounded), label: 'MyLife OS'),
           BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_rounded), label: 'Chat'),
           BottomNavigationBarItem(icon: Icon(Icons.psychology_rounded), label: 'Memory 2.0'),
           BottomNavigationBarItem(icon: Icon(Icons.verified_user_rounded), label: 'Approvals'),
