@@ -1,206 +1,307 @@
-# ATOM — Personal AI PHP Development Assistant
+# ⚛️ ATOM — Autonomous Personal AI Development Assistant & Enterprise Operating System
 
-ATOM is a local-first, privacy-minded Personal AI Development Assistant designed to run completely on your local machine. It combines a persistent CLI command loop, long-term MySQL database memory, local PDF technical knowledge base (RAG), and secure sandbox file editing tools to aid PHP developers in building and debugging Core PHP websites, CRMs, ERPs, and billing systems.
+[![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=flat-square&logo=php&logoColor=white)](https://www.php.net/)
+[![CodeIgniter](https://img.shields.io/badge/CodeIgniter-4.7%2B-EF4223?style=flat-square&logo=codeigniter&logoColor=white)](https://codeigniter.com/)
+[![.NET](https://img.shields.io/badge/.NET-9.0%20WPF-512BD4?style=flat-square&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![Flutter](https://img.shields.io/badge/Flutter-3.x%20Mobile-02569B?style=flat-square&logo=flutter&logoColor=white)](https://flutter.dev/)
+[![Tests](https://img.shields.io/badge/PHPUnit-1%2C429%20Passing-brightgreen?style=flat-square&logo=checkmarx&logoColor=white)](backend/phpunit.dist.xml)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)](LICENSE)
+
+**ATOM** is an enterprise-grade, local-first, privacy-minded **Personal AI Development Assistant and Autonomous Operating System**. It unifies a persistent CLI command loop, a reactive PHP CodeIgniter 4 REST API, long-term MySQL/SQLite memory, a local PDF/Document technical knowledge base (RAG), autonomous desktop and system automation (ARC), an autonomous Enterprise DevOps governance suite, and four synchronized client viewers built with strict cross-client parity.
 
 ---
 
-## 1. Core Architecture
-ATOM is built around six major components coordinating through a single entry point:
+## 📑 Table of Contents
+1. [Core Capabilities](#1-core-capabilities)
+2. [Unified Client Viewers (Cross-Client Parity)](#2-unified-client-viewers-cross-client-parity)
+3. [System Architecture](#3-system-architecture)
+4. [Autonomous Robotic Controller (ARC)](#4-autonomous-robotic-controller-arc)
+5. [Autonomous Enterprise DevOps & SRE Suite](#5-autonomous-enterprise-devops--sre-suite)
+6. [Multi-Model Provider Architecture](#6-multi-model-provider-architecture)
+7. [Directory Structure](#7-directory-structure)
+8. [Getting Started & Installation](#8-getting-started--installation)
+9. [Usage & Slash Commands Reference](#9-usage--slash-commands-reference)
+10. [Voice Mode & Safety Guarantees](#10-voice-mode--safety-guarantees)
+11. [Testing & Quality Verification](#11-testing--quality-verification)
+12. [Documentation & Strict Standards](#12-documentation--strict-standards)
+
+---
+
+## 1. Core Capabilities
+
+- **Autonomous Coding & Patching**: Safely inspects, navigates, and modifies codebases with dry-run diff previews, pre-write automated backups, AST security linting, and instant rollbacks on syntax failure.
+- **Hybrid RAG Knowledge Base**: High-performance semantic chunking, cosine similarity, TF-IDF vector retrieval, and MySQL FULLTEXT search over ingested technical PDFs and documentation.
+- **Long-Term Memory & Self-Learning**: Persistent MySQL/SQLite storage of developer preferences, architectural rules, past bugs, solution playbooks, and continuous topic knowledge graphs.
+- **Autonomous Desktop & System Automation (ARC)**: Deterministic, visible on-screen window management, OS process control, port diagnostics, and safe system execution guarded by multi-level permission gates.
+- **14 Autonomous DevOps Governors**: Automated end-to-end GitOps deployments, IaC blueprint generation, multi-cloud orchestration, zero-downtime database migrations, canary telemetry auditing, and self-healing runtime recovery.
+
+---
+
+## 2. Unified Client Viewers (Cross-Client Parity)
+
+ATOM provides **four synchronized client viewers**. All clients share common business logic from `src/` and consume the unified `/api/v1/*` REST API:
+
+| Client Viewer | Platform / Technology | Primary Location | Key Features |
+| :--- | :--- | :--- | :--- |
+| **Terminal CLI** | PHP 8.2+ Console | `atom.php` | Low-latency REPL loop, `/` slash commands, real-time streaming, interactive debugging. |
+| **Web Dashboard & Admin Studio** | Modern PHP / HTML5 / Three.js | `frontend/web/` | 3D Neural Brain visualization (72 synapses), RAG explorer, memory manager, mobile APK hub. |
+| **Desktop Assistant** | C# .NET 9 WPF & HTA Shell | `src/PersonalAIAssistant/`<br>`frontend/desktop/` | Fluent Dark/Cyberpunk theme, on-screen ARC automation, real-time push-to-talk voice HUD. |
+| **Mobile Application** | Flutter 3.x & Android native | `mobile/` | Android APK build, mobile PWA companion (`frontend/web/mobile_app.php`), responsive chat. |
+
+---
+
+## 3. System Architecture
 
 ```text
-                     USER
-                       │
-                       ▼
-                  TERMINAL CLI
-                       │
-                       ▼
-                 INTENT ROUTER
-                       │
-                       ▼
-                  ATOM BRAIN
-                       │
-          ┌────────────┼────────────┐
-          │            │            │
-       PROJECT       MEMORY      KNOWLEDGE
-    (Scanner/Search) (MySQL DB)  (PDF RAG)
-          │            │            │
-          └────────────┼────────────┘
-                       │
-                       ▼
-                CONTEXT BUILDER
-                       │
-                       ▼
-                  LLM PROVIDER
-                       │
-                       ▼
-               RESPONSE PARSER
-                       │
-                 if action needed
-                       │
-                       ▼
-               WORKSPACE GUARD
-                       │
-                       ▼
-                CONTROLLED TOOL
+                                  USER
+                                   │
+      ┌────────────────────────────┼───────────────────────────┐
+      ▼                            ▼                           ▼
+Terminal CLI                Web Admin & Studio          Desktop WPF / HTA
+(atom.php)                  (frontend/web/)            (src/PersonalAIAssistant/)
+      │                            │                           │
+      └────────────────────────────┼───────────────────────────┘
+                                   │
+                                   ▼
+                    CodeIgniter 4 REST API Layer
+                            (/api/v1/*)
+                                   │
+                                   ▼
+                         ATOM BRAIN CONTROLLER
+                      (src/Brain/AtomBrain.php)
+                                   │
+          ┌────────────────────────┼────────────────────────┐
+          │                        │                        │
+          ▼                        ▼                        ▼
+   Knowledge & RAG          Memory & History         Context Builder
+ (PDF / Vector Stores)     (MySQL / SQLite)       (Workspace & Profiles)
+          │                        │                        │
+          └────────────────────────┼────────────────────────┘
+                                   │
+                                   ▼
+                       UNIVERSAL MODEL GATEWAY
+             (Gemini · Groq · OpenAI · Anthropic · Ollama)
+                                   │
+                                   ▼
+                         RESPONSE PARSER & TOOLS
+                                   │
+          ┌────────────────────────┴────────────────────────┐
+          ▼                                                 ▼
+   WORKSPACE GUARD                                 ARC & DEVOPS SUITE
+(File Sandboxing / Patching)                     (System Automation & SRE)
 ```
 
 ---
 
-## 2. Directory Structure
+## 4. Autonomous Robotic Controller (ARC)
+
+The **ARC (Autonomous Robotic Controller)** engine provides deterministic, policy-governed automation for local development machines:
+
+- **ARC ONE (`ArcOneGitController`)**: Autonomous Git workflow management — branch creation, status diffing, atomic staging, semantic commits, rollback execution, and merge resolution.
+- **ARC TWO (`ArcTwoDesktopController`)**: Deterministic desktop automation. Launches and interacts with native Windows desktop applications (Notepad, VS Code, Google Chrome, media players) with strict **Foreground Visible Execution** via Win32 `ShowWindowAsync` and `SetForegroundWindow`.
+- **ARC System Dev (`ArcSystemDevController`)**: Low-level OS process management, listening socket analysis, developer toolchain discovery, and service control.
+- **System Permission Gate (`SystemPermissionGate`)**: Fine-grained risk classification (Levels 0–3) enforcing human-in-the-loop authorization before executing privileged system actions.
+
+---
+
+## 5. Autonomous Enterprise DevOps & SRE Suite
+
+ATOM includes **14 autonomous governance engines** providing complete Site Reliability Engineering capabilities:
+
+1. **`GitOpsDeploymentEngine`**: Declarative state reconciliation, commit-triggered pipelines, and drift detection.
+2. **`IaCBlueprintGenerator`**: Automated generation of valid Terraform blueprints, Docker Compose topologies, and Kubernetes manifests.
+3. **`MultiCloudDeployOrchestrator`**: Unified multi-cloud deployment abstraction spanning AWS, GCP, and Azure.
+4. **`ZeroDowntimeSchemaMigrator`**: Online schema migration runner utilizing shadow tables, triggers, and zero downtime.
+5. **`ChaosFaultInjectionEngine`**: Controlled chaos engineering injecting network latency, packet loss, and CPU load spikes.
+6. **`SyntheticLoadTestingEngine`**: Automated traffic generation, step-load concurrency ramps, and latency SLA auditing.
+7. **`CanaryTelemetryAnalyzer`**: Metric-driven canary evaluations with automated baseline comparison and instant rollback gates.
+8. **`SelfHealingRuntimeGovernor`**: Autonomous crash-loop monitoring, health probe evaluations, and self-healing runbooks.
+9. **`ContinuousBenchmarkGovernor`**: Performance regression prevention tracking latency, memory footprints, and CPU usage.
+10. **`DatabaseQueryOptimizerEngine`**: Automated slow-query log capture, `EXPLAIN` query analysis, and index synthesis.
+11. **`ServiceMeshRoutingGovernor`**: Intelligent traffic shifting, circuit breakers, rate limits, and weighted routing.
+12. **`ContainerSecurityScanner`**: Static vulnerability scanning for Dockerfiles and container image configurations.
+13. **`AutomatedSecretRotator`**: Zero-downtime rotation and validation of database credentials, API tokens, and JWT keys.
+14. **`TlsCertificateGovernor`**: Continuous TLS/SSL certificate lifecycle tracking, SAN verification, and expiration alerts.
+
+---
+
+## 6. Multi-Model Provider Architecture
+
+ATOM treats the root `.env` as the single source of truth (`Atom\Config\Config::load()`), dynamically consumed by CLI, Web, Desktop, and Backend REST services:
+
+```ini
+# Core LLM Provider (gemini | groq | openai | anthropic | ollama)
+LLM_PROVIDER=gemini
+LLM_MODEL=gemini-2.5-flash
+LLM_API_KEY=your-api-key-here
+LLM_API_URL=https://generativelanguage.googleapis.com/v1beta
+
+# Alternative Provider Keys
+# GROQ_API_KEY=gsk_...
+# OPENAI_API_KEY=sk-...
+# ANTHROPIC_API_KEY=sk-ant-...
+
+# Database Persistence
+DB_HOST=localhost
+DB_NAME=atom_assistant
+DB_USER=root
+DB_PASSWORD=
+DB_PORT=3306
+```
+
+---
+
+## 7. Directory Structure
 
 ```text
-atom/
-│
-├── atom.php                 # Dynamic CLI entry script (includes Custom PSR-4 Autoloader)
-│
-├── bin/
-│   ├── atom.bat             # Windows CLI launcher script
-│   └── atom                 # Unix bash CLI launcher script
-│
-├── config/
-│   └── config.php           # Dynamic .env configuration loader
-│
-├── database/
-│   └── schema.sql           # Database schema tables setup script
-│
-├── src/
-│   ├── Brain/
-│   │   ├── AtomBrain.php       # Orchestrates loop routing and offline fallbacks
-│   │   ├── ContextBuilder.php  # Packages prompt messages with workspace context
-│   │   ├── IntentDetector.php  # Analyzes user prompt categories
-│   │   └── ResponseParser.php  # Extracts JSON tool requests from LLM text
-│   │
-│   ├── CLI/
-│   │   ├── Application.php     # Dynamic workspace directory detector and shell loop
-│   │   └── CommandRouter.php   # Routes commands and natural conversation history
-│   │
-│   ├── Database/
-│   │   └── Connection.php      # Soft-fallback PDO MySQL connection manager
-│   │
-│   ├── LLM/
-│   │   ├── LLMInterface.php    # standard provider contract
-│   │   ├── OpenAIProvider.php  # cURL OpenAI/Compatible (Ollama, LM Studio) provider
-│   │   └── GeminiProvider.php  # Direct Google Gemini API connector
-│   │
-│   ├── Project/
-│   │   ├── ProjectScanner.php  # Indexes files, ignoring git/vendor/compiler folders
-│   │   └── CodeSearch.php      # High-speed codebase grep matching utility
-│   │
-│   ├── Knowledge/
-│   │   ├── PdfExtractor.php    # Decodes and unzips PDF text content streams
-│   │   ├── Chunker.php         # Breaks text into sentence-aligned overlapping chunks
-│   │   ├── DocumentImporter.php# Copies original PDFs and writes text segments to database
-│   │   └── KnowledgeSearch.php # Performs MySQL FULLTEXT matching (with LIKE fallback)
-│   │
-│   ├── Memory/
-│   │   └── MemoryManager.php   # Handles database logs, user preferences, and solutions
-│   │
-│   ├── Tools/
-│   │   ├── ToolInterface.php   # Unified tool interface contract
-│   │   ├── ReadFileTool.php    # Safely reads file text inside sandbox
-│   │   ├── SearchCodeTool.php  # Scans filenames and contents for search terms
-│   │   ├── PhpLintTool.php     # Compiles target PHP script with php -l
-│   │   ├── CreateFileTool.php  # Creates a new file securely
-│   │   ├── PatchFileTool.php   # Applies search-replace diffs with rollbacks on lint failures
-│   │   └── ToolManager.php     # Registry and dispatcher of active tools
-│   │
-│   └── Security/
-│       ├── WorkspaceGuard.php  # Restricts path operations to active workspace
-│       ├── FilePolicy.php      # Allowed file extension filter rules
-│       └── SecretRedactor.php  # Regex masking for API keys, passwords, and tokens
-│
-├── storage/
-│   ├── backups/             # Pre-write backup copies
-│   ├── knowledge/           # Ingested original PDF library
-│   ├── cache/               # Search indexes and temporary cache
-│   └── logs/                # Audit logs (redacted)
-│
-└── .env                     # Target configurations (API keys & DB settings)
+Atom/
+├── atom.php                       # Interactive CLI entrypoint (PSR-4 autoloader)
+├── PersonalAIAssistant.sln        # Desktop WPF Visual Studio Solution
+├── backend/                       # CodeIgniter 4 REST API & Service Layer
+│   ├── app/
+│   │   ├── Config/                # Routes, Filters, and Environment configurations
+│   │   ├── Controllers/Api/       # REST API endpoints (Chat, Auth, Health, RAG)
+│   │   └── Services/              # Backend services (AiChatService, AuthService)
+│   ├── tests/unit/                # 1,429 automated PHPUnit tests
+│   └── composer.json              # Backend dependencies
+├── frontend/
+│   ├── web/                       # Web Dashboard & Admin Studio
+│   │   ├── admin/                 # Admin Studio & 3D Neural Visualizer
+│   │   ├── mobile_app.php         # Mobile PWA web application
+│   │   └── mobile_download.php    # Standalone APK download landing page
+│   └── desktop/                   # Desktop HTA Client & 3D Audio Scripts
+├── mobile/                        # Flutter Mobile Application
+│   ├── android/                   # Native Android wrapper & build config
+│   └── lib/                       # Flutter screens and API service layer
+├── src/                           # Shared Core AI & System Engines
+│   ├── Arc/                       # ARC One (Git), Two (Desktop), System Dev, Master
+│   ├── Brain/                     # Neural Brain, Context Builder, Speech Synthesizer
+│   ├── CLI/                       # Terminal UI, Application Loop, Command Router
+│   ├── DevOps/                    # 14 Autonomous Enterprise DevOps Governors
+│   ├── Knowledge/                 # PDF extraction, chunking, and semantic RAG
+│   ├── LLM/                       # Gemini, Groq, OpenAI, Anthropic Provider adapters
+│   ├── Memory/                    # Long-term memory manager and graph store
+│   ├── Security/                  # WorkspaceGuard, SecretRedactor, SystemPermissionGate
+│   └── Tools/                     # File tools, ARC tools, DevOps tools
+├── docs/                          # Comprehensive Architectural & User Documentation
+│   ├── ATOM_Phases_Architecture_Roadmap.md # Master Roadmap (Phases 1-110+)
+│   ├── ATOM_User_Manual_Guide.md           # Complete User & Operator Manual
+│   └── svgAtom_strict_rules.md             # Core Architectural Invariants & Rules
+└── storage/                       # Backups, ingested RAG documents, and audit logs
 ```
 
 ---
 
-## 3. Setup & Configuration
+## 8. Getting Started & Installation
 
-1. **Environment Config**: Create a `.env` file in the root directory following this template:
-   ```ini
-    # LLM Provider Configuration (openai or gemini)
-    LLM_PROVIDER=openai
-    LLM_MODEL=gpt-4o-mini
-    LLM_API_KEY=your-api-key-here
-    LLM_API_URL=https://api.openai.com/v1
-    
-    # Or for Google Gemini configuration:
-    # LLM_PROVIDER=gemini
-    # LLM_MODEL=gemini-flash-latest
-    # LLM_API_KEY=AQ.Ab8RN...
-    # LLM_API_URL=https://generativelanguage.googleapis.com/v1beta
+### Prerequisites
+- **PHP**: 8.2 or higher (extensions: `intl`, `sqlite3`, `pdo_sqlite`, `curl`, `mbstring`, `mysqli`)
+- **Composer**: 2.x
+- **Database**: MySQL 8.x / MariaDB or SQLite
+- **Desktop Client**: Windows 10/11 with .NET 9.0 SDK installed
+- **Mobile Client (Optional)**: Flutter 3.x and Android SDK
 
-    # MySQL Database Configuration
-    DB_HOST=localhost
-    DB_NAME=atom_assistant
-    DB_USER=root
-    DB_PASSWORD=
-    DB_PORT=3306
-    ```
-2. **Initialize Schema**: Import `database/schema.sql` to register the MySQL tables.
+### Setup Steps
+
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/vishnupriyan0603-dev/Atom.git
+   cd Atom
+   ```
+
+2. **Install Backend Dependencies**:
+   ```bash
+   cd backend
+   composer install
+   cd ..
+   ```
+
+3. **Configure Environment**:
+   Copy `.env.example` to `.env` and fill in your database credentials and preferred AI provider API key.
+
+4. **Initialize Database**:
+   Import `database/schema.sql` into your MySQL instance or run SQLite migrations:
+   ```bash
+   mysql -u root -p atom_assistant < database/schema.sql
+   ```
+
+5. **Launch ATOM Services**:
+   - **All-in-One Launcher**: Run `start-all.bat` or `atom.bat` (Select `[A]`).
+   - **CLI Mode**: Run `php atom.php`.
+   - **Backend API**: Run `cd backend && php spark serve --port 8080`.
+   - **Desktop WPF App**: Open `PersonalAIAssistant.sln` in Visual Studio or run `dotnet run --project src/PersonalAIAssistant`.
 
 ---
 
-## 4. Usage Command Reference
+## 9. Usage & Slash Commands Reference
 
-Start the interactive console loop:
-```bash
-php atom.php
+Inside the interactive CLI (`php atom.php`), use natural language prompts or dedicated slash commands:
+
+### Workspace & Project Navigation
+- `/status` — Display active workspace path, indexed file counts, and database health.
+- `/project` — Render an interactive directory tree of the project.
+- `/files` — List indexed source files excluding vendor/cache directories.
+- `/read <file>` — Safely read file content with automatic credential redacting.
+- `/search <query>` — Search codebase file paths and source lines.
+- `/php-lint <file>` — Run compile-time validation syntax check (`php -l`).
+- `/create <file>; <content>` — Create a new file within the sandbox safely.
+- `/patch <file>; <find>; <replace>` — Apply incremental edits with automated backup and rollback on lint errors.
+
+### Memory & Learning Knowledge
+- `/memory` — Inspect stored developer preferences, architectural rules, and solutions.
+- `/knowledge import <path>` — Ingest a technical document/PDF into the RAG vector store.
+- `/knowledge ask <query>` — Query matching citations, formulas, and document sections.
+- `/learning` — View overall knowledge absorption progress and topic matrix.
+- `/provider mode <local|balanced|collaborative>` — Change active AI provider routing mode.
+
+### ARC & DevOps Control
+- `/arc status` — Inspect active desktop and git automation controllers.
+- `/arc desktop open <app>` — Open application visibly in the foreground.
+- `/devops status` — Audit health of the 14 autonomous SRE governors.
+- `/devops check` — Run real-time security, benchmark, and drift checks.
+
+---
+
+## 10. Voice Mode & Safety Guarantees
+
+### Hold-to-Talk (Push-to-Talk) Invariant
+Voice mode strictly implements **Hold-to-Talk (Push-to-Talk)**. Audio is only captured while the user actively holds down the physical or UI microphone trigger. Releasing it immediately terminates recording and purges temporary audio buffers from memory. Continuous or always-on listening is strictly prohibited.
+
+### Foreground Visible Display Rule
+All desktop applications, browsers, documents, and media players triggered by ATOM launch **strictly into the visible foreground** (`ShowWindowAsync` + `SetForegroundWindow` / `SwitchToThisWindow`). Silent or hidden background execution of UI applications is prohibited.
+
+---
+
+## 11. Testing & Quality Verification
+
+ATOM maintains an exhaustive automated test suite to ensure complete backward compatibility and architectural stability:
+
+### 1. Backend PHPUnit Suite (1,429 Tests)
+Run all backend unit and integration tests:
+```powershell
+cd backend
+php -d extension=intl -d extension=sqlite3 -d extension=pdo_sqlite vendor/bin/phpunit
 ```
+> **Current Status**: **1,429 tests passing**, 5,472 assertions, **0 failures**.
 
-### Slash Commands
-* `/help` — Display help instructions.
-* `/status` — Check active workspace path, file counts, and MySQL connectivity state.
-* `/project` — Render a visual tree of the current project directory.
-* `/files` — List scanned non-ignored source files.
-* `/read <file>` — Read file content safely (masks credentials automatically).
-* `/search <query>` — Search codebase filenames and lines.
-* `/php-lint <file>` — Run compile validation checks using `php -l`.
-* `/create <file>; <content>` — Create a new file securely.
-* `/patch <file>; <search>; <replace>` — Apply incremental edits with pre-write backups, dry-run diff review, and lint check rollbacks.
-* `/memory` — Print long-term user preferences and settings.
-* `/history` — List persistent conversation transcripts.
-* `/knowledge import <path>` — Ingest a PDF guide into the library database.
-* `/knowledge ask <query>` — Query matching quotes and page citations.
-* `/learning` — Print overall knowledge status, progress bars, and topic list.
-* `/learning gaps` — Display priority areas needing study/knowledge.
-* `/learning topic <name>` — Inspect specific details and references for a topic.
-* `/learning history` — List recent topic modifications and user corrections.
-* `/collaboration` — Show active Gemini role parameters and request resolution ratios.
-* `/provider mode <local|balanced|collaborative>` — Change active AI provider routing mode.
-* `/clear` — Clear the terminal display.
-* `/exit` — Quit the shell loop.
-
-### Conversational Memory Keywords
-ATOM automatically processes memory requests inside standard conversation entries:
-* `remember that <preference>` — Record long-term guidelines (e.g. `remember that I prefer prepared statements`).
-* `forget memory <id>` — Delete a stored memory row by its database ID.
-* `remember solution: problem=<summary>; cause=<reason>; fix=<solution>` — Save solved coding issues.
+### 2. Desktop WPF Client Build
+Verify the desktop assistant solution compiles without errors:
+```powershell
+dotnet build PersonalAIAssistant.sln
+```
+> **Current Status**: **Build succeeded (0 Errors)**.
 
 ---
 
-## 5. Web Frontend & Mobile Client
-ATOM includes two modern visual client layers communicating with the REST API:
+## 12. Documentation & Strict Standards
 
-1. **Web Frontend** (`frontend/web/`): A responsive developer operating dashboard, supporting conversations, RAG documents explorer, memory modifier panels, and collaboration control charts.
-2. **Flutter Mobile Application** (`mobile/`): Feature-first mobile shell allowing chat inputs, PDF indexing status checks, and home stats navigation.
+Detailed architectural guides and operating manuals are located in `docs/`:
+- [`ATOM_User_Manual_Guide.md`](docs/ATOM_User_Manual_Guide.md) — Comprehensive user manual, presentation guide, and command catalog.
+- [`ATOM_Phases_Architecture_Roadmap.md`](docs/ATOM_Phases_Architecture_Roadmap.md) — Complete 110+ phase development roadmap.
+- [`svgAtom_strict_rules.md`](docs/svgAtom_strict_rules.md) — Core strict rules, invariants, and architectural guidelines.
+- [`AGENTS.md`](AGENTS.md) — Autonomous agent workflows and parity conventions.
 
 ---
 
-## 6. Shared REST API (`/api/v1/`)
-Secure token endpoints mapped in CodeIgniter 4 backend:
-* `POST /api/v1/auth/login`
-* `GET  /api/v1/user/profile`
-* `POST /api/v1/chat`
-* `GET  /api/v1/memory`
-* `GET  /api/v1/knowledge`
-* `POST /api/v1/knowledge/upload`
-* `GET  /api/v1/learning`
-* `GET  /api/v1/workspace`
-
+## 📄 License
+This project is open-source software licensed under the [MIT License](LICENSE).
