@@ -6,11 +6,19 @@ use Atom\Database\Connection;
 
 class KnowledgeSearch
 {
+    public const DEFAULT_LIMIT = 5;
+    public const MAX_LIMIT = 20;
+
     private Connection $connection;
 
     public function __construct(Connection $connection)
     {
         $this->connection = $connection;
+    }
+
+    public static function normalizeLimit(int $limit): int
+    {
+        return max(1, min(self::MAX_LIMIT, $limit));
     }
 
     /**
@@ -52,8 +60,9 @@ class KnowledgeSearch
     /**
      * Searches matching chunks inside the database and ranks them using hybrid scoring.
      */
-    public function search(string $query, int $limit = 5): array
+    public function search(string $query, int $limit = self::DEFAULT_LIMIT): array
     {
+        $limit = self::normalizeLimit($limit);
         if (!$this->connection->isConnected()) {
             return [];
         }
@@ -145,8 +154,9 @@ class KnowledgeSearch
     /**
      * Queries matching Knowledge Graph triples for a given search string.
      */
-    public function searchTriples(string $query, int $limit = 5): array
+    public function searchTriples(string $query, int $limit = self::DEFAULT_LIMIT): array
     {
+        $limit = self::normalizeLimit($limit);
         if (!$this->connection->isConnected()) {
             return [];
         }
@@ -173,7 +183,7 @@ class KnowledgeSearch
     /**
      * Performs hybrid RAG search returning matching document chunks and Knowledge Graph triples.
      */
-    public function searchHybrid(string $query, int $limit = 5): array
+    public function searchHybrid(string $query, int $limit = self::DEFAULT_LIMIT): array
     {
         $chunks = $this->search($query, $limit);
         $triples = $this->searchTriples($query, $limit);

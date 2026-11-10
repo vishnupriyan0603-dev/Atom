@@ -1,0 +1,272 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --atom-admin-bg: #cbd5cf;
+  --atom-admin-panel: #f4f2e9;
+  --atom-admin-panel-raised: #e9eee7;
+  --atom-admin-ink: #2d3a35;
+  --atom-admin-muted: #6e7b73;
+  --atom-admin-sage: #6f978b;
+  --atom-admin-sage-dark: #4c7468;
+  --atom-admin-clay: #c58e5e;
+  --atom-admin-border: #d2dad2;
+  --atom-admin-shadow: 12px 12px 28px rgba(67, 82, 73, .17), -8px -8px 24px rgba(255, 255, 255, .72);
+}
+
+html.dark body {
+  isolation: isolate;
+  position: relative;
+  background:
+    radial-gradient(ellipse at 10% 0%, rgba(248, 250, 243, .78), transparent 42%),
+    radial-gradient(ellipse at 95% 90%, rgba(154, 176, 165, .34), transparent 38%),
+    linear-gradient(145deg, #d8dfd8 0%, var(--atom-admin-bg) 50%, #c0ccc4 100%) !important;
+  color: var(--atom-admin-ink) !important;
+  font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif !important;
+}
+
+html.dark body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: .32;
+  background-image: radial-gradient(rgba(68, 89, 79, .15) .55px, transparent .75px);
+  background-size: 7px 7px;
+}
+
+html.dark body :where(button, input, select, textarea, table) {
+  font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif;
+}
+
+html.dark body :where(h1, h2, h3, h4, h5, h6) {
+  color: var(--atom-admin-ink);
+  letter-spacing: -.025em;
+}
+
+html.dark body :where(.text-white, .text-gray-100, .text-gray-200, .text-gray-300) {
+  color: var(--atom-admin-ink) !important;
+}
+
+html.dark body :where(.text-gray-400, .text-gray-500, .text-gray-600, .text-muted) {
+  color: var(--atom-admin-muted) !important;
+}
+
+html.dark body :where(.text-emerald-300, .text-emerald-400, .text-green-300, .text-green-400, .text-teal-300, .text-teal-400) {
+  color: var(--atom-admin-sage-dark) !important;
+}
+
+html.dark body :where(.text-amber-300, .text-amber-400, .text-orange-300, .text-orange-400) {
+  color: #98673f !important;
+}
+
+html.dark body :where(.text-sky-300, .text-sky-400, .text-cyan-300, .text-cyan-400, .text-blue-300, .text-blue-400) {
+  color: #527d78 !important;
+}
+
+html.dark body :where(.text-rose-300, .text-rose-400, .text-red-300, .text-red-400) {
+  color: #a34f48 !important;
+}
+
+/* Convert the old dark shell to a soft, layered sage surface. */
+html.dark body [class*="bg-[#040608]"],
+html.dark body [class*="bg-[#080a0d]"],
+html.dark body [class*="bg-[#080c14]"],
+html.dark body [class*="bg-[#0b0f17]"],
+html.dark body [class*="bg-[#0b0f19]"],
+html.dark body [class*="bg-[#0b0e14]"],
+html.dark body [class*="bg-[#080b0f]"],
+html.dark body [class*="bg-[#090c10]"],
+html.dark body [class*="bg-[#0a0d13]"],
+html.dark body [class*="bg-[#0c0f14]"],
+html.dark body [class*="bg-[#0c1017]"],
+html.dark body [class*="bg-[#0c121c]"] {
+  background-color: rgba(226, 232, 225, .84) !important;
+  background-image: none !important;
+  color: var(--atom-admin-ink) !important;
+  border-color: var(--atom-admin-border) !important;
+}
+
+html.dark body [class*="bg-[#0a0e16]"],
+html.dark body [class*="bg-[#05080f]"],
+html.dark body [class*="bg-[#11151c]"],
+html.dark body [class*="bg-[#111620]"],
+html.dark body [class*="bg-[#16202e]"],
+html.dark body [class*="bg-[#171d26]"],
+html.dark body [class*="bg-[#1e2735]"],
+html.dark body [class*="bg-[#0e131d]"],
+html.dark body [class*="bg-[#131924]"],
+html.dark body [class*="bg-[#111827]"],
+html.dark body [class*="bg-[#111a27]"],
+html.dark body [class*="bg-[#161c28]"],
+html.dark body [class*="bg-[#18202c]"],
+html.dark body [class*="bg-[#1e2838]"],
+html.dark body [class*="bg-[#1e2c3f]"],
+html.dark body [class*="bg-[#202d40]"],
+html.dark body [class*="bg-[#202e42]"],
+html.dark body [class*="bg-[#223147]"],
+html.dark body [class*="bg-[#283548]"],
+html.dark body [class*="bg-[#2a384e]"],
+html.dark body .card {
+  background-color: rgba(246, 244, 235, .88) !important;
+  background-image: none !important;
+  color: var(--atom-admin-ink) !important;
+  border: 1px solid rgba(255, 255, 255, .78) !important;
+  border-radius: 20px;
+  box-shadow: var(--atom-admin-shadow) !important;
+}
+
+/* Keep the WebGL canvas dark while giving the surrounding console a light card. */
+html.dark body #brainModelContainer {
+  background-color: #17211e !important;
+  background-image: radial-gradient(ellipse at 50% 35%, #263b34 0%, #17211e 72%) !important;
+  border-color: #aebdb3 !important;
+}
+
+html.dark body #brainModelContainer [class*="bg-[#060910]"] {
+  color: var(--atom-admin-ink) !important;
+  background: rgba(241, 242, 231, .92) !important;
+  border-color: #cbd5cc !important;
+  box-shadow: 5px 5px 14px rgba(24, 35, 30, .24);
+}
+
+html.dark body .card-header {
+  background: rgba(231, 236, 228, .9) !important;
+  color: var(--atom-admin-ink) !important;
+  border-color: var(--atom-admin-border) !important;
+}
+
+html.dark body .bg-black:not(pre):not(code) {
+  background-color: #e5ebe4 !important;
+  color: var(--atom-admin-ink) !important;
+}
+
+html.dark body [class*="border-[#1e2838]"],
+html.dark body [class*="border-[#1e2736]"],
+html.dark body [class*="border-[#1a2230]"],
+html.dark body [class*="border-[#16202e]"],
+html.dark body [class*="border-[#2a3649]"],
+html.dark body [class*="border-[#2a3a52]"],
+html.dark body [class*="border-secondary"] {
+  border-color: var(--atom-admin-border) !important;
+}
+
+html.dark body #adminSidebar {
+  background: rgba(232, 237, 229, .93) !important;
+  border-color: var(--atom-admin-border) !important;
+  box-shadow: 8px 0 26px rgba(67, 82, 73, .12);
+}
+
+html.dark body #adminSidebar .nav-item {
+  color: #68766e !important;
+  border-color: transparent !important;
+  border-radius: 14px !important;
+}
+
+html.dark body #adminSidebar .nav-item:hover,
+html.dark body #adminSidebar .nav-item[class*="bg-"] {
+  color: var(--atom-admin-ink) !important;
+  background: #dce5dc !important;
+  background-image: none !important;
+  box-shadow: inset 3px 3px 7px rgba(83, 101, 90, .12), inset -3px -3px 7px rgba(255, 255, 255, .82);
+}
+
+html.dark body #adminSidebar input,
+html.dark body header input,
+html.dark body input:not([type="checkbox"]):not([type="radio"]),
+html.dark body select,
+html.dark body textarea,
+html.dark body .form-control,
+html.dark body .form-select {
+  color: var(--atom-admin-ink) !important;
+  background-color: #edf0e9 !important;
+  border-color: #cbd5cc !important;
+  border-radius: 12px;
+  box-shadow: inset 3px 3px 7px rgba(76, 91, 81, .10), inset -3px -3px 7px rgba(255, 255, 255, .88) !important;
+}
+
+html.dark body input::placeholder,
+html.dark body textarea::placeholder {
+  color: #87938a !important;
+}
+
+html.dark body input:-webkit-autofill,
+html.dark body input:-webkit-autofill:hover,
+html.dark body input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--atom-admin-ink) !important;
+  -webkit-box-shadow: inset 0 0 0 1000px #edf0e9 !important;
+  transition: background-color 9999s ease-out 0s;
+}
+
+html.dark body input:focus,
+html.dark body select:focus,
+html.dark body textarea:focus,
+html.dark body .form-control:focus,
+html.dark body .form-select:focus {
+  border-color: var(--atom-admin-sage) !important;
+  box-shadow: 0 0 0 3px rgba(111, 151, 139, .20), inset 2px 2px 4px rgba(76, 91, 81, .08) !important;
+}
+
+html.dark body button,
+html.dark body .btn {
+  border-radius: 12px;
+  transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+}
+
+html.dark body button:hover:not(:disabled),
+html.dark body .btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+html.dark body [class*="bg-emerald-500"],
+html.dark body [class*="bg-emerald-600"],
+html.dark body [class*="bg-teal-500"],
+html.dark body [class*="bg-green-500"] {
+  background-color: var(--atom-admin-sage) !important;
+  background-image: none !important;
+  color: #fffdf6 !important;
+  border-color: var(--atom-admin-sage-dark) !important;
+  box-shadow: 5px 5px 12px rgba(73, 99, 87, .16), -4px -4px 10px rgba(255, 255, 255, .60);
+}
+
+html.dark body [class*="bg-amber-500"],
+html.dark body [class*="bg-orange-500"] {
+  background-color: var(--atom-admin-clay) !important;
+  background-image: none !important;
+  color: #fffdf6 !important;
+  border-color: #a9764c !important;
+}
+
+html.dark body table {
+  color: var(--atom-admin-ink) !important;
+}
+
+html.dark body thead {
+  color: #69766e !important;
+  border-color: var(--atom-admin-border) !important;
+}
+
+html.dark body tbody tr,
+html.dark body tbody td,
+html.dark body tbody th {
+  border-color: #d8dfd7 !important;
+}
+
+html.dark body pre,
+html.dark body pre :where(.text-white, .text-gray-100, .text-gray-200, .text-gray-300),
+html.dark body .font-mono {
+  font-family: 'Cascadia Code', 'SFMono-Regular', Consolas, monospace !important;
+}
+
+html.dark body pre {
+  color: #e7ece7;
+  background: #26332e !important;
+  border: 1px solid #52625a !important;
+  border-radius: 14px !important;
+}
+
+@media (max-width: 767px) {
+  html.dark body #adminSidebar {
+    box-shadow: 10px 0 30px rgba(42, 56, 48, .22);
+  }
+}

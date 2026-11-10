@@ -76,21 +76,7 @@ include_once __DIR__ . '/components/header.php';
                             <button class="btn btn-xs btn-outline-secondary" onclick="loadSampleLegacyCode()">Load Legacy Sample</button>
                         </div>
 
-                        <textarea id="legacyCodeInput" class="form-control bg-black text-white border-secondary small mb-3" rows="12" style="font-family: monospace; font-size: 12px;"><?php
-function processAction($action, $user) {
-    if (strpos($action, 'deploy') !== false) {
-        $profile = $user !== null ? $user->getProfile() : null;
-    }
-    switch ($action) {
-        case 'start':
-            return 'STARTED';
-        case 'pause':
-            return 'PAUSED';
-        default:
-            return 'UNKNOWN';
-    }
-}
-?></textarea>
+                        <textarea id="legacyCodeInput" class="form-control bg-black text-white border-secondary small mb-3" rows="12" style="font-family: monospace; font-size: 12px;"><?php echo htmlspecialchars("<?php\nfunction processAction(\$action, \$user) {\n    if (strpos(\$action, 'deploy') !== false) {\n        \$profile = \$user !== null ? \$user->getProfile() : null;\n    }\n    switch (\$action) {\n        case 'start':\n            return 'STARTED';\n        case 'pause':\n            return 'PAUSED';\n        default:\n            return 'UNKNOWN';\n    }\n}\n?>"); ?></textarea>
 
                         <button class="btn btn-info text-dark fw-bold w-100" onclick="triggerCodeUpgrade()">
                             <i class="bi bi-lightning-charge-fill me-1"></i> Upgrade Syntax to PHP 8.3
@@ -121,17 +107,7 @@ function processAction($action, $user) {
                             <button class="btn btn-xs btn-outline-secondary" onclick="loadVulnerableSample()">Load Exploit Sample</button>
                         </div>
 
-                        <textarea id="vulnerableCodeInput" class="form-control bg-black text-danger border-secondary small mb-3" rows="12" style="font-family: monospace; font-size: 12px;"><?php
-class UserController {
-    public function search() {
-        $id = $_GET['id'];
-        $user = $this->db->query("SELECT * FROM users WHERE id = " . $id);
-        echo $_GET['search_query'];
-        $file = file_get_contents($_GET['profile_pic']);
-        return $user;
-    }
-}
-?></textarea>
+                        <textarea id="vulnerableCodeInput" class="form-control bg-black text-danger border-secondary small mb-3" rows="12" style="font-family: monospace; font-size: 12px;"><?php echo htmlspecialchars("<?php\nclass UserController {\n    public function search() {\n        \$id = \$_GET['id'];\n        \$user = \$this->db->query(\"SELECT * FROM users WHERE id = \" . \$id);\n        echo \$_GET['search_query'];\n        \$file = file_get_contents(\$_GET['profile_pic']);\n        return \$user;\n    }\n}\n?>"); ?></textarea>
 
                         <div class="d-flex gap-2">
                             <button class="btn btn-outline-danger fw-bold flex-grow-1" onclick="scanSecurityVulnerabilities()">
@@ -247,12 +223,12 @@ async function autoPatchSecurityVulnerabilities() {
 }
 
 function loadSampleLegacyCode() {
-    document.getElementById('legacyCodeInput').value = `<?php
-function evaluateStatus($status, $account) {
-    if (strpos($status, 'active') !== false) {
-        $tier = $account !== null ? $account->getTier() : null;
+    document.getElementById('legacyCodeInput').value = `<?= '<?php' ?>
+function evaluateStatus(\$status, \$account) {
+    if (strpos(\$status, 'active') !== false) {
+        \$tier = \$account !== null ? \$account->getTier() : null;
     }
-    switch ($status) {
+    switch (\$status) {
         case 'pending':
             return 'STATUS_PENDING';
         case 'verified':
@@ -261,22 +237,22 @@ function evaluateStatus($status, $account) {
             return 'STATUS_UNKNOWN';
     }
 }
-?>`;
+<?= '?>' ?>`;
     triggerCodeUpgrade();
 }
 
 function loadVulnerableSample() {
-    document.getElementById('vulnerableCodeInput').value = `<?php
+    document.getElementById('vulnerableCodeInput').value = `<?= '<?php' ?>
 class AccountController {
     public function showProfile() {
-        $uid = $_GET['user_id'];
-        $user = $this->db->query("SELECT * FROM users WHERE id = " . $uid);
-        echo $_GET['username'];
-        $avatar = file_get_contents($_GET['avatar_path']);
-        return $user;
+        \$uid = \$_GET['user_id'];
+        \$user = \$this->db->query("SELECT * FROM users WHERE id = " . \$uid);
+        echo \$_GET['username'];
+        \$avatar = file_get_contents(\$_GET['avatar_path']);
+        return \$user;
     }
 }
-?>`;
+<?= '?>' ?>`;
     scanSecurityVulnerabilities();
 }
 

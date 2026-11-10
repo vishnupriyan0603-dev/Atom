@@ -179,25 +179,24 @@ document.addEventListener('DOMContentLoaded', () => {
 async function saveEqualizerProfile() {
     if (!eqInstance) return;
     try {
-        const res = await fetch('/api/v1/voice/equalizer/apply', {
+        const res = await apiFetch('/api/v1/voice/equalizer/apply', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify(eqInstance.state)
         });
-        const data = await res.json();
-        if (data.success) {
+        if (res.success) {
             if (typeof showToast === 'function') {
                 showToast('Equalizer profile synchronized to Atom Brain DSP successfully!', 'success');
             } else {
                 alert('Equalizer profile synchronized successfully!');
             }
-        }
+        } else throw new Error(res.message || 'Equalizer profile could not be synchronized');
     } catch (e) {
         if (typeof showToast === 'function') {
-            showToast('Equalizer profile saved locally', 'info');
+            showToast('Equalizer profile could not be synchronized with the API.', 'error');
         }
     }
 }
 </script>
 
+<script src="js/shared.js"></script>
 <?php include_once __DIR__ . '/components/footer.php'; ?>

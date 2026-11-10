@@ -103,9 +103,9 @@ document.addEventListener('DOMContentLoaded', loadAgentTasks);
 
 async function loadAgentTasks() {
     try {
-        const res = await fetch('/api/v1/agents/tasks');
-        const json = await res.json();
-        const tasks = json.data || [];
+        const json = await apiFetch('/api/v1/agents/tasks', { method: 'GET' });
+        if (!json.success) throw new Error(json.message || 'Failed to load agent tasks');
+        const tasks = Array.isArray(json.data) ? json.data : [];
 
         document.getElementById('metricTotalTasks').textContent = tasks.length;
         document.getElementById('metricRunningTasks').textContent = tasks.filter(t => t.status === 'running' || t.status === 'planning').length;
@@ -120,16 +120,16 @@ async function loadAgentTasks() {
 
         tbody.innerHTML = tasks.map(t => `
             <tr>
-                <td><code>#${t.id}</code></td>
+                <td><code>#${Number.parseInt(t.id, 10) || 0}</code></td>
                 <td><span class="fw-bold">${escapeHtml(t.objective)}</span></td>
-                <td><span class="badge ${getStatusBadge(t.status)}">${t.status.toUpperCase()}</span></td>
-                <td>${t.current_step}</td>
-                <td>${t.max_steps}</td>
-                <td><span class="badge bg-secondary text-uppercase">${t.risk_level || 'low'}</span></td>
-                <td class="small text-muted">${t.created_at || ''}</td>
+                <td><span class="badge ${getStatusBadge(t.status)}">${escapeHtml(t.status).toUpperCase()}</span></td>
+                <td>${escapeHtml(t.current_step)}</td>
+                <td>${escapeHtml(t.max_steps)}</td>
+                <td><span class="badge bg-secondary text-uppercase">${escapeHtml(t.risk_level || 'low')}</span></td>
+                <td class="small text-muted">${escapeHtml(t.created_at || '')}</td>
                 <td class="text-end">
-                    <button class="btn btn-sm btn-outline-info" onclick="viewTaskSteps(${t.id})">Steps</button>
-                    ${t.status === 'running' ? `<button class="btn btn-sm btn-outline-danger" onclick="cancelTask(${t.id})">Cancel</button>` : ''}
+                    <button class="btn btn-sm btn-outline-info" onclick="viewTaskSteps(${Number.parseInt(t.id, 10) || 0})">Steps</button>
+                    ${t.status === 'running' ? `<button class="btn btn-sm btn-outline-danger" onclick="cancelTask(${Number.parseInt(t.id, 10) || 0})">Cancel</button>` : ''}
                 </td>
             </tr>
         `).join('');
@@ -143,11 +143,11 @@ async function submitNewTask() {
     if (!objective) return;
 
     try {
-        await fetch('/api/v1/agents/tasks', {
+        const result = await apiFetch('/api/v1/agents/tasks', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ objective })
         });
+        if (!result.success) throw new Error(result.message || 'Failed to launch agent task');
         bootstrap.Modal.getInstance(document.getElementById('newTaskModal')).hide();
         loadAgentTasks();
     } catch (e) {
@@ -171,4 +171,5 @@ function escapeHtml(str) {
 }
 </script>
 
+<script src="js/shared.js"></script>
 <?php include_once __DIR__ . '/components/footer.php'; ?>

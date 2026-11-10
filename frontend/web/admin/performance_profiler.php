@@ -61,8 +61,7 @@ include_once __DIR__ . '/components/header.php';
                 </div>
             </div>
             <div class="card-body">
-                <textarea id="profilerCodeInput" class="form-control bg-black text-white border-secondary small mb-3" rows="12" style="font-family: monospace; font-size: 12px;"><?php
-function findMatchingOrders($orders, $transactions) {
+                <textarea id="profilerCodeInput" class="form-control bg-black text-white border-secondary small mb-3" rows="12" style="font-family: monospace; font-size: 12px;">function findMatchingOrders($orders, $transactions) {
     $matches = [];
     foreach ($orders as $order) {
         foreach ($transactions as $txn) {
@@ -73,7 +72,7 @@ function findMatchingOrders($orders, $transactions) {
     }
     return $matches;
 }
-?></textarea>
+</textarea>
 
                 <div class="d-flex gap-2">
                     <button class="btn btn-warning text-dark fw-bold flex-grow-1" onclick="analyzeCodePerformance()">
@@ -161,8 +160,7 @@ async function synthesizeOptimizationPatch() {
 }
 
 function loadSampleNestedLoop() {
-    document.getElementById('profilerCodeInput').value = `<?php
-function findMatchingOrders($orders, $transactions) {
+    document.getElementById('profilerCodeInput').value = `function findMatchingOrders($orders, $transactions) {
     $matches = [];
     foreach ($orders as $order) {
         foreach ($transactions as $txn) {
@@ -173,13 +171,12 @@ function findMatchingOrders($orders, $transactions) {
     }
     return $matches;
 }
-?>`;
+`;
     analyzeCodePerformance();
 }
 
 function loadSampleNPlusOne() {
-    document.getElementById('profilerCodeInput').value = `<?php
-function fetchUserOrders($userIds, $db) {
+    document.getElementById('profilerCodeInput').value = `function fetchUserOrders($userIds, $db) {
     $results = [];
     foreach ($userIds as $uid) {
         $orders = $db->query("SELECT * FROM orders WHERE user_id = " . $uid);
@@ -187,7 +184,7 @@ function fetchUserOrders($userIds, $db) {
     }
     return $results;
 }
-?>`;
+`;
     analyzeCodePerformance();
 }
 

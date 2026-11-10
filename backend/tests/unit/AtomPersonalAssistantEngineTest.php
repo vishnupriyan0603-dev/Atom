@@ -77,4 +77,30 @@ class AtomPersonalAssistantEngineTest extends TestCase
         $this->assertNotNull($res['english_tip']);
         $this->assertStringContainsString('₹80k', $res['reply']);
     }
+
+    public function testTrackingPrivacyQuestionsAreAnsweredWithoutLocationAccess(): void
+    {
+        foreach ([
+            'Did you track me?',
+            'Are you tracking me?',
+            'Can you track my location?',
+            'Did able track me',
+        ] as $question) {
+            $connectedReply = $this->engine->answerTrackingPrivacyQuestion($question, true);
+            $this->assertNotNull($connectedReply, $question);
+            $this->assertStringContainsString('No—this answer did not track or locate you', $connectedReply);
+            $this->assertStringContainsString('explicitly approve', $connectedReply);
+            $this->assertStringContainsString('unavailable', $connectedReply);
+
+            $disconnectedReply = $this->engine->answerTrackingPrivacyQuestion($question, false);
+            $this->assertNotNull($disconnectedReply, $question);
+            $this->assertStringContainsString('MyLife is not connected', $disconnectedReply);
+        }
+    }
+
+    public function testTrackingPrivacyHandlerDoesNotCaptureUnrelatedQuestions(): void
+    {
+        $this->assertNull($this->engine->answerTrackingPrivacyQuestion('How do I track my package?', false));
+        $this->assertNull($this->engine->answerTrackingPrivacyQuestion('What is my current location?', false));
+    }
 }

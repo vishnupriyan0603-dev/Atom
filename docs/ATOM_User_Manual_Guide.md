@@ -28,6 +28,7 @@
    - [A/B Sandbox Experiments](#ab-sandbox-experiments)
    - [Human Authorization Safety Gate](#human-authorization-safety-gate)
    - [Web Admin Dashboard — 3D Neural Brain Model](#61-web-admin-dashboard--3d-neural-brain-model)
+   - [Admin Navigation Guide](ATOM_Admin_Navigation_Guide.md)
 7. [Desktop WPF Assistant Application](#7-desktop-wpf-assistant-application)
 8. [CLI Spark Commands Reference](#8-cli-spark-commands-reference)
 9. [REST API Endpoints Guide](#9-rest-api-endpoints-guide)
@@ -137,6 +138,7 @@ ATOM supports multi-format PDF and document parsing with automatic semantic chun
 
 - **Knowledge Graph**: Extracts (Subject $\rightarrow$ Predicate $\rightarrow$ Object) semantic triples.
 - **Hybrid RAG Search**: Combines full-text cosine vector search with Knowledge Graph relational lookups.
+- **Search result limits**: `GET /api/v1/knowledge/search?q=...` returns up to 5 matching document chunks and up to 5 matching graph facts by default. Use `?limit=N` to request a different number; ATOM clamps each source to 1–20 results, so the default maximum is 10 combined matches and the hard maximum is 40. This limits returned matches per query, not how many records can be stored.
 
 ---
 
@@ -151,10 +153,21 @@ ATOM supports multi-format PDF and document parsing with automatic semantic chun
 ## 6.1 Web Admin Dashboard — 3D Neural Brain Model
 
 `frontend/web/admin/index.php` renders a live, procedurally-generated 3D particle brain (no external 3D asset required):
+- Admin pages use the soft sage, ivory, and warm-clay theme with DM Sans typography; shared styling is in `frontend/web/admin/css/admin-theme.css`.
+- The ATOM Control sign-in page is login-only; account creation is not offered there.
+- Public API account registration is disabled for this single-user installation. Existing clients should sign in with the Vichu account; account creation is not a recovery path.
+- The Web Chat requires a valid sign-in. If its saved session is missing or expired, it redirects to the login page; an unavailable API no longer creates a fake local session.
+- ATOM Control accepts either the account name or its email address with the existing password.
+- Successful sign-in stores the JWT returned by the API and opens the Admin dashboard; failed or unavailable API requests remain on the sign-in page.
+- Admin pages verify the signed API token on the server using a short-scoped, HttpOnly, SameSite cookie. Sign out clears that cookie. API authentication fails closed if the database or a private `JWT_SECRET` is unavailable; configure `JWT_SECRET` in the root environment before using sign-in.
+- The Live Knowledge Analytics chart and KPI cards poll database telemetry for current knowledge chunk, document, training, conversation, and RAG search counts. The chart shows current counts, not fabricated month-by-month history.
+- The dashboard shows the RAG result limit: 5 results per source by default, configurable to 1–20 per source. The limit affects results returned for one query, not knowledge storage.
 - **Color** reflects the live Brain Health score (same value CLI `/status` shows) — red near 50%, amber mid, green near 100%.
 - **Neuron count** scales with the actual `atom_document_chunks` row count.
 - **Connecting lines** between nearby neurons are colored on a warm (close/strong) → cool (far/weak) gradient — a visual-only "connection strength" indicator, not tied to conversation sentiment.
 - A subset of points pulse as "firing synapses" to suggest active recall.
+
+For plain-language descriptions of every sidebar destination, see the [ATOM Admin Navigation Guide](ATOM_Admin_Navigation_Guide.md).
 
 ---
 
@@ -497,6 +510,8 @@ See [the MyLife OS pairing security specification](MYLIFE_PAIRING_SECURITY_SPEC.
 The first connector release provides explicit reads for phone API routes that currently exist. Digital usage, tracking pause/resume, and encrypted backup download return an unsupported status until the phone API implements those routes.
 
 **Current privacy and telemetry limitation:** the phone database currently uses standard SQLite through `sqflite`; SQLCipher is not active and the Android Keystore channel is not wired into database initialization. The MyLife Server screen reports that encryption is not active. Do not treat phone records as SQLCipher-encrypted until an encrypted database migration is implemented and verified. Uncollected battery, screen-time, network, tracking, and GPS values are returned as `null` with an availability flag set to `false`; `null` means unknown, not zero.
+
+If you ask whether ATOM is tracking you, it answers locally without contacting an AI provider or reading location data. ATOM does not continuously track live location. Saved MyLife location records can only be read after you request the data and approve that one action. The phone currently reports live GPS/tracking status as unavailable, which means ATOM cannot confirm your current location.
 
 When the chat model needs MyLife data to answer a direct personal question, it may request one read-only status, summary, or module operation. ATOM asks for approval in the CLI before fetching the data and explains that the configured AI provider or a fallback may receive it. The model cannot approve its own request. After an approved read, that turn skips cross-model learning, persistent chat-content logs, session history, and any additional tools. Ask again for another read.
 

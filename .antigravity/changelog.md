@@ -3,15 +3,21 @@
 ## [Unreleased]
 
 ### Security
+- Added server-side Admin page/action authorization with an HttpOnly, SameSite JWT cookie tied to the single Vichu database account; protected standalone Admin pages, removed synthetic user-ID-1 authentication fallbacks, rejected the known default JWT signing secret, and disabled public account registration for the single-user setup.
 - Restricted the MyLife phone server bind address to a discovered RFC1918 IPv4 address or loopback, verified HMAC pairing proofs with a 60-second timestamp window, and required completed pairing plus the registered client identity for protected routes.
 - Removed fabricated MyLife screen-time, battery, connectivity, and tracking values from summary/status responses; unavailable values now use null plus an explicit availability flag. Corrected the MyLife Server screen and documentation to state that SQLCipher is not active because mobile storage still uses standard sqflite and does not use the Keystore channel.
 - Added Flutter tests for pairing proof acceptance, identity tampering, expired proofs, malformed signatures, and empty identity fields.
 
 ### Fixed
+- Fixed the Performance Profiler, AST Modernizer, and Dead Code Pruner pages by isolating embedded sample PHP tags using `htmlspecialchars()`-safe output, preventing runtime redeclaration and parse errors.
+- Sanitized dynamic error interpolation in Web Admin Dashboard (`frontend/web/admin/index.php`) using `escapeHtml()`.
+- Corrected test environment filesystem token permissions enabling CodeIgniter PHPUnit bootstrap and successful execution of the 1,450-test backend suite.
+- Changed Web sign-in to use the wrapped API response, removed the fake development token fallback and sign-up controls, made chat redirect unauthenticated users to sign in, and escaped approval/agent API values before HTML rendering.
 - Changed the self-healing runtime's PHP syntax check to launch PHP with an argument array, preserving temporary file paths with spaces and special characters on Windows.
 - Removed simulated CPU, RAM, and disk figures from ARC hardware telemetry; unavailable OS queries now return null values with an explicit availability flag, and the CLI reports that state instead of displaying zeros.
 
 ### Added
+- Added a plain-language guide for all 75 Web Admin sidebar destinations and linked it from the user manual.
 - Implemented the signed PHP MyLife phone client and explicit `/mylife` CLI commands for pairing, reachability, device status, executive summaries, and supported module reads.
 - Restricted MyLife CLI targets to local mDNS, loopback, and RFC1918 IPv4 hosts; added a standalone PHP client check suite and local `.env` template entries.
 - Added a read-only `mylife_os` AI tool with real CLI approval, dynamic ContextBuilder discovery, one-read-per-turn enforcement, and no persistent chat/tool logging or cross-model learning for approved MyLife data.

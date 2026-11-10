@@ -26,21 +26,7 @@ include_once __DIR__ . '/components/header.php';
                 <span class="fw-bold text-warning"><i class="bi bi-code-slash me-2"></i>Code with Dead Artifacts</span>
             </div>
             <div class="card-body">
-                <textarea id="prunerInputCode" class="form-control bg-black text-white border-secondary small mb-3" rows="12" style="font-family: monospace; font-size: 12px;"><?php
-use App\Models\UnusedLegacyModel;
-use App\Helpers\ActiveHelper;
-
-class OrderService {
-    private function deadCalculation() {
-        return 42 * 10;
-    }
-
-    public function process() {
-        return "PROCESSED";
-        $deadVar = "Will never execute";
-    }
-}
-?></textarea>
+                <textarea id="prunerInputCode" class="form-control bg-black text-white border-secondary small mb-3" rows="12" style="font-family: monospace; font-size: 12px;"><?php echo htmlspecialchars("<?php\nuse App\\Models\\UnusedLegacyModel;\nuse App\\Helpers\\ActiveHelper;\n\nclass OrderService {\n    private function deadCalculation() {\n        return 42 * 10;\n    }\n\n    public function process() {\n        return \"PROCESSED\";\n        \$deadVar = \"Will never execute\";\n    }\n}\n?>"); ?></textarea>
 
                 <div class="d-flex gap-2">
                     <button class="btn btn-warning text-dark fw-bold flex-grow-1" onclick="scanDeadCode()">

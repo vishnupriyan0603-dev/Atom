@@ -22,6 +22,7 @@ class KnowledgeHealthReport
             'optimized_count' => 0,
             'duplicate_count' => 0,
             'conversations'   => 0,
+            'search_requests' => 0,
             'health_score'    => 90,
         ];
 
@@ -36,6 +37,13 @@ class KnowledgeHealthReport
             $stats['optimized_count'] = (int)$pdo->query("SELECT COUNT(*) FROM atom_training_examples WHERE quality = 'VERIFIED'")->fetchColumn();
             $stats['duplicate_count'] = (int)$pdo->query("SELECT COUNT(*) FROM atom_training_examples WHERE quality = 'REJECTED'")->fetchColumn();
             $stats['conversations']   = (int)$pdo->query("SELECT COUNT(*) FROM atom_sessions")->fetchColumn();
+
+            // Search usage is tracked with the other AI request analytics.
+            try {
+                $stats['search_requests'] = (int)$pdo->query("SELECT COUNT(*) FROM atom_requests WHERE rag_used = 1")->fetchColumn();
+            } catch (\Throwable $e) {
+                // Older installations may not have the request analytics table yet.
+            }
 
             // Deduct 2 points for every unverified/unreviewed training record.
             $unreviewed = (int)$pdo->query("SELECT COUNT(*) FROM atom_training_examples WHERE quality = 'UNREVIEWED'")->fetchColumn();

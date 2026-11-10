@@ -195,10 +195,16 @@ async function requireAuth() {
   return false;
 }
 
-function logoutAdmin() {
-  apiFetch('/auth/logout', { method: 'POST' });
-  clearAuthToken();
-  window.location.href = getAdminLoginUrl();
+async function logoutAdmin() {
+  try {
+    await fetch('session.php', { method: 'DELETE', credentials: 'same-origin' });
+  } catch (e) {}
+  try {
+    await apiFetch('/auth/logout', { method: 'POST' });
+  } finally {
+    clearAuthToken();
+    window.location.href = getAdminLoginUrl();
+  }
 }
 
 // ===== XSS-safe rendering helper =====
@@ -532,11 +538,14 @@ function showAlertModal({ title = 'Notification', message = '', buttonText = 'OK
   if (p.indexOf('/login.php') !== -1) return;
   // Only guard pages inside admin directory
   if (p.indexOf('/admin/') === -1 && p.indexOf('/admin.php') === -1) return;
-  // If token is present, verify; otherwise allow local development access
+  // Require a valid API token for client features; the PHP bootstrap also
+  // enforces the HttpOnly Admin cookie before rendering any page content.
   var token = getAuthToken();
-  if (token) {
-    await requireAuth();
+  if (!token) {
+    handleAuthFailure();
+    return;
   }
+  await requireAuth();
 })();
 
 // ===== Automated Runtime Error Logging & Diagnostic Pipeline =====

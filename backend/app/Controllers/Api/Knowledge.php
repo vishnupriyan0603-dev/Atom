@@ -531,7 +531,8 @@ class Knowledge extends BaseApiController
             return $this->respondError('Search query parameter "q" is required');
         }
 
-        $limit = (int) ($this->request->getGet('limit') ?? 5);
+        $limit = (int) ($this->request->getGet('limit') ?? \Atom\Knowledge\KnowledgeSearch::DEFAULT_LIMIT);
+        $limit = \Atom\Knowledge\KnowledgeSearch::normalizeLimit($limit);
         $conn = $this->getDbConnection();
         $searchEngine = new \Atom\Knowledge\KnowledgeSearch($conn);
 

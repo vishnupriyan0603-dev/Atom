@@ -57,6 +57,7 @@ $pageTitle = $pageTitle ?? 'Control Center';
       background: #374151;
     }
   </style>
+  <link rel="stylesheet" href="<?= $getBaseUrl() ?>/admin/css/admin-theme.css">
 </head>
 <body class="text-[#f0f4f8] h-screen flex overflow-hidden bg-[#080a0d]">
 

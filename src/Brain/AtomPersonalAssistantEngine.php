@@ -387,6 +387,37 @@ EOT;
     }
 
     /**
+     * Answer well-defined location privacy questions without requiring a model
+     * provider or reading any device location data.
+     */
+    public function answerTrackingPrivacyQuestion(string $userMessage, bool $myLifeConnected): ?string
+    {
+        $target = '(?:me|my\\s+(?:live\\s+)?location|where\\s+i\\s+am)';
+        $action = '(?:track(?:ed|ing)?|locat(?:e|ed|ing)|monitor(?:ed|ing)?)';
+        $patterns = [
+            '/\\b(?:did|have|has|are|is|was|were|can|could|do|does)\\s+(?:(?:you|atom)\\s+)?(?:(?:ever|currently|still|been)\\s+)?(?:able(?:\\s+to)?\\s+)?' . $action . '\\s+' . $target . '\\b/i',
+            '/\\b(?:' . $action . ')\\s+' . $target . '\\b.{0,30}\\b(?:you|atom)\\b/i',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, trim($userMessage)) !== 1) {
+                continue;
+            }
+
+            $reply = "No—this answer did not track or locate you. ATOM does not continuously track live location. ";
+            if ($myLifeConnected) {
+                $reply .= 'This ATOM can read saved MyLife location records only if you request and explicitly approve a one-time read. The phone currently reports live GPS/tracking status as unavailable.';
+            } else {
+                $reply .= 'MyLife is not connected in this setup, so ATOM cannot read saved MyLife location records. The phone API reports live GPS/tracking status as unavailable.';
+            }
+
+            return "ATOM:\n" . $reply;
+        }
+
+        return null;
+    }
+
+    /**
      * Process an autonomous turn locally when offline or as fall-through assistant.
      */
     public function generateLocalResponse(string $userMessage, string $mode = 'assistant'): array

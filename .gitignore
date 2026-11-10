@@ -35,4 +35,6 @@ storage/temp/*
 # OS and editor noise
 .DS_Store
 Thumbs.db
+user.txt
+
 

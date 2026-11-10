@@ -6,7 +6,7 @@ use CodeIgniter\Config\BaseConfig;
 
 class Auth extends BaseConfig
 {
-    public string $jwtSecret = 'atom-assistant-jwt-secret-key-change-in-production';
+    public string $jwtSecret = '';
 
     public int $jwtExpiry = 86400 * 30;
 
@@ -16,7 +16,7 @@ class Auth extends BaseConfig
     {
         parent::__construct();
 
-        // Prefer an environment-provided secret; fall back to the local default.
+        // JWT authentication is disabled until a private environment secret is configured.
         $envSecret = env('JWT_SECRET', '');
         if ($envSecret !== '') {
             $this->jwtSecret = $envSecret;

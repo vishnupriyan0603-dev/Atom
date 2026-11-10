@@ -31,82 +31,57 @@ class AuthService
 
     public function register(array $data): array
     {
-        if (empty($data['email']) || empty($data['password'])) {
-            return ['success' => false, 'message' => 'Email and password are required'];
-        }
-
-        $userId = 1;
-        $model = $this->getUserModel();
-        if ($model !== null) {
-            try {
-                $existing = $model->where('email', $data['email'])->first();
-                if ($existing) {
-                    return ['success' => false, 'message' => 'Email already registered'];
-                }
-
-                $inserted = $model->insert([
-                    'email'    => $data['email'],
-                    'password' => password_hash($data['password'], PASSWORD_BCRYPT),
-                    'name'     => $data['name'] ?? '',
-                ]);
-                if ($inserted) {
-                    $userId = $inserted;
-                }
-            } catch (\Throwable $e) {
-                // If MySQL is offline in local/standalone desktop mode, provide local session
-                $userId = 1;
-            }
-        }
-
-        $token = $this->generateToken((int)($userId ?: 1));
-
-        return [
-            'success' => true,
-            'token'   => $token,
-            'user'    => ['id' => $userId ?: 1, 'email' => $data['email'], 'name' => $data['name'] ?? ''],
-        ];
+        // ATOM Admin is configured as a single-user account; public sign-up
+        // would grant any new account access to the Admin surface.
+        return ['success' => false, 'message' => 'Account registration is disabled'];
     }
 
     public function login(array $data): array
     {
-        if (empty($data['email']) || empty($data['password'])) {
-            return ['success' => false, 'message' => 'Email and password are required'];
+        $identifier = trim((string) ($data['username'] ?? ''));
+        if ($identifier === '') {
+            // Keep compatibility with existing Web/Mobile clients that send `email`.
+            $identifier = trim((string) ($data['email'] ?? ''));
+        }
+        $password = (string) ($data['password'] ?? '');
+
+        if ($identifier === '' || $password === '') {
+            return ['success' => false, 'message' => 'Username or email and password are required'];
         }
 
+        if (!$this->hasConfiguredJwtSecret()) {
+            return ['success' => false, 'message' => 'Authentication is temporarily unavailable'];
+        }
         $model = $this->getUserModel();
-        if ($model !== null) {
-            try {
-                $user = $model->where('email', $data['email'])->first();
-                if ($user && password_verify($data['password'], $user->password)) {
-                    $token = $this->generateToken($user->id);
-                    return [
-                        'success' => true,
-                        'token'   => $token,
-                        'user'    => ['id' => $user->id, 'email' => $user->email, 'name' => $user->name],
-                    ];
-                }
-            } catch (\Throwable $e) {
-                $token = $this->generateToken(1);
+        if ($model === null) {
+            return ['success' => false, 'message' => 'Authentication is temporarily unavailable'];
+        }
+
+        try {
+            $user = $model->where('email', $identifier)->first();
+            if (!$user) {
+                $user = $model->where('name', $identifier)->first();
+            }
+            if ($user && password_verify($password, $user->password)) {
+                $token = $this->generateToken((int) $user->id);
                 return [
                     'success' => true,
                     'token'   => $token,
-                    'user'    => ['id' => 1, 'email' => $data['email'], 'name' => 'Atom User'],
+                    'user'    => ['id' => $user->id, 'email' => $user->email, 'name' => $user->name],
                 ];
             }
-        } else {
-            $token = $this->generateToken(1);
-            return [
-                'success' => true,
-                'token'   => $token,
-                'user'    => ['id' => 1, 'email' => $data['email'], 'name' => 'Atom User'],
-            ];
+        } catch (\Throwable $e) {
+            return ['success' => false, 'message' => 'Authentication is temporarily unavailable'];
         }
 
-        return ['success' => false, 'message' => 'Invalid email or password'];
+        return ['success' => false, 'message' => 'Invalid username/email or password'];
     }
 
     public function validateToken(string $token): ?object
     {
+        if (!$this->hasConfiguredJwtSecret()) {
+            return null;
+        }
         try {
             return JWT::decode($token, new Key($this->authConfig->jwtSecret, $this->authConfig->jwtAlgorithm));
         } catch (\Exception $e) {
@@ -117,29 +92,25 @@ class AuthService
     public function getUserFromToken(string $token): ?object
     {
         $decoded = $this->validateToken($token);
-        if (!$decoded || !isset($decoded->user_id)) {
+        if (!$decoded || !isset($decoded->user_id) || (int) $decoded->user_id < 1) {
             return null;
         }
         $model = $this->getUserModel();
-        if ($model !== null) {
-            try {
-                $user = $model->find($decoded->user_id);
-                if ($user) {
-                    return $user;
-                }
-            } catch (\Throwable $e) {
-                // DB offline fallback
-            }
+        if ($model === null) {
+            return null;
         }
-        return (object)[
-            'id'    => $decoded->user_id,
-            'email' => 'desktop@atom.local',
-            'name'  => 'Atom Desktop User'
-        ];
+        try {
+            return $model->find($decoded->user_id) ?: null;
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 
     private function generateToken(int $userId): string
     {
+        if ($userId < 1 || !$this->hasConfiguredJwtSecret()) {
+            throw new \RuntimeException('Authentication is not configured');
+        }
         $payload = [
             'iss'    => 'atom-assistant',
             'iat'    => time(),
@@ -147,5 +118,12 @@ class AuthService
             'user_id' => $userId,
         ];
         return JWT::encode($payload, $this->authConfig->jwtSecret, $this->authConfig->jwtAlgorithm);
+    }
+
+    private function hasConfiguredJwtSecret(): bool
+    {
+        $secret = trim((string) $this->authConfig->jwtSecret);
+        return $secret !== ''
+            && $secret !== 'atom-assistant-jwt-secret-key-change-in-production';
     }
 }

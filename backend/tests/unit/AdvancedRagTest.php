@@ -8,6 +8,16 @@ use Atom\Database\Connection;
 
 class AdvancedRagTest extends TestCase
 {
+    public function testKnowledgeSearchResultLimitIsBoundedPerSource()
+    {
+        $this->assertSame(5, KnowledgeSearch::DEFAULT_LIMIT);
+        $this->assertSame(20, KnowledgeSearch::MAX_LIMIT);
+        $this->assertSame(1, KnowledgeSearch::normalizeLimit(0));
+        $this->assertSame(1, KnowledgeSearch::normalizeLimit(-10));
+        $this->assertSame(12, KnowledgeSearch::normalizeLimit(12));
+        $this->assertSame(20, KnowledgeSearch::normalizeLimit(1000));
+    }
+
     public function testDocumentChunkingAndHashingPipeline()
     {
         $pipeline = new AdvancedRagPipeline();

@@ -15,6 +15,7 @@ require_once __DIR__ . '/../bootstrap.php';
       font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
     }
   </style>
+  <link rel="stylesheet" href="css/admin-theme.css">
 </head>
 <body class="text-[#f0f4f8] h-screen flex overflow-hidden">
 

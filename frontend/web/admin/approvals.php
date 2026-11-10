@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../bootstrap.php';
 $pageTitle = "Human Approval Gate";
 ?>
 <!DOCTYPE html>
@@ -13,6 +14,7 @@ $pageTitle = "Human Approval Gate";
   <style>
     body { font-family: 'Inter', sans-serif; }
   </style>
+  <link rel="stylesheet" href="css/admin-theme.css">
 </head>
 <body class="bg-[#0b0f17] text-gray-100 min-h-screen flex">
   <?php include __DIR__ . '/components/sidebar.php'; ?>
@@ -79,15 +81,16 @@ $pageTitle = "Human Approval Gate";
     </div>
   </main>
 
+  <script src="js/shared.js"></script>
   <script>
     async function loadApprovals() {
       const filter = document.getElementById('statusFilter').value;
       const tbody = document.getElementById('approvalsTableBody');
       try {
-        const url = `/api/v1/approvals${filter ? '?status=' + filter : ''}`;
-        const res = await fetch(url);
-        const json = await res.json();
-        const data = json.data || [];
+        const url = `/approvals${filter ? '?status=' + encodeURIComponent(filter) : ''}`;
+        const json = await apiFetch(url, { method: 'GET' });
+        if (!json.success) throw new Error(json.message || 'Could not load approvals');
+        const data = Array.isArray(json.data) ? json.data : [];
 
         let pending = 0, approved = 0, rejected = 0;
 
@@ -109,18 +112,20 @@ $pageTitle = "Human Approval Gate";
             ? '<span class="text-emerald-400 font-semibold">Approved</span>'
             : (item.status === 'rejected' ? '<span class="text-rose-400 font-semibold">Rejected</span>' : '<span class="text-amber-400 font-semibold">Pending</span>');
 
+          const approvalId = Number.parseInt(item.id, 10);
+          if (!Number.isSafeInteger(approvalId) || approvalId < 1) return '';
           return `
             <tr class="hover:bg-[#18202c]">
-              <td class="px-6 py-4 text-xs font-mono text-gray-400">#${item.id}</td>
-              <td class="px-6 py-4 font-medium text-white">${item.tool_name || item.target_component || 'System'}</td>
-              <td class="px-6 py-4 text-xs text-gray-300 font-mono">${item.action || 'EXECUTE'}</td>
+              <td class="px-6 py-4 text-xs font-mono text-gray-400">#${approvalId}</td>
+              <td class="px-6 py-4 font-medium text-white">${escapeHtml(item.tool_name || item.target_component || 'System')}</td>
+              <td class="px-6 py-4 text-xs text-gray-300 font-mono">${escapeHtml(item.action || 'EXECUTE')}</td>
               <td class="px-6 py-4">${riskBadge}</td>
-              <td class="px-6 py-4 text-xs text-gray-400">${item.reason || ''}</td>
+              <td class="px-6 py-4 text-xs text-gray-400">${escapeHtml(item.reason || '')}</td>
               <td class="px-6 py-4 text-xs">${statusBadge}</td>
               <td class="px-6 py-4 text-right">
                 ${item.status === 'pending' ? `
-                  <button onclick="approveReq(${item.id})" class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg text-xs font-semibold mr-1">Approve</button>
-                  <button onclick="rejectReq(${item.id})" class="px-2.5 py-1 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 rounded-lg text-xs font-semibold">Reject</button>
+                  <button onclick="approveReq(${approvalId})" class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 rounded-lg text-xs font-semibold mr-1">Approve</button>
+                  <button onclick="rejectReq(${approvalId})" class="px-2.5 py-1 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 rounded-lg text-xs font-semibold">Reject</button>
                 ` : '<span class="text-xs text-gray-600">—</span>'}
               </td>
             </tr>
@@ -138,13 +143,15 @@ $pageTitle = "Human Approval Gate";
 
     async function approveReq(id) {
       if (!confirm(`Grant approval for request #${id}?`)) return;
-      await fetch(`/api/v1/approvals/${id}/approve`, { method: 'POST' });
+      const res = await apiFetch(`/approvals/${encodeURIComponent(id)}/approve`, { method: 'POST', body: '{}' });
+      if (!res.success) { alert(res.message || 'Could not approve this request.'); return; }
       loadApprovals();
     }
 
     async function rejectReq(id) {
       if (!confirm(`Reject request #${id}?`)) return;
-      await fetch(`/api/v1/approvals/${id}/reject`, { method: 'POST' });
+      const res = await apiFetch(`/approvals/${encodeURIComponent(id)}/reject`, { method: 'POST', body: '{}' });
+      if (!res.success) { alert(res.message || 'Could not reject this request.'); return; }
       loadApprovals();
     }
 

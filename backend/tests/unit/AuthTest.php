@@ -49,4 +49,23 @@ final class AuthTest extends CIUnitTestCase
 
         $this->assertNull($token);
     }
+
+    public function testAuthenticationFailsClosedWithoutJwtSecret(): void
+    {
+        $service = new \App\Services\AuthService();
+        $config = new \Config\Auth();
+        $config->jwtSecret = '';
+        $property = new \ReflectionProperty($service, 'authConfig');
+        $property->setAccessible(true);
+        $property->setValue($service, $config);
+
+        $login = $service->login(['username' => 'vichu', 'password' => 'not-logged']);
+        $register = $service->register(['email' => 'audit@example.invalid', 'password' => 'not-logged']);
+
+        $this->assertFalse($login['success']);
+        $this->assertArrayNotHasKey('token', $login);
+        $this->assertFalse($register['success']);
+        $this->assertArrayNotHasKey('token', $register);
+        $this->assertNull($service->validateToken('not-a-valid-token'));
+    }
 }

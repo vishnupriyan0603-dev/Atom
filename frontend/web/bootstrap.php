@@ -109,6 +109,15 @@ try {
     $dbConnected = false;
 }
 
+// Protect server-rendered Admin pages and legacy dashboard action handlers
+// with an API-issued HttpOnly cookie tied to the only configured Vichu account.
+// Login/session bootstrap endpoints are exempt to establish or clear the cookie.
+$adminAuthPdo = $dbConnected ? $dbConnection->getPdo() : null;
+if (PHP_SAPI === 'cli' && ($GLOBALS['atomAdminAuthTestPdo'] ?? null) instanceof \PDO) {
+    $adminAuthPdo = $GLOBALS['atomAdminAuthTestPdo'];
+}
+\Atom\Auth\AdminWebAccess::enforceRequest($_SERVER, $_GET, $_COOKIE, $adminAuthPdo);
+
 // Global stats calculation — shared with CLI `/status` and Desktop via
 // Atom\Knowledge\KnowledgeHealthReport so every viewer reports the same numbers.
 $stats = \Atom\Knowledge\KnowledgeHealthReport::compute($dbConnected ? $dbConnection->getPdo() : null);

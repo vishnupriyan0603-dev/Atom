@@ -183,18 +183,8 @@ async function ensureAuth() {
     authToken = null;
   }
 
-  email = 'web_' + Date.now() + '@atom.local';
-  var pass = 'atom_' + Math.random().toString(36).slice(2, 10);
-
-  var result = await apiFetch('/auth/register', 'POST', { email: email, password: pass, name: 'Web User' });
-  if (result.success) {
-    authToken = result.data.token;
-    currentUserId = result.data.user.id;
-    localStorage.setItem('atom_web_token', authToken);
-    localStorage.setItem('atom_web_email', email);
-    return true;
-  }
-
+  showToast('Please sign in with the Vichu account to continue.');
+  window.location.assign('login.php');
   return false;
 }
 

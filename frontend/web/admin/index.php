@@ -31,6 +31,9 @@ if (isset($_GET['action'])) {
                 } catch (\Throwable $e) {}
             }
 
+            $report['search_limit_default'] = \Atom\Knowledge\KnowledgeSearch::DEFAULT_LIMIT;
+            $report['search_limit_max'] = \Atom\Knowledge\KnowledgeSearch::MAX_LIMIT;
+
             echo json_encode([
                 'success' => true,
                 'timestamp' => date('c'),
@@ -427,6 +430,7 @@ if (isset($_GET['action'])) {
       margin: 0 !important;
     }
   </style>
+  <link rel="stylesheet" href="css/admin-theme.css">
 </head>
 <body class="text-[#f0f4f8] h-screen flex overflow-hidden bg-[#040608]">
 
@@ -683,7 +687,7 @@ if (isset($_GET['action'])) {
       </div>
 
       <!-- Core RAG and stats grid -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <div class="bg-[#0a0e16] border border-[#1e2838] rounded-2xl p-5 flex flex-col justify-between shadow hover:border-[#2a3a52] transition">
           <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Knowledge Chunks</span>
           <span class="text-2xl font-black text-white mt-2" id="kpiChunks"><?= number_format($stats['knowledge_count']) ?></span>
@@ -700,7 +704,23 @@ if (isset($_GET['action'])) {
           <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">AI Conversations</span>
           <span class="text-2xl font-black text-white mt-2" id="kpiConversations"><?= number_format($stats['conversations']) ?></span>
         </div>
+        <div class="bg-[#0a0e16] border border-[#1e2838] rounded-2xl p-5 flex flex-col justify-between shadow hover:border-[#2a3a52] transition">
+          <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Knowledge Searches</span>
+          <span class="text-2xl font-black text-sky-300 mt-2" id="kpiSearchRequests"><?= number_format($stats['search_requests']) ?></span>
+          <span class="text-[10px] text-gray-500 mt-1">Recorded RAG requests</span>
+        </div>
       </div>
+
+      <section class="bg-[#0a0e16] border border-[#1e2838] rounded-2xl p-5 shadow-xl" aria-labelledby="knowledgeLimitTitle">
+        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div>
+            <h3 id="knowledgeLimitTitle" class="text-sm font-bold text-white">Knowledge search result limit</h3>
+            <p class="text-xs text-gray-400 mt-1">Each search returns up to <strong class="text-emerald-300" id="knowledgeDefaultLimit">5</strong> document chunks and up to <strong class="text-emerald-300" id="knowledgeMaxLimit">20</strong> at most, plus the same per-search limit for knowledge graph facts.</p>
+            <p class="text-xs text-gray-500 mt-1">Default: 5 per source. API callers can request 1–20 using <code class="text-gray-300">?limit=N</code>. This caps results returned; it does not cap how many records are stored in the knowledge base.</p>
+          </div>
+          <span class="shrink-0 rounded-lg border border-[#2a3a52] bg-[#111a27] px-3 py-2 text-[11px] text-gray-300">Up to <strong class="text-white" id="knowledgeCombinedLimit">10</strong> total matches by default</span>
+        </div>
+      </section>
 
       <!-- INTERACTIVE LIVE BRAIN REQUEST & RESPONSE CONSOLE -->
       <div class="bg-[#0a0e16] border border-[#1e2838] rounded-2xl p-6 shadow-xl space-y-4">
@@ -761,8 +781,8 @@ if (isset($_GET['action'])) {
         <!-- Visual growth chart -->
         <div class="bg-[#0a0e16] border border-[#1e2838] rounded-2xl p-6 lg:col-span-2 shadow-lg flex flex-col justify-between">
           <div class="border-b border-[#1e2838] pb-4 mb-4 flex items-center justify-between">
-            <h3 class="font-bold text-white text-sm">RAG &amp; Knowledge Growth Over Time</h3>
-            <span class="text-xs text-emerald-400 font-semibold">Continuous Indexing</span>
+            <h3 class="font-bold text-white text-sm">Live Knowledge Analytics</h3>
+            <span class="text-xs text-emerald-400 font-semibold">Current database counts</span>
           </div>
           <div class="h-64 relative">
             <canvas id="growthChart" class="w-full h-full"></canvas>
@@ -965,19 +985,19 @@ if (isset($_GET['action'])) {
       renderEeg();
     })();
 
-    // ── Growth Chart Rendering ──────────────────────────────────────────────
+    // ── Live database count chart ───────────────────────────────────────────
     const ctx = document.getElementById('growthChart').getContext('2d');
     const growthChart = new Chart(ctx, {
-      type: 'line',
+      type: 'bar',
       data: {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Current'],
+        labels: ['Knowledge Chunks', 'Documents', 'Training Q&A', 'Conversations'],
         datasets: [{
-          label: 'Knowledge Chunks',
-          data: [20, 80, 250, 450, 800, 1500, 2400, 3100, <?= (int)$stats['knowledge_count'] ?>],
+          label: 'Current records',
+          data: [<?= (int)$stats['knowledge_count'] ?>, <?= (int)$stats['document_count'] ?>, <?= (int)$stats['training_count'] ?>, <?= (int)$stats['conversations'] ?>],
           borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.08)',
-          fill: true,
-          tension: 0.4
+          backgroundColor: ['rgba(16,185,129,.75)', 'rgba(56,189,248,.75)', 'rgba(245,158,11,.75)', 'rgba(167,139,250,.75)'],
+          borderWidth: 1,
+          borderRadius: 6
         }]
       },
       options: {
@@ -985,8 +1005,8 @@ if (isset($_GET['action'])) {
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { color: '#16202e' }, ticks: { color: '#566478' } },
-          y: { grid: { color: '#16202e' }, ticks: { color: '#566478' } }
+          x: { grid: { display: false }, ticks: { color: '#9aa8ba' } },
+          y: { beginAtZero: true, grid: { color: '#16202e' }, ticks: { color: '#566478', precision: 0 } }
         }
       }
     });
@@ -1005,6 +1025,14 @@ if (isset($_GET['action'])) {
           document.getElementById('kpiDocs').textContent = Number(s.document_count).toLocaleString();
           document.getElementById('kpiTraining').textContent = Number(s.training_count).toLocaleString();
           document.getElementById('kpiConversations').textContent = Number(s.conversations).toLocaleString();
+          document.getElementById('kpiSearchRequests').textContent = Number(s.search_requests || 0).toLocaleString();
+          const defaultLimit = Number(s.search_limit_default || 5);
+          const maxLimit = Number(s.search_limit_max || 20);
+          document.getElementById('knowledgeDefaultLimit').textContent = defaultLimit;
+          document.getElementById('knowledgeMaxLimit').textContent = maxLimit;
+          document.getElementById('knowledgeCombinedLimit').textContent = (defaultLimit * 2).toLocaleString();
+          growthChart.data.datasets[0].data = [s.knowledge_count, s.document_count, s.training_count, s.conversations].map(value => Number(value || 0));
+          growthChart.update('none');
           document.getElementById('topActiveProvider').textContent = s.active_provider;
           document.getElementById('topActiveModel').textContent = s.active_model;
 
@@ -1237,7 +1265,7 @@ if (isset($_GET['action'])) {
             brainVisualEffects.triggerPulseBurst(3.2);
           }
         } else {
-          resContent.innerHTML = '<div class="text-rose-400 font-semibold">Error: ' + (json.error || 'Failed to process request') + '</div>';
+          resContent.innerHTML = '<div class="text-rose-400 font-semibold">Error: ' + escapeHtml(json.error || 'Failed to process request') + '</div>';
         }
       } catch (err) {
         resContent.innerHTML = '<div class="text-rose-400 font-semibold">Network error occurred during query execution.</div>';

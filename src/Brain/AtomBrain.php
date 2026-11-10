@@ -29,6 +29,7 @@ class AtomBrain
     private ResponseParser $parser;
     private ?AtomPersonalModel $personalModel;
     private ?OwnerProfileManager $profileManager;
+    private AtomPersonalAssistantEngine $personalAssistantEngine;
     private LearningEngine $learningEngine;
     private ?int $conversationId = null;
 
@@ -63,6 +64,7 @@ class AtomBrain
         $this->personalModel   = $personalModel;
         $this->profileManager  = $profileManager;
         $this->parser          = new ResponseParser();
+        $this->personalAssistantEngine = new AtomPersonalAssistantEngine($this->redactor);
 
         $refRoot = new \ReflectionProperty($this->memory, 'workspaceRoot');
         $refRoot->setAccessible(true);
@@ -212,6 +214,24 @@ class AtomBrain
             $this->memory->logMessage('user', $input);
             $this->memory->logMessage('assistant', $arcReply);
             return $arcReply;
+        }
+
+        // Answer recognized location-privacy questions locally. This does not
+        // query MyLife or access location data, and remains available offline.
+        $privacyReply = $this->personalAssistantEngine->answerTrackingPrivacyQuestion(
+            $input,
+            $this->toolManager->hasTool('mylife_os')
+        );
+        if ($privacyReply !== null) {
+            $history[] = ['role' => 'user', 'content' => $input];
+            $history[] = ['role' => 'assistant', 'content' => $privacyReply];
+            $this->memory->logMessage('user', $input);
+            $this->memory->logMessage('assistant', $privacyReply);
+            $this->contextEngine->update($input, $privacyReply, 'privacy_tracking');
+            $durationMs = (int)((microtime(true) - $startTime) * 1000);
+            $this->logRequest($reqId, $input, 'PRIVACY_TRACKING', 'LOCAL', 'None', false, 100, $durationMs, 'SUCCESS');
+            $this->logResponse($reqId, $privacyReply, 'None', 'personal_assistant');
+            return $privacyReply;
         }
 
         // 1. Intercept memory commands
@@ -1032,6 +1052,7 @@ class AtomBrain
         // Strip conversational prefixes like "adam,", "atom,", "hey atom,", "you", "can you", "please", etc.
         $clean = preg_replace('/^(?:(?:hey|hi|hello)?\s*(?:adam|atom|assistant|you)\s*[,:\-\s]*|please\s+|can\s+you\s+|could\s+you\s+)+/i', '', $trim);
         $clean = trim($clean);
+        $cleanLower = strtolower($clean);
 
         // Pattern 1: "open notepad type <text>", "open my notepad and say <text>", "launch notepad and type <text>"
         if (preg_match('/^(?:open|launch)\s+(?:my\s+)?notepad\s*(?:and\s+|,|:)?\s*(?:type|write|say)\s*[:\s]*["\']?([^"\']+)["\']?$/i', $clean, $m)) {
@@ -1198,7 +1219,7 @@ class AtomBrain
         }
 
         // Pattern 13: ARC dot commands e.g. "git.status", "desktop.open", "sys.ports", "sys.processes"
-        if (str_starts_with($lower, 'git.') || str_starts_with($lower, 'desktop.') || str_starts_with($lower, 'sys.') || str_starts_with($lower, 'dev.') || str_starts_with($lower, 'arc_one.') || str_starts_with($lower, 'arc_two.') || str_starts_with($lower, 'arc_three.')) {
+        if (str_starts_with($cleanLower, 'git.') || str_starts_with($cleanLower, 'desktop.') || str_starts_with($cleanLower, 'sys.') || str_starts_with($cleanLower, 'dev.') || str_starts_with($cleanLower, 'arc_one.') || str_starts_with($cleanLower, 'arc_two.') || str_starts_with($cleanLower, 'arc_three.')) {
             if (!$this->toolManager->authorizeAction('arc_dispatch', ['command' => $trim])) {
                 return "ATOM: ARC action was not approved. Nothing was executed.";
             }

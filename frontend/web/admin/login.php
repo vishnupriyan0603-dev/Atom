@@ -14,6 +14,7 @@ require_once __DIR__ . '/../bootstrap.php';
       font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
     }
   </style>
+  <link rel="stylesheet" href="css/admin-theme.css">
 </head>
 <body class="text-[#f0f4f8] min-h-screen flex items-center justify-center p-6">
 
@@ -27,25 +28,15 @@ require_once __DIR__ . '/../bootstrap.php';
     </div>
 
     <div class="bg-[#11151c] border border-[#1e2838] rounded-2xl p-8 shadow-2xl space-y-5">
-      <div class="flex rounded-xl bg-[#080a0d] border border-[#1e2838] p-1 text-xs font-bold">
-        <button id="tabLogin" onclick="switchMode('login')" class="flex-1 py-2 rounded-lg bg-emerald-500/15 text-emerald-400">SIGN IN</button>
-        <button id="tabRegister" onclick="switchMode('register')" class="flex-1 py-2 rounded-lg text-gray-500">CREATE ACCOUNT</button>
-      </div>
-
       <div class="space-y-4">
         <div>
-          <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Email</label>
-          <input type="email" id="email" autocomplete="email"
+          <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Username or Email</label>
+          <input type="text" id="username" autocomplete="username"
             class="w-full mt-1 px-4 py-2.5 rounded-xl bg-[#080a0d] border border-[#1e2838] text-sm focus:outline-none focus:border-emerald-500/50">
         </div>
         <div>
           <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Password</label>
           <input type="password" id="password" autocomplete="current-password"
-            class="w-full mt-1 px-4 py-2.5 rounded-xl bg-[#080a0d] border border-[#1e2838] text-sm focus:outline-none focus:border-emerald-500/50">
-        </div>
-        <div id="nameField" class="hidden">
-          <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Display Name</label>
-          <input type="text" id="name" autocomplete="name"
             class="w-full mt-1 px-4 py-2.5 rounded-xl bg-[#080a0d] border border-[#1e2838] text-sm focus:outline-none focus:border-emerald-500/50">
         </div>
       </div>
@@ -66,17 +57,6 @@ require_once __DIR__ . '/../bootstrap.php';
   <script src="<?= $getBaseUrl() ?>/admin/js/shared.js"></script>
   <script>
     var ATOM_API = 'http://localhost:8080/api';
-    var mode = 'login';
-
-    function switchMode(m) {
-      mode = m;
-      document.getElementById('tabLogin').className = 'flex-1 py-2 rounded-lg ' + (m === 'login' ? 'bg-emerald-500/15 text-emerald-400' : 'text-gray-500');
-      document.getElementById('tabRegister').className = 'flex-1 py-2 rounded-lg ' + (m === 'register' ? 'bg-emerald-500/15 text-emerald-400' : 'text-gray-500');
-      document.getElementById('nameField').classList.toggle('hidden', m !== 'register');
-      document.getElementById('submitBtn').textContent = m === 'login' ? 'SIGN IN' : 'CREATE ACCOUNT';
-      document.getElementById('errorBox').classList.add('hidden');
-    }
-
     function showError(msg) {
       var box = document.getElementById('errorBox');
       box.textContent = msg;
@@ -84,12 +64,10 @@ require_once __DIR__ . '/../bootstrap.php';
     }
 
     async function submitAuth() {
-      var email = document.getElementById('email').value.trim();
+      var username = document.getElementById('username').value.trim();
       var password = document.getElementById('password').value;
-      var name = document.getElementById('name').value.trim();
-
-      if (!email || !password) {
-        showError('Email and password are required.');
+      if (!username || !password) {
+        showError('Username/email and password are required.');
         return;
       }
 
@@ -98,41 +76,66 @@ require_once __DIR__ . '/../bootstrap.php';
       btn.textContent = 'Please wait...';
 
       try {
-        var json;
-        try {
-          var resp = await fetch(ATOM_API + '/auth/' + mode, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(mode === 'login' ? { email: email, password: password } : { email: email, password: password, name: name })
-          });
-          var text = await resp.text();
-          if (text && !text.trim().startsWith('<')) {
-            json = JSON.parse(text);
-          }
-        } catch(err) {}
-
-        if (json && json.success && json.token) {
-          setAuthToken(json.token, json.user && json.user.email);
-          var next = new URLSearchParams(window.location.search).get('next');
-          var fallback = '<?= $getAdminUrl("index") ?>';
-          window.location.href = next && next.indexOf('/login') === -1 ? next : fallback;
-        } else if (json && json.message) {
-          showError(json.message);
-        } else {
-          // Dev local fallback mode
-          setAuthToken('dev_admin_token', email);
-          var next = new URLSearchParams(window.location.search).get('next');
-          var fallback = '<?= $getAdminUrl("index") ?>';
-          window.location.href = next && next.indexOf('/login') === -1 ? next : fallback;
+        var resp = await fetch(ATOM_API + '/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: username, password: password })
+        });
+        var text = await resp.text();
+        if (!text || text.trim().startsWith('<')) {
+          throw new Error('ATOM login API returned an invalid response.');
         }
-      } catch (e) {
-        setAuthToken('dev_admin_token', email);
+        var json = JSON.parse(text);
+        if (!resp.ok || !json.success) {
+          showError(json.message || 'Sign in failed. Check your username and password.');
+          return;
+        }
+
+        // CodeIgniter wraps successful response data in `data`; also accept
+        // the legacy flat shape for compatibility with older API deployments.
+        var authData = json.data || json;
+        if (!authData.token) {
+          showError('Sign in succeeded but the API did not return a session token.');
+          return;
+        }
+
+        setAuthToken(authData.token, authData.user && authData.user.email ? authData.user.email : username);
+        var sessionResponse = await fetch('session.php', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Authorization': 'Bearer ' + authData.token }
+        });
+        var sessionText = await sessionResponse.text();
+        var sessionResult = sessionText && !sessionText.trim().startsWith('<') ? JSON.parse(sessionText) : null;
+        if (!sessionResponse.ok || !sessionResult || !sessionResult.success) {
+          throw new Error((sessionResult && sessionResult.message) || 'Could not establish the secure Admin session.');
+        }
+
+        // Resolve the dashboard from the current login URL. This keeps the
+        // redirect correct when ATOM is served from a nested or URL-encoded
+        // XAMPP folder (for example, /my%20work/Atom/).
+        var adminDirectory = window.location.pathname.replace(/login\.php$/i, '');
+        var fallback = new URL('index.php', window.location.origin + adminDirectory).href;
+        var destination = fallback;
         var next = new URLSearchParams(window.location.search).get('next');
-        var fallback = '<?= $getAdminUrl("index") ?>';
-        window.location.href = next && next.indexOf('/login') === -1 ? next : fallback;
+        if (next) {
+          try {
+            var nextUrl = new URL(next, window.location.origin);
+            if (nextUrl.origin === window.location.origin &&
+                nextUrl.pathname.startsWith(adminDirectory) &&
+                !/\/login(?:\.php)?$/i.test(nextUrl.pathname)) {
+              destination = nextUrl.href;
+            }
+          } catch (e) {}
+        }
+        btn.textContent = 'Opening dashboard...';
+        window.location.replace(destination);
+      } catch (e) {
+        clearAuthToken();
+        showError(e && e.message ? e.message : 'Could not connect to the ATOM login API.');
       } finally {
         btn.disabled = false;
-        btn.textContent = mode === 'login' ? 'SIGN IN' : 'CREATE ACCOUNT';
+        btn.textContent = 'SIGN IN';
       }
     }
 

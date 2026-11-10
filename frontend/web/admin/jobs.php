@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../bootstrap.php';
 $pageTitle = "Background Jobs Queue";
 ?>
 <!DOCTYPE html>
@@ -13,6 +14,7 @@ $pageTitle = "Background Jobs Queue";
   <style>
     body { font-family: 'Inter', sans-serif; }
   </style>
+  <link rel="stylesheet" href="css/admin-theme.css">
 </head>
 <body class="bg-[#0b0f17] text-gray-100 min-h-screen flex">
   <?php include __DIR__ . '/components/sidebar.php'; ?>
