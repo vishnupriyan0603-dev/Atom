@@ -36,5 +36,6 @@ storage/temp/*
 .DS_Store
 Thumbs.db
 user.txt
+.antigravity/backups/
 
 

@@ -167,6 +167,8 @@ ATOM supports multi-format PDF and document parsing with automatic semantic chun
 - **Connecting lines** between nearby neurons are colored on a warm (close/strong) → cool (far/weak) gradient — a visual-only "connection strength" indicator, not tied to conversation sentiment.
 - A subset of points pulse as "firing synapses" to suggest active recall.
 
+- **Sidebar Navigation**: To prevent visual clutter and keep focus on primary assistant operations, the Admin sidebar is organized into 6 core operational categories (Cockpit, AI Brain & Cognition, Knowledge & RAG, Multi-Modal Studios, Automation & Extensions, and Security & System) featuring 24 primary modules. Experimental and milestone-specific modules (Phases 41–103) are neatly organized inside a collapsible `🧪 Milestone Studios & Labs` drawer, with instant real-time search across all items via the search input (`Ctrl + K` or quick find).
+
 For plain-language descriptions of every sidebar destination, see the [ATOM Admin Navigation Guide](ATOM_Admin_Navigation_Guide.md).
 
 ---

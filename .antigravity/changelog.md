@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+- Trained document `1794334698_fcab87f2b8bd4c1a85ad.pdf` (*Personal Assistant Handbook & Code of Conduct*): extracted all 41 pages, synthesized a comprehensive AI understanding summary covering professional standards, employer autonomy, strict confidentiality, reliability, safeguarding, emergency protocols, and duty of care. Persisted `ai_summary` and indexed chunk 0 in `atom_document_chunks` so the document is marked `Trained` in the Web Admin Documents workspace.
+- Enhanced ATOM's core personal assistant persona (`src/Brain/AtomPersonalAssistantEngine.php`) and master system rules (`config/rules/system.md`, Section 29) to embed the Personal Assistant Handbook's Code of Conduct and operational standards directly into assistant cognition.
+- Streamlined and reduced Web Admin sidebar navigation (`frontend/web/admin/components/sidebar.php`) from a 75-item cluttered flat list down to 24 core operational assistant modules across 6 clean functional categories (Cockpit, AI Brain & Cognition, Knowledge & RAG, Multi-Modal Studios, Automation & Extensions, and Security & System). Restored primary access to essential assistant management modules (Human Approvals, AI Model Providers, Model Playground, Autonomous Agents, Plugins & Skills, Workflows, Background Jobs, Documents, and Desktop Companion). Preserved all 52 experimental milestone phase studios (Phases 41–103) inside a collapsible `🧪 Milestone Studios & Labs` drawer with automatic expansion on active visit or search match.
+- Updated `docs/ATOM_Admin_Navigation_Guide.md` and `docs/ATOM_User_Manual_Guide.md` to document the streamlined admin navigation architecture, category organization, and labs drawer.
+
 ### Security
 - Added server-side Admin page/action authorization with an HttpOnly, SameSite JWT cookie tied to the single Vichu database account; protected standalone Admin pages, removed synthetic user-ID-1 authentication fallbacks, rejected the known default JWT signing secret, and disabled public account registration for the single-user setup.
 - Restricted the MyLife phone server bind address to a discovered RFC1918 IPv4 address or loopback, verified HMAC pairing proofs with a 60-second timestamp window, and required completed pairing plus the registered client identity for protected routes.
