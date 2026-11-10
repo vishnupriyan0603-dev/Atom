@@ -42,13 +42,19 @@ class ToolFrameworkTest extends TestCase
         $manager->registerTool($tool, $def);
 
         $this->assertTrue($manager->hasTool('dummy_read'));
+        $this->assertTrue($def->requiresHumanApproval());
 
         // Invalid input (missing path)
         $result = $manager->executeTool('dummy_read', []);
         $this->assertFalse($result['success']);
         $this->assertStringContainsString('Missing required argument', $result['error']);
 
-        // Valid input
+        // Every tool, including read-only tools, waits for application approval.
+        $validResult = $manager->executeTool('dummy_read', ['path' => 'app.log']);
+        $this->assertFalse($validResult['success']);
+        $this->assertTrue($validResult['requires_human_gate']);
+
+        $manager->setApprovalProvider(static fn (): bool => true);
         $validResult = $manager->executeTool('dummy_read', ['path' => 'app.log']);
         $this->assertTrue($validResult['success']);
         $this->assertEquals('Read app.log', $validResult['output']);
@@ -75,8 +81,13 @@ class ToolFrameworkTest extends TestCase
         $this->assertTrue($result['requires_human_gate']);
         $this->assertEquals('high', $result['risk_level']);
 
-        // With human_approved flag -> allowed
-        $approvedResult = $manager->executeTool('database_drop', ['table' => 'users', 'human_approved' => true]);
+        // Model-supplied approval flags cannot bypass the application-side gate.
+        $modelApprovedResult = $manager->executeTool('database_drop', ['table' => 'users', 'human_approved' => true]);
+        $this->assertFalse($modelApprovedResult['success']);
+
+        // A trusted application callback represents an actual human approval.
+        $manager->setApprovalProvider(static fn (string $name, array $arguments, ToolDefinition $definition): bool => true);
+        $approvedResult = $manager->executeTool('database_drop', ['table' => 'users']);
         $this->assertTrue($approvedResult['success']);
         $this->assertEquals('Dropped table users', $approvedResult['output']);
     }

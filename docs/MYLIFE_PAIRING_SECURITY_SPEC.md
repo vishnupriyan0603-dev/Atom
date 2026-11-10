@@ -37,8 +37,8 @@ sequenceDiagram
     Phone->>User: Displays QR Code & Pairing Secret String
     User->>ATOM: Enter / Scan Pairing Secret in ATOM CLI or Web Admin
     ATOM->>ATOM: Store Shared Secret in secure local config (config/mylife_pairing.json)
-    ATOM->>Phone: POST /api/v1/pair (Client ID, Device Name, HMAC Signature)
-    Phone->>Phone: Verify HMAC Signature against Shared Secret
+    ATOM->>Phone: POST /api/v1/pair (Client ID, Device Name, Fingerprint, Timestamp, HMAC Proof)
+    Phone->>Phone: Verify HMAC Proof and ±60-second timestamp
     Phone->>Phone: Insert record into `life_pairing_tokens` (Active)
     Phone-->>ATOM: 200 OK { paired: true, device: "Samsung Galaxy M31", version: "1.0" }
     ATOM->>User: "ATOM successfully paired with your Samsung Galaxy M31!"
@@ -56,6 +56,20 @@ sequenceDiagram
   "shared_secret": "a4f89b6c12e841209b552341908234ab89c01123456789abcdef0123456789ab"
 }
 ```
+
+### Pairing Proof
+The public `/api/v1/pair` route is a public handshake only; it does not bypass proof validation. The request body must include `client_id`, `device_name`, `client_fingerprint`, `timestamp` (Unix seconds), and `signature`. The signature is lowercase or uppercase hexadecimal HMAC-SHA256 over:
+
+```text
+client_id + "\n" + device_name + "\n" + client_fingerprint + "\n" + timestamp
+```
+
+The phone accepts proofs only within the same ±60-second window as signed API calls. The server registers the client only after proof verification. A failed proof returns HTTP 401 and does not change paired-client state.
+
+The server binds to one discovered RFC1918 IPv4 address. If none is available, it binds to `127.0.0.1`; it never uses the wildcard `0.0.0.0` address. Protected routes also require a completed pairing and an `X-MyLife-Client` value matching the registered client, in addition to the per-request HMAC headers.
+
+### AI Access and Local Retention
+The ATOM CLI exposes read-only MyLife status, summary, and module queries to its AI tool loop. Before each read, a trusted CLI callback asks the user whether this personal data may be supplied to the configured AI provider; provider failover may also receive it. Approval is not accepted from model-generated tool arguments. A successful MyLife read is limited to one per turn, is not added to cross-model self-learning or persistent chat/tool logs, and cannot be followed by another tool in that turn. Other clients do not register this tool unless they provide an equivalent trusted approval flow.
 
 ---
 

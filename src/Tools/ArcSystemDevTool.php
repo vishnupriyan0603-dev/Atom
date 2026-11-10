@@ -95,7 +95,7 @@ class ArcSystemDevTool implements ToolInterface
 
             case 'grant_session':
                 $this->controller->getPermissionGate()->grantSessionPermission((string)($input['category'] ?? 'all'));
-                return ['success' => true, 'message' => 'Session permission granted for ' . ($input['category'] ?? 'all')];
+                return ['success' => false, 'requires_human_gate' => true, 'message' => 'Session-wide grants are disabled; approve each action separately.'];
 
             case 'revoke_permissions':
                 $this->controller->getPermissionGate()->revokePermissions();

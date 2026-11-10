@@ -89,4 +89,76 @@ final class ApprovalTest extends CIUnitTestCase
         }
         $this->assertTrue($rejectedFound);
     }
+
+    public function testAssistantActionApprovalIsOwnerBoundAndSingleUse(): void
+    {
+        $gate = new HumanApprovalGate();
+        $requestId = $gate->createToolApprovalRequest(
+            userId: 11,
+            toolName: 'brain_reasoner',
+            action: 'brain_tool:calc',
+            parameters: ['expression' => '2 + 2'],
+            riskLevel: 'medium',
+            reason: 'Review calculation',
+            expiresInMinutes: 15
+        );
+
+        $this->assertNull($gate->approveOwnedToolRequest($requestId, 12));
+        $this->assertNotNull($gate->approveOwnedToolRequest($requestId, 11));
+        $this->assertTrue($gate->completeToolRequest($requestId, 11, 'executed', ['success' => true, 'result' => 4]));
+        $this->assertNull($gate->approveOwnedToolRequest($requestId, 11));
+        $this->assertCount(0, $gate->getApprovalRequests('pending', 12));
+        $this->assertCount(1, $gate->getApprovalRequests('executed', 11));
+    }
+
+    public function testExpiredAssistantActionCannotBeApproved(): void
+    {
+        $gate = new HumanApprovalGate();
+        $requestId = $gate->createToolApprovalRequest(
+            userId: 21,
+            toolName: 'brain_reasoner',
+            action: 'brain_tool:system_inspect',
+            parameters: [],
+            riskLevel: 'medium',
+            reason: 'Review system inspection',
+            expiresInMinutes: 0
+        );
+
+        $this->assertNull($gate->approveOwnedToolRequest($requestId, 21));
+        $expired = $gate->getApprovalRequests('expired', 21);
+        $this->assertCount(1, array_filter($expired, static fn (array $item): bool => (int)$item['id'] === $requestId));
+    }
+
+    public function testChatToolApprovalIsBoundToOwnerAndOriginalTurn(): void
+    {
+        $gate = new HumanApprovalGate();
+        $requestId = $gate->createToolApprovalRequest(
+            userId: 31,
+            toolName: 'brain_chat',
+            action: 'brain_chat_tool:search_code',
+            parameters: [
+                'chat_id' => 52,
+                'user_message_id' => 73,
+                'tool_arguments' => ['query' => 'approval gate'],
+            ],
+            riskLevel: 'low',
+            reason: '{"action":"search_code","target":"workspace"}',
+            expiresInMinutes: 15
+        );
+
+        $this->assertGreaterThan(0, $requestId);
+        $this->assertNull($gate->approveOwnedToolRequest($requestId, 32));
+        $claimed = $gate->approveOwnedToolRequest($requestId, 31);
+        $this->assertNotNull($claimed);
+        $this->assertSame('brain_chat_tool:search_code', $claimed['action']);
+        $this->assertTrue($gate->completeToolRequest($requestId, 31, 'executed', ['success' => true, 'matches' => 2]));
+        $this->assertNull($gate->approveOwnedToolRequest($requestId, 31));
+
+        $executed = $gate->getExecutedChatToolRequests(31, 52, 73);
+        $this->assertCount(1, $executed);
+        $this->assertSame(['query' => 'approval gate'], $executed[0]['decoded_parameters']['tool_arguments']);
+        $this->assertSame(['success' => true, 'matches' => 2], $executed[0]['decoded_result']);
+        $this->assertCount(0, $gate->getExecutedChatToolRequests(32, 52, 73));
+        $this->assertCount(0, $gate->getExecutedChatToolRequests(31, 52, 74));
+    }
 }

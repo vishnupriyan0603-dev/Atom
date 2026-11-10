@@ -1434,17 +1434,49 @@ function switchCalcTab(tab) {
     });
 }
 
+async function executeToolWithApproval(tool, parameters) {
+    const pending = await apiFetch('/brain/tool/execute', {
+        method: 'POST',
+        body: JSON.stringify({ tool, parameters })
+    });
+    if (!pending.success || !pending.data || pending.data.status !== 'pending') {
+        throw new Error(pending.message || pending.error || 'Could not request approval.');
+    }
+
+    const action = pending.data.action || {};
+    const details = [
+        'Action: ' + (action.action || tool),
+        'Target: ' + (action.target || 'Unspecified'),
+        'Purpose: ' + (action.purpose || 'Review this tool action.'),
+        'Access: ' + (action.access || 'Unclassified'),
+        'Data sharing: ' + (action.external_data_sharing || 'Unknown'),
+        'Effects: ' + (action.consequences || 'Review carefully'),
+        'Parameters: ' + (action.parameters || '{}'),
+    ].join('\n');
+
+    if (!window.confirm('ATOM proposes one action:\n\n' + details + '\n\nApprove this action only?')) {
+        await apiFetch('/approvals/' + pending.data.approval_id + '/reject', {
+            method: 'POST',
+            body: JSON.stringify({ reason: 'Rejected in active Web client' })
+        });
+        throw new Error('Action rejected. Nothing was executed.');
+    }
+
+    const result = await apiFetch('/approvals/' + pending.data.approval_id + '/approve', {
+        method: 'POST',
+        body: JSON.stringify({})
+    });
+    if (!result.success) {
+        throw new Error(result.message || result.error || 'Approval or execution failed.');
+    }
+    return result.data?.result || result;
+}
+
 function simulateEvCalculation() {
     const km = parseFloat(document.getElementById('evDailyKm').value) || 35;
     const petrol = parseFloat(document.getElementById('evPetrolPrice').value) || 103;
 
-    apiFetch('/brain/tool/execute', {
-        method: 'POST',
-        body: JSON.stringify({
-            tool: 'calc',
-            parameters: { expression: `((${km} / 45) * ${petrol}) - ((${km} / 35) * 7.5)` }
-        })
-    }).then(res => {
+    executeToolWithApproval('calc', { expression: '((' + km + ' / 45) * ' + petrol + ') - ((' + km + ' / 35) * 7.5)' }).then(res => {
         const petCostPerKm = petrol / 45;
         const evCostPerKm = 7.5 / 35;
         const dailySavings = (km * petCostPerKm) - (km * evCostPerKm);
@@ -1502,10 +1534,7 @@ function executeSandboxTool() {
     const pre = document.getElementById('toolOutputPre');
     pre.innerText = 'Evaluating tool in sandbox...';
 
-    apiFetch('/brain/tool/execute', {
-        method: 'POST',
-        body: JSON.stringify({ tool: tool, parameters: params })
-    }).then(res => {
+    executeToolWithApproval(tool, params).then(res => {
         pre.innerText = JSON.stringify(res, null, 2);
     }).catch(e => {
         pre.innerText = 'Error: ' + e.message;

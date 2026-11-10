@@ -15,7 +15,7 @@ namespace Atom\Brain;
  */
 class AtomBrainFactory
 {
-    public static function create(string $workspaceRoot): AtomBrain
+    public static function create(string $workspaceRoot, ?callable $approvalProvider = null): AtomBrain
     {
         if (!class_exists('Atom\Config\Config')) {
             require_once $workspaceRoot . '/config/config.php';
@@ -41,28 +41,9 @@ class AtomBrainFactory
         $memory = new \Atom\Memory\MemoryManager($dbConnection, $workspaceRoot);
 
         // Security & Scanner
-        $guard = new \Atom\Security\WorkspaceGuard($workspaceRoot);
-        $policy = new \Atom\Security\FilePolicy();
         $redactor = new \Atom\Security\SecretRedactor();
         $scanner = new \Atom\Project\ProjectScanner($workspaceRoot);
-        $searcher = new \Atom\Project\CodeSearch($workspaceRoot, $scanner);
-
-        // Tools
-        $readFileTool = new \Atom\Tools\ReadFileTool($guard, $policy, $redactor);
-        $searchCodeTool = new \Atom\Tools\SearchCodeTool($scanner, $searcher, $redactor);
-        $phpLintTool = new \Atom\Tools\PhpLintTool($guard);
-        $createFileTool = new \Atom\Tools\CreateFileTool($guard, $policy, $phpLintTool);
-        $patchFileTool = new \Atom\Tools\PatchFileTool($guard, $policy, $phpLintTool, $workspaceRoot);
-
-        $toolManager = new \Atom\Tools\ToolManager();
-        $toolManager->registerTool($readFileTool);
-        $toolManager->registerTool($searchCodeTool);
-        $toolManager->registerTool($phpLintTool);
-        $toolManager->registerTool($createFileTool);
-        $toolManager->registerTool($patchFileTool);
-        $toolManager->registerTool(new \Atom\Tools\ArcDesktopTool());
-        $toolManager->registerTool(new \Atom\Tools\ArcGitTool());
-        $toolManager->registerTool(new \Atom\Tools\ArcSystemDevTool());
+        $toolManager = self::createToolManager($workspaceRoot, $approvalProvider);
 
         // Knowledge Search
         $kSearch = new \Atom\Knowledge\KnowledgeSearch($dbConnection);
@@ -206,5 +187,63 @@ class AtomBrainFactory
             $personalModel,
             $profileManager
         );
+    }
+
+    public static function createToolManager(string $workspaceRoot, ?callable $approvalProvider = null): \Atom\Tools\ToolManager
+    {
+        $guard = new \Atom\Security\WorkspaceGuard($workspaceRoot);
+        $policy = new \Atom\Security\FilePolicy();
+        $redactor = new \Atom\Security\SecretRedactor();
+        $scanner = new \Atom\Project\ProjectScanner($workspaceRoot);
+        $searcher = new \Atom\Project\CodeSearch($workspaceRoot, $scanner);
+        $phpLintTool = new \Atom\Tools\PhpLintTool($guard);
+
+        $manager = new \Atom\Tools\ToolManager();
+        $manager->registerTool(new \Atom\Tools\ReadFileTool($guard, $policy, $redactor));
+        $manager->registerTool(new \Atom\Tools\SearchCodeTool($scanner, $searcher, $redactor));
+        $manager->registerTool($phpLintTool);
+        $manager->registerTool(new \Atom\Tools\CreateFileTool($guard, $policy, $phpLintTool));
+        $manager->registerTool(new \Atom\Tools\PatchFileTool($guard, $policy, $phpLintTool, $workspaceRoot));
+        $manager->registerTool(new \Atom\Tools\ArcDesktopTool());
+        $manager->registerTool(new \Atom\Tools\ArcGitTool());
+        $manager->registerTool(new \Atom\Tools\ArcSystemDevTool());
+
+        if ($approvalProvider !== null) {
+            $manager->setApprovalProvider($approvalProvider);
+        }
+
+        return $manager;
+    }
+
+    /**
+     * Execute a single stored action with a one-use approval callback that
+     * matches its exact name and arguments.
+     */
+    public static function executeApprovedAction(string $workspaceRoot, string $toolName, array $arguments): array
+    {
+        $consumed = false;
+        $manager = self::createToolManager($workspaceRoot, static function (
+            string $name,
+            array $candidateArguments
+        ) use ($toolName, $arguments, &$consumed): bool {
+            if ($consumed || $name !== $toolName || $candidateArguments !== $arguments) {
+                return false;
+            }
+            $consumed = true;
+            return true;
+        });
+
+        if ($manager->hasTool($toolName)) {
+            return $manager->executeTool($toolName, $arguments);
+        }
+
+        if (str_starts_with($toolName, 'arc_') || in_array($toolName, ['desktop', 'git', 'system', 'sys', 'dev'], true)) {
+            if (!$manager->authorizeAction($toolName, $arguments)) {
+                return ['success' => false, 'error' => 'Stored action did not match its one-use approval.'];
+            }
+            return (new \Atom\Arc\ArcMasterController())->dispatch($toolName, $arguments);
+        }
+
+        return ['success' => false, 'error' => 'Stored tool is no longer registered.'];
     }
 }

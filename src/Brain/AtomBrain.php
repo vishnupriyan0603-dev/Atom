@@ -442,6 +442,8 @@ class AtomBrain
         $finalReply = '';
         $providerName = $provider ?: \Atom\Config\Config::get('LLM_PROVIDER', 'groq');
         $modelName = $model ?: \Atom\Config\Config::get('LLM_MODEL', 'openai/gpt-oss-120b');
+        $myLifeToolAttempted = false;
+        $myLifeDataAccessed = false;
 
         while ($loopCount < $maxLoops) {
             if ($provider !== null && $provider !== '') {
@@ -452,6 +454,9 @@ class AtomBrain
 
             if (!$res->isSuccess()) {
                 $errMessage = $res->getError();
+                if ($myLifeDataAccessed) {
+                    return 'ATOM: The response could not be completed after the approved MyLife read. The MyLife data was not added to persistent chat logs or session history.';
+                }
                 $this->logError('ERR-' . strtoupper(bin2hex(random_bytes(4))), 'AI_PROVIDER', 'ERROR', $errMessage, $reqId);
                 $durationMs = (int)((microtime(true) - $startTime) * 1000);
                 $this->logRequest($reqId, $input, $intent, 'COLLABORATIVE', $providerName, $hasKnowledge, $confidenceScore, $durationMs, 'FAILED');
@@ -472,6 +477,18 @@ class AtomBrain
                 $toolName = $parsed['tool_call']['name'];
                 $toolArgs = $parsed['tool_call']['arguments'] ?? [];
 
+                if ($myLifeDataAccessed) {
+                    $finalReply = 'I retrieved the requested MyLife data, but I blocked further tools for this turn. Ask for any additional action separately.';
+                    break;
+                }
+                if ($toolName === 'mylife_os' && $myLifeToolAttempted) {
+                    $finalReply = 'Only one MyLife access attempt is allowed per turn. Please ask again if you want another read.';
+                    break;
+                }
+                if ($toolName === 'mylife_os') {
+                    $myLifeToolAttempted = true;
+                }
+
                 echo "\033[33mATOM is executing tool '{$toolName}'...\033[0m" . PHP_EOL;
 
                 $toolStart = microtime(true);
@@ -479,13 +496,41 @@ class AtomBrain
                 if ($this->toolManager->hasTool($toolName)) {
                     $toolResult = $this->toolManager->executeTool($toolName, $toolArgs);
                 } elseif (str_starts_with($toolName, 'arc_') || in_array($toolName, ['desktop', 'git', 'system', 'sys', 'dev'])) {
-                    $toolResult = $this->getArcController()->dispatch($toolName, $toolArgs);
+                    if (!$this->toolManager->authorizeAction($toolName, $toolArgs)) {
+                        $toolResult = [
+                            'success' => false,
+                            'requires_human_gate' => true,
+                            'tool_name' => $toolName,
+                            'approval_explanation' => $this->toolManager->describeAction($toolName, $toolArgs),
+                        ];
+                    } else {
+                        $toolResult = $this->getArcController()->dispatch($toolName, $toolArgs);
+                    }
                 } else {
                     $toolResult = $this->toolManager->executeTool($toolName, $toolArgs);
                 }
                 $toolDuration = (int)((microtime(true) - $toolStart) * 1000);
 
-                $this->logToolExecution($toolName, $toolArgs, $toolResult, $toolDuration, 'SUCCESS');
+                if (!empty($toolResult['requires_human_gate'])) {
+                    $details = $toolResult['approval_explanation'] ?? [];
+                    $finalReply = $this->toolManager->hasApprovalProvider()
+                        ? "I did not perform this action because it was not approved. No tool was executed.\n"
+                        : "I have not performed this action because this client has no active human approval handler. No tool was executed.\n";
+                    $finalReply .= "Action: " . ($details['action'] ?? $toolName) . "\n"
+                        . "Target: " . (is_scalar($details['target'] ?? null) ? (string)$details['target'] : 'See the requested parameters') . "\n"
+                        . "Purpose: " . ($details['purpose'] ?? 'Review the proposed action') . "\n"
+                        . "Access: " . ($details['access'] ?? 'Unclassified; approval required') . "\n"
+                        . "Data sharing: " . ($details['external_data_sharing'] ?? 'Unknown') . "\n"
+                        . "Effects: " . ($details['consequences'] ?? 'Review before approving');
+                    break;
+                }
+
+                if ($toolName === 'mylife_os' && !empty($toolResult['success'])) {
+                    $myLifeDataAccessed = true;
+                }
+                if ($toolName !== 'mylife_os') {
+                    $this->logToolExecution($toolName, $toolArgs, $toolResult, $toolDuration, 'SUCCESS');
+                }
 
                 // Format tool result output
                 $resultStr = json_encode($toolResult, JSON_PRETTY_PRINT);
@@ -512,7 +557,9 @@ class AtomBrain
         // Every other request, consult a second provider and compare.
         // The better response is saved as a training example.
         // ----------------------------------------------------------------
-        $finalReply = $this->runSelfLearning($input, $messages, $finalReply, $providerName);
+        if (!$myLifeDataAccessed) {
+            $finalReply = $this->runSelfLearning($input, $messages, $finalReply, $providerName);
+        }
 
         // ── Phase 23: apply PersonalityEngine post-processor ─────────────────
         $finalReply = $this->personalityEngine->applyPersonality($finalReply, $intent);
@@ -520,20 +567,24 @@ class AtomBrain
             $finalReply = $this->voiceEngine->formatForVoice($finalReply);
         }
         // ── Phase 23: update ContextEngine with this turn ────────────────────
-        $this->contextEngine->update($input, $finalReply, $intent);
+        if (!$myLifeDataAccessed) {
+            $this->contextEngine->update($input, $finalReply, $intent);
+        }
         // ─────────────────────────────────────────────────────────────────────
 
         // Save conversation history to local array and persistent DB
-        $history[] = $userMsg;
-        $history[] = ['role' => 'assistant', 'content' => $finalReply];
+        if (!$myLifeDataAccessed) {
+            $history[] = $userMsg;
+            $history[] = ['role' => 'assistant', 'content' => $finalReply];
 
-        $this->memory->logMessage('user', $input);
-        $this->memory->logMessage('assistant', $finalReply);
+            $this->memory->logMessage('user', $input);
+            $this->memory->logMessage('assistant', $finalReply);
 
-        // Save trace records to DB
-        $durationMs = (int)((microtime(true) - $startTime) * 1000);
-        $this->logRequest($reqId, $input, $intent, 'COLLABORATIVE', $providerName, $hasKnowledge, $confidenceScore, $durationMs, 'SUCCESS');
-        $this->logResponse($reqId, $finalReply, $providerName, $modelName);
+            // Save trace records to DB
+            $durationMs = (int)((microtime(true) - $startTime) * 1000);
+            $this->logRequest($reqId, $input, $intent, 'COLLABORATIVE', $providerName, $hasKnowledge, $confidenceScore, $durationMs, 'SUCCESS');
+            $this->logResponse($reqId, $finalReply, $providerName, $modelName);
+        }
 
         return $finalReply;
     }
@@ -1110,14 +1161,9 @@ class AtomBrain
             return $table;
         }
 
-        // Pattern 10: Full System Permission Grants ("give full system", "grant permission", "allow session")
+        // Session-wide grants are disabled. The user must approve each action.
         if (preg_match('/^(?:give|grant|enable|allow)?\s*(?:full\s+system\b(?:\s+access)?|permission|session\s+access|all\s+access)$/i', $trim)) {
-            $this->getArcController()->getPermissionGate()->grantSessionPermission('all');
-            return "ATOM [Security & Permission Governor — Phase 110]:\n" .
-                   "✓ Full System Access GRANTED for this active session.\n" .
-                   "  • Scope: Full OS (Process Control, Services, File System, Network, Shell Execution)\n" .
-                   "  • Status: Authorized by Owner\n" .
-                   "  • Mode: Autonomous Execution Active";
+            return "ATOM security: session-wide access grants are disabled. I will explain each proposed action and ask you to approve it separately.";
         }
 
         // Pattern 11: Permission Status Check
@@ -1134,14 +1180,18 @@ class AtomBrain
         // Pattern 12: Gated Kill Process
         if (preg_match('/^(?:kill|terminate|stop)\s+process\s+(.+)$/i', $trim, $m)) {
             $target = trim($m[1]);
-            $gate = $this->getArcController()->getPermissionGate();
-            if ($gate->requiresPermission('kill_process')) {
-                $req = $gate->createPermissionRequest('kill_process', 'Terminate OS process', $target);
-                return "⚠️ ATOM SYSTEM PERMISSION REQUEST [{$req['request_id']}] ⚠️\n" .
-                       "  • Action: Terminate Process\n" .
-                       "  • Target: {$target}\n" .
-                       "  • Risk Level: CRITICAL_SYSTEM_ACTION\n\n" .
-                       "👉 Grant permission to terminate process {$target}? Type \"give full system\" or \"allow session\" to authorize.";
+            $approved = $this->toolManager->authorizeAction(
+                'sys.kill_process',
+                ['target' => $target, 'force' => true],
+                new \Atom\Tools\ToolDefinition(
+                    'sys.kill_process',
+                    'Terminate the requested operating system process.',
+                    permission: 'system.process.terminate',
+                    riskLevel: 'high'
+                )
+            );
+            if (!$approved) {
+                return "ATOM: Process termination was not approved. No process was changed.";
             }
             $res = $this->getArcController()->arcThree()->killProcess($target, true);
             return "ATOM [ARC Process Control]:\n" . $res['message'];
@@ -1149,6 +1199,9 @@ class AtomBrain
 
         // Pattern 13: ARC dot commands e.g. "git.status", "desktop.open", "sys.ports", "sys.processes"
         if (str_starts_with($lower, 'git.') || str_starts_with($lower, 'desktop.') || str_starts_with($lower, 'sys.') || str_starts_with($lower, 'dev.') || str_starts_with($lower, 'arc_one.') || str_starts_with($lower, 'arc_two.') || str_starts_with($lower, 'arc_three.')) {
+            if (!$this->toolManager->authorizeAction('arc_dispatch', ['command' => $trim])) {
+                return "ATOM: ARC action was not approved. Nothing was executed.";
+            }
             $res = $this->getArcController()->dispatch($trim);
             return "ATOM [ARC Dispatcher]:\n" . json_encode($res, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         }

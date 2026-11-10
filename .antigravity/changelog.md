@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Security
+- Restricted the MyLife phone server bind address to a discovered RFC1918 IPv4 address or loopback, verified HMAC pairing proofs with a 60-second timestamp window, and required completed pairing plus the registered client identity for protected routes.
+- Removed fabricated MyLife screen-time, battery, connectivity, and tracking values from summary/status responses; unavailable values now use null plus an explicit availability flag. Corrected the MyLife Server screen and documentation to state that SQLCipher is not active because mobile storage still uses standard sqflite and does not use the Keystore channel.
+- Added Flutter tests for pairing proof acceptance, identity tampering, expired proofs, malformed signatures, and empty identity fields.
+
+### Fixed
+- Changed the self-healing runtime's PHP syntax check to launch PHP with an argument array, preserving temporary file paths with spaces and special characters on Windows.
+- Removed simulated CPU, RAM, and disk figures from ARC hardware telemetry; unavailable OS queries now return null values with an explicit availability flag, and the CLI reports that state instead of displaying zeros.
+
+### Added
+- Implemented the signed PHP MyLife phone client and explicit `/mylife` CLI commands for pairing, reachability, device status, executive summaries, and supported module reads.
+- Restricted MyLife CLI targets to local mDNS, loopback, and RFC1918 IPv4 hosts; added a standalone PHP client check suite and local `.env` template entries.
+- Added a read-only `mylife_os` AI tool with real CLI approval, dynamic ContextBuilder discovery, one-read-per-turn enforcement, and no persistent chat/tool logging or cross-model learning for approved MyLife data.
+- Changed high-risk tool approval to fail closed unless an application-side callback approves; model-generated `human_approved` values no longer authorize execution.
+- Extended the CLI gate to every registered tool and displayed redacted action details before per-action typed approval; disabled session grants and natural-language access grants.
+- Added authenticated, owner-scoped Brain tool approval requests with a 15-minute expiry, single-use execution, stored results, and a database migration for execution results.
+- Added an explicit approval dialog to the authenticated Web Brain sandbox and in-memory JWT sign-in plus owner-scoped approval review to Mobile.
+
 ### Added
 - Added local LLM streaming endpoint (`POST api/chat/{id}/stream`) with Server-Sent Events (SSE) and token-by-token cURL parsing in `AtomLocalModel.php` & `AiChat.php`.
 - Added interactive Web Admin Dashboard controls (`frontend/web/admin/`): Provider activation switcher button & real-time RAG category search/filtering in `knowledge.php`.

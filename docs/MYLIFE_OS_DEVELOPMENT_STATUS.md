@@ -11,12 +11,12 @@
 
 | Phase | Description | Status | Progress | Key Deliverables |
 | :--- | :--- | :--- | :--- | :--- |
-| **Phase 0** | Inspection & Grill-Me Alignment | **COMPLETED** | 100% | Architecture Report, Grill-Me consensus, 7 core technical decisions approved. |
-| **Phase 1** | Specifications, Database Schemas & Contracts | **COMPLETED** | 100% | SQLCipher SQLite DDL for 14 modules, OpenAPI 3.0 spec, DTOs & Pairing spec. |
-| **Phase 2** | Android Core Server & Local SQLCipher DB | **COMPLETED** | 100% | Embedded Dart/Shelf server (port 8765), Android Keystore, SQLCipher database manager. |
-| **Phase 3** | All 14 Life Modules Implementation (Android) | **COMPLETED** | 100% | Repositories, CRUD services, and Flutter module UI for all 14 domains. |
-| **Phase 4** | ATOM Windows Connector & Brain Tools | **PROPOSED** | 0% | `MyLifeClient.php`, `MyLifeOSTool.php`, `ContextBuilder` provider, CLI `/mylife`. |
-| **Phase 5** | Adaptive Background Trackers & Sensors | **PROPOSED** | 0% | Kotlin Foreground Service, hardware step counter, geofenced GPS, `UsageStatsManager`. |
+| **Phase 0** | Inspection & Alignment | **NEEDS REVALIDATION** | Unscored | Existing architecture notes are historical; current code, test, and device evidence must be reconciled. |
+| **Phase 1** | Specifications, Database Schemas & Contracts | **FILES PRESENT; VALIDATION PARTIAL** | Unscored | Schema, OpenAPI, DTO and pairing files exist; live responses and schema/runtime compatibility remain unverified. |
+| **Phase 2** | Android Core Server & Encrypted Local DB | **INCOMPLETE** | Unscored | Shelf server and schema code exist. `DatabaseService` opens standard `sqflite`; SQLCipher is not wired, and its Keystore channel is not called by database initialization. |
+| **Phase 3** | Life Modules Implementation (Android) | **IMPLEMENTED IN SOURCE; DEVICE VALIDATION PENDING** | Unscored | Repository and UI code is present for the modules; end-to-end persistence, security and device behavior are not established. |
+| **Phase 4** | ATOM Windows Connector & Brain Tools | **IN PROGRESS** | 75% | Signed PHP phone client, explicit CLI reads, and a human-approved read-only chat tool are implemented; live device verification and remaining phone endpoints are pending. |
+| **Phase 5** | Adaptive Background Trackers & Sensors | **INCOMPLETE / UNVERIFIED** | Unscored | Foreground-service code exists, but step totals are not durable daily records; UsageStats and geofence collection are not wired end-to-end. |
 | **Phase 6** | Multi-Surface UI (Web Admin & Desktop WPF) | **PROPOSED** | 0% | "MyLife OS Cockpit" in Web Admin Studio, Desktop WPF status card, PWA sync. |
 | **Phase 7** | Testing, Offline Resilience & Documentation | **PROPOSED** | 0% | PHPUnit test suite, Flutter tests, Wi-Fi failover tests, User Manual updates. |
 
@@ -26,20 +26,20 @@
 
 | Module ID | Module Domain | Data Authority | Encryption | Current Status | Notes |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Module 01** | Personal Identity | Samsung M31 | SQLCipher AES-256 | **COMPLETED** | Profile, contacts, emergency ice records. |
-| **Module 02** | Finance | Samsung M31 | SQLCipher AES-256 | **COMPLETED** | Accounts, transactions, budgets, balance auto-calc. |
-| **Module 03** | Physical Health | Samsung M31 | SQLCipher AES-256 | **COMPLETED** | Vitals, hardware step logs, sleep, water counter. |
-| **Module 04** | Mental Wellbeing | Samsung M31 | SQLCipher AES-256 | **COMPLETED** | Mood logs, primary emotions, gratitude journal. |
-| **Module 05** | Location & Travel | Samsung M31 | SQLCipher AES-256 | **COMPLETED** | Geofenced places (Home/Work), breadcrumbs, trips. |
-| **Module 06** | Daily Activities | Samsung M31 | SQLCipher AES-256 | **COMPLETED** | Tasks, priorities, routines, time blocking. |
-| **Module 07** | Habit Tracker | Samsung M31 | SQLCipher AES-256 | **COMPLETED** | Recurring habits, streaks, check-in history. |
-| **Module 08** | Education & Learning | Samsung M31 | SQLCipher AES-256 | **COMPLETED** | GATE CS preparation, study sessions, reading list. |
-| **Module 09** | Career & Professional | Samsung M31 | SQLCipher AES-256 | **COMPLETED** | Employment, freelance clients, skill inventory. |
-| **Module 10** | Social Life | Samsung M31 | SQLCipher AES-256 | **COMPLETED** | Contacts, relationship tiers, interactions. |
-| **Module 11** | Food & Nutrition | Samsung M31 | SQLCipher AES-256 | **COMPLETED** | Meal logs, dietary preferences, hydration. |
-| **Module 12** | Digital Life | Samsung M31 | SQLCipher AES-256 | **COMPLETED** | `UsageStatsManager` screen time, battery stats. |
-| **Module 13** | Personal Documents | Samsung M31 | App-Sandbox AES-256-GCM | **COMPLETED** | Encrypted document vault + SQLite metadata. |
-| **Module 14** | AI Personal Intelligence | ATOM Windows | Two-Tier Gateway | **COMPLETED** | Executive summary & multi-domain analytics gateway. |
+| **Module 01** | Personal Identity | Samsung M31 | Standard SQLite; SQLCipher not wired | **SOURCE PRESENT; ENCRYPTION GAP** | Profile and contacts tables are in the unencrypted database path. |
+| **Module 02** | Finance | Samsung M31 | Standard SQLite; SQLCipher not wired | **SOURCE PRESENT; ENCRYPTION GAP** | Finance records use the same database. |
+| **Module 03** | Physical Health | Samsung M31 | Standard SQLite; SQLCipher not wired | **SOURCE PRESENT; TRACKING INCOMPLETE** | Vitals and step-log tables exist; native step values are not persisted as daily totals. |
+| **Module 04** | Mental Wellbeing | Samsung M31 | Standard SQLite; SQLCipher not wired | **SOURCE PRESENT; ENCRYPTION GAP** | Journal data uses the same database. |
+| **Module 05** | Location & Travel | Samsung M31 | Standard SQLite; SQLCipher not wired | **SOURCE PRESENT; TRACKING INCOMPLETE** | Places and breadcrumb tables exist; geofence collection is not wired end-to-end. |
+| **Module 06** | Daily Activities | Samsung M31 | Standard SQLite; SQLCipher not wired | **SOURCE PRESENT; DEVICE VALIDATION PENDING** | Tasks and routines require runtime validation. |
+| **Module 07** | Habit Tracker | Samsung M31 | Standard SQLite; SQLCipher not wired | **SOURCE PRESENT; DEVICE VALIDATION PENDING** | Habit and check-in tables require runtime validation. |
+| **Module 08** | Education & Learning | Samsung M31 | Standard SQLite; SQLCipher not wired | **SOURCE PRESENT; DEVICE VALIDATION PENDING** | Study-session data requires runtime validation. |
+| **Module 09** | Career & Professional | Samsung M31 | Standard SQLite; SQLCipher not wired | **SOURCE PRESENT; ENCRYPTION GAP** | Career records use the same database. |
+| **Module 10** | Social Life | Samsung M31 | Standard SQLite; SQLCipher not wired | **SOURCE PRESENT; ENCRYPTION GAP** | Relationship records use the same database. |
+| **Module 11** | Food & Nutrition | Samsung M31 | Standard SQLite; SQLCipher not wired | **SOURCE PRESENT; DEVICE VALIDATION PENDING** | Meal and hydration flows require runtime validation. |
+| **Module 12** | Digital Life | Samsung M31 | Standard SQLite; collection not implemented | **INCOMPLETE** | UsageStats is not wired; summary no longer presents fabricated screen-time or battery values. |
+| **Module 13** | Personal Documents | Samsung M31 | Not independently verified | **REQUIRES SECURITY AUDIT** | File encryption and SQLite metadata protection need separate verification. |
+| **Module 14** | AI Personal Intelligence | ATOM Windows | Two-Tier Gateway; phone database remains unencrypted | **CONNECTOR IN PROGRESS** | Read-only gateway code exists; live paired-device behavior is pending. |
 
 ---
 
@@ -85,13 +85,36 @@
 
 ---
 
-## 🧪 Tests Passed
-- `MyLifeContractsTest`: **4 tests, 61 assertions passing (100% Green)**.
-- Full Backend PHPUnit suite: **1,433 tests passing (100% Green)**.
-- Desktop WPF build: **0 Errors**.
+## 🔎 Current Verification Snapshot (10 Nov 2026)
+- Focused MyLife client checks: **7 assertions passed**; focused tool checks: **7 assertions passed**.
+- Local MyLife HTTP integration passed: **6 signed fixture requests** covered pairing, status, summary, filtered/canonicalized query parameters, a JSON write, and a server validation error.
+- OpenAPI route audit: **30 of 30 implemented Shelf path/method pairs match**; every operation has a response declaration, signed routes require all three HMAC headers, and unimplemented future endpoints are identified separately.
+- PHP syntax checks passed for the two MyLife client files.
+- WPF solution build passed with **0 errors and 4 NU1701 compatibility warnings**; runtime behavior was not tested.
+- Full backend PHPUnit run with the required `intl`, `sqlite3`, and `pdo_sqlite` extensions and coverage disabled: **1,433 tests, 5,535 assertions, 2 skipped, 0 failures, 0 errors; exit code 0**. The coverage-enabled run also had no test failures, but exited nonzero because no code coverage driver is installed.
+- The ARC hardware telemetry regression test passed after removing simulated off-platform CPU/RAM/disk figures and adding an explicit unavailable state: **9 tests, 49 assertions** for the controller class.
+- Flutter/Dart and paired Android device checks were unavailable in this verification environment.
+- Current MyLife summary and status endpoints return `null` plus `available: false` for uncollected telemetry; unknown values must not be interpreted as zero.
+- **Security blocker:** mobile `DatabaseService` imports standard `sqflite` and does not use the Android Keystore channel. MyLife records are not SQLCipher-encrypted despite earlier documentation and UI claims. A backward-compatible encrypted migration is still required.
+
+## 🧩 Phase 4 Task Breakdown
+
+- [x] Implement the PHP MyLife phone client and HMAC signing functions against the existing Android server routes.
+- [x] Add `/mylife pair`, `/mylife ping`, `/mylife status`, `/mylife summary`, and `/mylife module <module-id>` CLI commands.
+- [x] Restrict configured MyLife targets to local mDNS, loopback, or RFC1918 IPv4 addresses.
+- [x] Add standalone PHP checks for signing, URL validation, and unsupported/unpaired responses.
+- [x] Add a read-only `mylife_os` brain tool with a trusted CLI approval callback and dynamic ContextBuilder capability registration.
+- [x] Keep approved MyLife responses out of cross-model training, persistent conversation logs, session history, and follow-on tool calls.
+- [x] Verify the HTTP client against the local signed synthetic mock (pair, status, summary, encoded module query, JSON write, and validation error; 6 HTTP requests passed).
+- [x] Align OpenAPI paths and methods with the implemented Shelf router; keep planned endpoints labeled as not implemented.
+- [ ] Verify the HTTP client against a paired Android device and compare live responses with the OpenAPI schemas.
+- [ ] Implement missing phone endpoints for digital usage, tracking pause/resume, and encrypted backup export.
 
 ---
 
 ## ⚠️ Known Bugs & Technical Limitations
+- **MyLife database at-rest encryption is not active**: current mobile storage uses standard `sqflite`; the Keystore key channel is unused by database initialization. Do not claim SQLCipher protection until encrypted storage and safe existing-data migration are implemented and tested.
+- **Telemetry fields were placeholders**: screen time, battery, online state, tracking pause, step-counter and GPS state are not all wired to live sources. API responses now explicitly mark unavailable values as null.
+- **Step counts are not durable daily totals**: the native counter baseline resets with service restarts and is not persisted to `life_step_logs`.
 - **Samsung One UI 4.1 Background Restriction**: Samsung aggressively sleeps background processes; requires active Foreground Service notification and battery optimization exclusion.
 - **Dynamic DHCP Local IP**: Handled via mDNS (`mylife-os.local`) with IP fallback caching.

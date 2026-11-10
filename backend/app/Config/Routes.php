@@ -113,9 +113,14 @@ $routes->group('api', ['filter' => 'auth'], static function ($routes) {
         $routes->get('chats', 'Api\Chats::index');
         $routes->post('chats', 'Api\Chats::create');
         $routes->get('chats/(:num)', 'Api\Chats::show/$1');
+        $routes->post('chat/(:num)/send', 'Api\AiChat::send/$1');
+        $routes->post('chat/(:num)/preview', 'Api\AiChat::preview/$1');
+        $routes->post('chat/(:num)/stream', 'Api\AiChat::stream/$1');
         $routes->get('memory', 'Api\Memory::list');
         $routes->post('memory', 'Api\Memory::create');
         $routes->get('approvals', 'Api\Approval::list');
+        $routes->post('approvals/(:num)/approve', 'Api\Approval::approve/$1');
+        $routes->post('approvals/(:num)/reject', 'Api\Approval::reject/$1');
         $routes->get('jobs', 'Api\Jobs::list');
         $routes->get('skills', 'Api\Skills::list');
         $routes->get('telemetry/metrics', 'Api\Telemetry::metrics');

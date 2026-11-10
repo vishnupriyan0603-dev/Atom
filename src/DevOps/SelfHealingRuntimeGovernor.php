@@ -136,11 +136,12 @@ class SelfHealingRuntimeGovernor
             2 => ['pipe', 'w']
         ];
         $pipes = [];
-        $process = proc_open('php -l ' . escapeshellarg($tmpFile), $descriptors, $pipes);
-        $stdout = '';
+        $process = proc_open([PHP_BINARY, '-l', $tmpFile], $descriptors, $pipes, null, null, ['bypass_shell' => true]);
+        $lintOutput = '';
         $exitCode = 1;
         if (is_resource($process)) {
-            $stdout = stream_get_contents($pipes[1]) ?: stream_get_contents($pipes[2]);
+            $lintOutput .= stream_get_contents($pipes[1]) ?: '';
+            $lintOutput .= stream_get_contents($pipes[2]) ?: '';
             fclose($pipes[1]);
             fclose($pipes[2]);
             $exitCode = proc_close($process);
@@ -154,7 +155,7 @@ class SelfHealingRuntimeGovernor
                 'action' => 'apply_patch',
                 'file' => $file,
                 'error' => 'Generated patch failed PHP syntax verification. Auto-rollback executed.',
-                'lint_output' => $stdout,
+                'lint_output' => trim($lintOutput),
             ];
         }
 

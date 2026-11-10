@@ -98,6 +98,10 @@ class CommandRouter
                     $this->handleStatus();
                     return true;
 
+                case '/mylife':
+                    $this->handleMyLife($args);
+                    return true;
+
                 case '/project':
                     $this->handleProject();
                     return true;
@@ -545,6 +549,7 @@ class CommandRouter
         $this->ui->highlight("Available Commands (ATOM v0.1):");
         $this->ui->writeLine("  /help                     Display this help manual.");
         $this->ui->writeLine("  /status                   Show current workspace and PHP configurations.");
+        $this->ui->writeLine("  /mylife [pair|ping|status|summary|module <name>]  Read MyLife OS over the paired local API.");
         $this->ui->writeLine("  /project                  View a visual tree of the current project directory.");
         $this->ui->writeLine("  /files                    List all non-ignored project files.");
         $this->ui->writeLine("  /read <file>              Read a file safely within your active workspace.");
@@ -657,6 +662,92 @@ class CommandRouter
         $this->ui->writeLine("Security");
         $this->ui->writeLine("  Safe Mode           " . "ENABLED");
         $this->ui->writeLine();
+    }
+
+    private function handleMyLife(string $args = ''): void
+    {
+        $parts = preg_split('/\s+/', trim($args), 2) ?: [];
+        $action = strtolower($parts[0] ?? 'help');
+        $target = strtolower($parts[1] ?? '');
+        $baseUrl = \Atom\Config\Config::get('MYLIFE_BASE_URL', '');
+        $secret = \Atom\Config\Config::get('MYLIFE_SHARED_SECRET', '');
+        $clientId = \Atom\Config\Config::get('MYLIFE_CLIENT_ID', 'ATOM-WINDOWS');
+        $deviceName = \Atom\Config\Config::get('MYLIFE_DEVICE_NAME', 'ATOM Windows');
+        $fingerprint = \Atom\Config\Config::get('MYLIFE_CLIENT_FINGERPRINT', 'atom-win-default');
+
+        if ($action === 'help' || $action === '') {
+            $this->ui->highlight('MyLife OS — explicit local phone access');
+            $this->ui->writeLine('  /mylife pair                 Pair this client using the secret in the root .env file.');
+            $this->ui->writeLine('  /mylife ping                 Check local phone server reachability.');
+            $this->ui->writeLine('  /mylife status               Read phone and tracking status.');
+            $this->ui->writeLine('  /mylife summary              Read the 14-module executive summary.');
+            $this->ui->writeLine('  /mylife module <module-id>   Read one available module (example: 02_finance).');
+            $this->ui->writeLine('  Configure MYLIFE_BASE_URL and MYLIFE_SHARED_SECRET in the root .env file.');
+            $this->ui->writeLine();
+            return;
+        }
+
+        if (!is_string($baseUrl) || trim($baseUrl) === '') {
+            $this->ui->error('Set MYLIFE_BASE_URL in the root .env file first.');
+            return;
+        }
+
+        try {
+            $client = new \Atom\MyLife\Client\MyLifeClient(
+                $baseUrl,
+                is_string($secret) && $secret !== '' ? $secret : null,
+                (string)$clientId,
+                (string)$deviceName,
+                (string)$fingerprint
+            );
+            $response = match ($action) {
+                'ping' => $client->ping(),
+                'pair' => is_string($secret) && $secret !== ''
+                    ? $client->pair($secret, (string)$clientId)
+                    : \Atom\MyLife\Contract\MyLifeResponse::failure('Set MYLIFE_SHARED_SECRET in the root .env file first.', 401),
+                'status' => $client->getDeviceStatus(),
+                'summary' => $client->getExecutiveSummary(),
+                'module' => $this->readMyLifeModule($client, $target),
+                default => \Atom\MyLife\Contract\MyLifeResponse::failure('Unknown MyLife command. Run /mylife for help.', 400),
+            };
+
+            if (!$response->isSuccess()) {
+                $this->ui->error('MyLife request failed (HTTP ' . $response->getStatusCode() . '): ' . $response->getError());
+                return;
+            }
+
+            $this->ui->success('MyLife OS connected' . ($response->getDeviceInfo() ? ' — ' . $response->getDeviceInfo() : '') . '.');
+            $this->ui->writeLine(json_encode($response->getData(), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) ?: '{}');
+            $this->ui->writeLine();
+        } catch (\Throwable $exception) {
+            $this->ui->error('MyLife configuration is invalid: ' . $exception->getMessage());
+        }
+    }
+
+    private function readMyLifeModule(\Atom\MyLife\Contract\MyLifeClientInterface $client, string $module): \Atom\MyLife\Contract\MyLifeResponse
+    {
+        $aliases = [
+            'identity' => \Atom\MyLife\Contract\MyLifeModuleEnum::IDENTITY,
+            'finance' => \Atom\MyLife\Contract\MyLifeModuleEnum::FINANCE,
+            'health' => \Atom\MyLife\Contract\MyLifeModuleEnum::HEALTH,
+            'wellbeing' => \Atom\MyLife\Contract\MyLifeModuleEnum::WELLBEING,
+            'location' => \Atom\MyLife\Contract\MyLifeModuleEnum::LOCATION,
+            'activities' => \Atom\MyLife\Contract\MyLifeModuleEnum::ACTIVITIES,
+            'habits' => \Atom\MyLife\Contract\MyLifeModuleEnum::HABITS,
+            'learning' => \Atom\MyLife\Contract\MyLifeModuleEnum::LEARNING,
+            'career' => \Atom\MyLife\Contract\MyLifeModuleEnum::CAREER,
+            'social' => \Atom\MyLife\Contract\MyLifeModuleEnum::SOCIAL,
+            'nutrition' => \Atom\MyLife\Contract\MyLifeModuleEnum::NUTRITION,
+            'digital' => \Atom\MyLife\Contract\MyLifeModuleEnum::DIGITAL,
+            'documents' => \Atom\MyLife\Contract\MyLifeModuleEnum::DOCUMENTS,
+            'ai_insights' => \Atom\MyLife\Contract\MyLifeModuleEnum::AI_INSIGHTS,
+        ];
+        $enum = $aliases[$module] ?? \Atom\MyLife\Contract\MyLifeModuleEnum::tryFrom($module);
+        if ($enum === null) {
+            return \Atom\MyLife\Contract\MyLifeResponse::failure('Unknown module. Use a module alias or ID such as 02_finance.', 400);
+        }
+
+        return $client->getModuleData($enum);
     }
 
     private function handleProject(): void
@@ -2658,11 +2749,15 @@ class CommandRouter
             $this->ui->highlight("💻 ARC THREE — Hardware & System Telemetry");
             $res = $arc->arcThree()->getHardwareTelemetry();
             $t = $res['telemetry'] ?? [];
-            $cpu = $t['cpu'] ?? [];
-            $ram = $t['ram'] ?? [];
-            $this->ui->writeLine("  • CPU : " . ($cpu['name'] ?? 'Processor') . " (" . ($cpu['cores_physical'] ?? '-') . " Cores / " . ($cpu['cores_logical'] ?? '-') . " Threads)");
-            $this->ui->writeLine("  • RAM : " . ($ram['used_gb'] ?? 0) . " GB Used / " . ($ram['total_gb'] ?? 0) . " GB Total (" . ($ram['used_percent'] ?? 0) . "%)");
-            $this->ui->writeLine("  • Disks : " . count($t['disks'] ?? []) . " Active Partition(s)");
+            if (!($res['available'] ?? false)) {
+                $this->ui->writeLine("  Telemetry unavailable on this platform or the OS query failed.");
+            } else {
+                $cpu = $t['cpu'] ?? [];
+                $ram = $t['ram'] ?? [];
+                $this->ui->writeLine("  • CPU : " . ($cpu['name'] ?? 'Unknown') . " (" . ($cpu['cores_physical'] ?? 'Unknown') . " Cores / " . ($cpu['cores_logical'] ?? 'Unknown') . " Threads)");
+                $this->ui->writeLine("  • RAM : " . ($ram['used_gb'] ?? 'Unknown') . " GB Used / " . ($ram['total_gb'] ?? 'Unknown') . " GB Total (" . ($ram['used_percent'] ?? 'Unknown') . "%)");
+                $this->ui->writeLine("  • Disks : " . count($t['disks'] ?? []) . " Active Partition(s)");
+            }
         } else {
             $this->ui->highlight("⚛ ARC Master Automation & Control System (Phase 104-109)");
             $state = $arc->getSystemState();
@@ -2691,10 +2786,8 @@ class CommandRouter
         $gate = $arc->getPermissionGate();
 
         if ($command === '/permission:grant-session' || $command === '/permission:grant') {
-            $cat = !empty($args) ? trim($args) : 'all';
-            $gate->grantSessionPermission($cat);
-            $this->ui->success("✔ Session Permission GRANTED for category '{$cat}'.");
-            $this->ui->writeLine("  All modifying OS and developer commands in this category will execute autonomously.");
+            $gate->grantSessionPermission(!empty($args) ? trim($args) : 'all');
+            $this->ui->warning("Session-wide grants are disabled. ATOM asks for explicit approval before every tool or system action.");
         } elseif ($command === '/permission:revoke') {
             $gate->revokePermissions();
             $this->ui->warning("✔ All session permissions REVOKED.");
@@ -2702,7 +2795,7 @@ class CommandRouter
         } else {
             $this->ui->highlight("🛡️ ATOM Security & Permission Governor (Phase 110)");
             $st = $gate->getStatus();
-            $grants = !empty($st['active_session_grants']) ? implode(', ', $st['active_session_grants']) : 'None (Prompt per action)';
+            $grants = 'Disabled (approval required per action)';
             $this->ui->writeLine("  Architecture    : " . $st['gate']);
             $this->ui->writeLine("  Session Grants  : " . $grants);
             $this->ui->writeLine("  Pending Requests: " . count($st['pending_requests']));
@@ -2710,8 +2803,8 @@ class CommandRouter
             $this->ui->writeLine();
             $this->ui->writeLine("  Commands:");
             $this->ui->writeLine("    /permission:status           View active system access permission status");
-            $this->ui->writeLine("    /permission:grant-session    Authorize full system access for current session");
-            $this->ui->writeLine("    /permission:revoke           Revoke active session permissions (enforce prompt per action)");
+            $this->ui->writeLine("    /permission:grant-session    Deprecated; session-wide grants are disabled");
+            $this->ui->writeLine("    /permission:revoke           Clear pending and in-memory permission requests");
         }
         $this->ui->writeLine();
     }

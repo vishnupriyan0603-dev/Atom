@@ -5,6 +5,7 @@ namespace Atom\Brain;
 class ContextBuilder
 {
     private string $workspaceRoot;
+    private array $additionalToolCapabilities = [];
 
     /** Loaded once from config/rules/system.md */
     private string $masterPrompt = '';
@@ -57,6 +58,19 @@ class ContextBuilder
         $this->loadMasterPrompt();
     }
 
+    /** Add a capability only when its handler is available in this runtime. */
+    public function registerToolCapability(string $name, string $description): void
+    {
+        if (!preg_match('/^[a-z][a-z0-9_]{0,63}$/', $name)) {
+            throw new \InvalidArgumentException('Tool capability name has an invalid format.');
+        }
+        $description = trim(preg_replace('/[\r\n]+/', ' ', $description) ?? '');
+        if ($description === '') {
+            throw new \InvalidArgumentException('Tool capability description cannot be empty.');
+        }
+        $this->additionalToolCapabilities[$name] = $description;
+    }
+
     // ----------------------------------------------------------------
     // Public API
     // ----------------------------------------------------------------
@@ -86,6 +100,9 @@ class ContextBuilder
 
         // 2. Agentic tool schema
         $parts[] = implode("\n", $this->toolSchema);
+        foreach ($this->additionalToolCapabilities as $name => $description) {
+            $parts[] = "- '{$name}': {$description}";
+        }
 
         // 3. Environment
         $parts[] = "\n--- ENVIRONMENT ---";

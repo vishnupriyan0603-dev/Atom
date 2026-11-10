@@ -438,12 +438,14 @@ class DatabaseService {
         'study_hours_today': studyHoursToday,
       },
       'digital': {
-        'screen_time_minutes': 145, // default baseline
+        'screen_time_minutes': null,
+        'telemetry_available': false,
       },
       'device': {
-        'battery_level': 85,
-        'is_charging': false,
-        'online': true,
+        'battery_level': null,
+        'is_charging': null,
+        'online': null,
+        'telemetry_available': false,
       },
       'synced_at': DateTime.now().toIso8601String(),
     };

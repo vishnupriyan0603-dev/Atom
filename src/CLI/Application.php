@@ -107,6 +107,45 @@ class Application
         $this->toolManager->registerTool(new \Atom\Tools\ArcGitTool());
         $this->toolManager->registerTool(new \Atom\Tools\ArcSystemDevTool());
 
+        $myLifeToolEnabled = false;
+        $myLifeBaseUrl = Config::get('MYLIFE_BASE_URL', '');
+        $myLifeSecret = Config::get('MYLIFE_SHARED_SECRET', '');
+        if (is_string($myLifeBaseUrl)
+            && $myLifeBaseUrl !== ''
+            && is_string($myLifeSecret)
+            && preg_match('/^[a-fA-F0-9]{64}$/', $myLifeSecret) === 1) {
+            try {
+                $myLifeClient = new \Atom\MyLife\Client\MyLifeClient(
+                    $myLifeBaseUrl,
+                    $myLifeSecret,
+                    (string)Config::get('MYLIFE_CLIENT_ID', 'ATOM-WINDOWS'),
+                    (string)Config::get('MYLIFE_DEVICE_NAME', 'ATOM Windows'),
+                    (string)Config::get('MYLIFE_CLIENT_FINGERPRINT', 'atom-win-default')
+                );
+                $this->toolManager->registerTool(new \Atom\MyLife\Client\MyLifeOSTool($myLifeClient));
+                $myLifeToolEnabled = true;
+            } catch (\InvalidArgumentException) {
+                $this->ui->warning('MyLife AI access is disabled because MYLIFE_BASE_URL or client identity settings are invalid.');
+            }
+        }
+
+        // Every registered tool action requires a fresh confirmation in the active CLI.
+        $this->toolManager->setApprovalProvider(function (string $toolName, array $arguments, ?\Atom\Tools\ToolDefinition $definition): bool {
+            $details = $this->toolManager->describeAction($toolName, $arguments, $definition);
+            $this->ui->warning('ATOM proposes one action. Review before approving:');
+            $this->ui->writeLine('  Action: ' . $details['action']);
+            $this->ui->writeLine('  Target: ' . (is_scalar($details['target']) ? (string)$details['target'] : json_encode($details['target'])));
+            $this->ui->writeLine('  Purpose: ' . $details['purpose']);
+            $this->ui->writeLine('  Access: ' . $details['access']);
+            $this->ui->writeLine('  Effects/risk: ' . $details['consequences']);
+            $this->ui->writeLine('  Data sharing: ' . $details['external_data_sharing']);
+            $this->ui->writeLine('  Parameters: ' . $details['parameters']);
+            if ($toolName === 'mylife_os') {
+                $this->ui->warning('This turn will skip cross-model learning and persistent chat-content logging.');
+            }
+            return trim($this->ui->readInput('Type APPROVE to run only this action; anything else cancels: ')) === 'APPROVE';
+        });
+
         // 6. Initialize Knowledge Services
         $extractor = new PdfExtractor();
         $chunker = new Chunker();
@@ -203,6 +242,16 @@ class Application
         // 8. Initialize Brain Services
         $detector = new IntentDetector();
         $contextBuilder = new ContextBuilder($this->workspaceRoot);
+        if ($myLifeToolEnabled) {
+            $myLifeModules = implode('|', array_map(
+                static fn (\Atom\MyLife\Contract\MyLifeModuleEnum $module): string => $module->value,
+                \Atom\MyLife\Contract\MyLifeModuleEnum::cases()
+            ));
+            $contextBuilder->registerToolCapability(
+                'mylife_os',
+                'Reads one requested MyLife status, executive summary, or module using a read-only phone API. Args: {"operation":"status|summary|module","module":"' . $myLifeModules . '"}. For operation=module, provide one module ID. Call only when the user asks about personal records. The runtime asks for approval before each read; never invent approval arguments.'
+            );
+        }
         $personalModel = new AtomPersonalModel(
             $dbConnection,
             $this->memory->getProjectId(),

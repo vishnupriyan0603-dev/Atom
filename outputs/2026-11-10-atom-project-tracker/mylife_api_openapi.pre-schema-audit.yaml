@@ -1,0 +1,379 @@
+openapi: 3.0.3
+info:
+  title: MyLife OS Embedded Local REST API
+  description: >
+    Contract for routes currently implemented by the MyLife OS server hosted on
+    the Samsung Galaxy M31 at port 8765. Planned routes are listed in the
+    x-atom-planned-endpoints extension and are not callable yet.
+  version: 1.0.0
+servers:
+  - url: http://mylife-os.local:8765/api/v1
+    description: Primary Local mDNS Server
+  - url: http://127.0.0.1:8765/api/v1
+    description: On-Device Loopback
+
+security:
+  - HmacSignatureAuth: []
+
+x-atom-planned-endpoints:
+  - path: /digital/usage
+    method: get
+    status: not-implemented
+  - path: /tracking/pause
+    method: post
+    status: not-implemented
+  - path: /tracking/resume
+    method: post
+    status: not-implemented
+  - path: /documents
+    method: post
+    status: not-implemented
+  - path: /backup/export
+    method: post
+    status: not-implemented
+
+paths:
+  /ping:
+    get:
+      summary: Health check and latency probe
+      security: []
+      responses:
+        '200':
+          description: Server online
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: "ok" }
+                  device: { type: string, example: "Samsung Galaxy M31" }
+                  uptime_seconds: { type: integer, example: 3420 }
+
+  /pair:
+    post:
+      summary: Initial device pairing handshake
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [client_id, device_name, client_fingerprint, signature, timestamp]
+              properties:
+                client_id: { type: string, example: "ATOM-WINDOWS" }
+                device_name: { type: string, example: "Vishnu-Desktop-PC" }
+                client_fingerprint: { type: string, example: "atom-win-a89c01bf" }
+                timestamp: { type: integer, example: 1793912400 }
+                signature: { type: string }
+      responses:
+        '200':
+          description: Device paired successfully
+        '401':
+          description: Invalid pairing signature
+
+  /status:
+    get:
+      summary: Server and tracking status; unavailable telemetry is null
+      responses:
+        '200':
+          description: Status retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  battery:
+                    type: object
+                    description: Values are null and available is false until live battery telemetry is wired to this API.
+                    properties:
+                      level: { type: integer, nullable: true, example: null }
+                      charging: { type: boolean, nullable: true, example: null }
+                      available: { type: boolean, example: false }
+                  storage:
+                    type: object
+                    properties:
+                      free_mb: { type: integer, example: 45210 }
+                      total_mb: { type: integer, example: 128000 }
+                  tracking:
+                    type: object
+                    description: Values are null and available is false until live tracker state is wired to this API.
+                    properties:
+                      gps_geofence: { type: boolean, nullable: true, example: null }
+                      step_counter: { type: boolean, nullable: true, example: null }
+                      is_paused: { type: boolean, nullable: true, example: null }
+                      available: { type: boolean, example: false }
+
+  /modules/summary:
+    get:
+      summary: Aggregated executive summary across all 14 modules
+      description: >
+        Device and screen-time values that are not yet collected are returned as null;
+        their telemetry_available flag is false. Consumers must not treat unknown values as zero.
+      responses:
+        '200':
+          description: Consolidated 14-module snapshot
+
+  /identity:
+    get:
+      summary: Get personal identity profile (Module 01)
+      responses:
+        '200':
+          description: Profile retrieved
+    put:
+      summary: Update personal identity profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Profile updated
+
+  /finance/summary:
+    get:
+      summary: Financial totals, account balances, and budget status (Module 02)
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [today, week, month, year]
+            default: month
+      responses:
+        '200':
+          description: Finance summary retrieved
+
+  /finance/accounts:
+    get:
+      summary: List finance accounts
+      responses:
+        '200':
+          description: Accounts retrieved
+
+  /finance/transactions:
+    get:
+      summary: List filtered transactions
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: category
+          in: query
+          schema: { type: string }
+      responses:
+        '200':
+          description: Transactions list
+    post:
+      summary: Record new transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [account_id, type, category, amount, transaction_date]
+      responses:
+        '201':
+          description: Transaction created
+
+  /health/today:
+    get:
+      summary: Today's health vitals, steps, sleep, and water count (Module 03)
+      responses:
+        '200':
+          description: Health stats retrieved
+
+  /health/water:
+    post:
+      summary: Log water intake in ml
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount_ml]
+              properties:
+                amount_ml: { type: integer, example: 250 }
+      responses:
+        '200':
+          description: Water logged
+
+  /health/metrics:
+    post:
+      summary: Record a health metric
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [metric_value]
+              properties:
+                metric_type: { type: string, example: WEIGHT_KG }
+                metric_value: { type: number, example: 68.5 }
+                notes: { type: string, nullable: true }
+      responses:
+        '200':
+          description: Health metric recorded
+
+  /wellbeing/mood:
+    get:
+      summary: Mood and wellbeing logs (Module 04)
+    post:
+      summary: Check in daily emotional state and journal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mood_rating, primary_emotion]
+      responses:
+        '200':
+          description: Mood recorded
+
+  /location/places:
+    get:
+      summary: List saved places (Module 05)
+      responses:
+        '200':
+          description: Places list
+
+  /location/breadcrumbs:
+    post:
+      summary: Record a location breadcrumb
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [latitude, longitude]
+              properties:
+                latitude: { type: number, minimum: -90, maximum: 90 }
+                longitude: { type: number, minimum: -180, maximum: 180 }
+                accuracy: { type: number, nullable: true, minimum: 0 }
+      responses:
+        '200':
+          description: Breadcrumb recorded
+        '400':
+          description: Invalid location data
+
+  /activities/today:
+    get:
+      summary: Tasks, routines, and scheduled time blocks for today (Module 06)
+  /activities/tasks:
+    post:
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+      responses:
+        '201':
+          description: Task created
+
+  /habits:
+    get:
+      summary: Active habits and streaks (Module 07)
+  /habits/{id}/checkin:
+    post:
+      summary: Check in a habit for today
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Habit checked in
+
+  /learning/progress:
+    get:
+      summary: GATE CS and technical roadmap progress (Module 08)
+  /learning/study-session:
+    post:
+      summary: Log completed study session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [subject_id, topic, duration_minutes]
+      responses:
+        '200':
+          description: Study session logged
+
+  /career/summary:
+    get:
+      summary: Employment history, skill inventory, and freelance clients (Module 09)
+
+  /social/contacts:
+    get:
+      summary: Contact roster, birthdays, and last interactions (Module 10)
+
+  /nutrition/today:
+    get:
+      summary: Logged meals and dietary preferences (Module 11)
+  /nutrition/meals:
+    post:
+      summary: Log meal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meal_type, food_items]
+      responses:
+        '200':
+          description: Meal logged
+
+  /documents:
+    get:
+      summary: List indexed documents in vault (Module 13)
+      responses:
+        '200':
+          description: Documents retrieved
+
+  /insights:
+    get:
+      summary: List AI personal insights (Module 14)
+      responses:
+        '200':
+          description: Insights retrieved
+    post:
+      summary: Record an AI personal insight
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                insight_type: { type: string, default: DAILY_SUMMARY }
+                title: { type: string, default: Insight }
+                content: { type: string }
+      responses:
+        '200':
+          description: Insight recorded
+
+components:
+  securitySchemes:
+    HmacSignatureAuth:
+      type: apiKey
+      in: header
+      name: X-MyLife-Signature
+      description: >
+        HMAC-SHA256 signature calculated using the shared pairing secret.
+        Must also include X-MyLife-Client and X-MyLife-Timestamp headers.
+

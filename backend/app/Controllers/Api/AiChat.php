@@ -65,6 +65,9 @@ class AiChat extends BaseApiController
             return $this->respondError($result['message'], 404);
         }
 
+        if (isset($result['data']['pending_approval'])) {
+            return $this->respondSuccess($result['data'], 'Action approval required', 202);
+        }
         return $this->respondSuccess($result['data'], 'Message sent');
     }
 
@@ -85,6 +88,9 @@ class AiChat extends BaseApiController
             return $this->respondError($result['message'], 404);
         }
 
+        if (isset($result['data']['pending_approval'])) {
+            return $this->respondSuccess($result['data'], 'Action approval required', 202);
+        }
         return $this->respondSuccess($result['data'], 'Preview response');
     }
 
@@ -106,7 +112,12 @@ class AiChat extends BaseApiController
 
         $result = $this->aiChatService->processPreview($chatId, $data['message'], $this->currentUserId());
 
-        if ($result['success'] && isset($result['data']['content'])) {
+        if ($result['success'] && isset($result['data']['pending_approval'])) {
+            echo "event: approval_required\n";
+            echo "data: " . json_encode(['pending_approval' => $result['data']['pending_approval']]) . "\n\n";
+            if (ob_get_level() > 0) ob_flush();
+            flush();
+        } elseif ($result['success'] && isset($result['data']['content'])) {
             $content = $result['data']['content'];
             $chunks = str_split($content, 12);
             foreach ($chunks as $chunk) {

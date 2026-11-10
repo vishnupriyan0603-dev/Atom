@@ -18,11 +18,9 @@ class SystemPermissionGate
     private array $sessionPermissions = [];
     private array $pendingRequests = [];
     private array $auditTrail = [];
-    private bool $fullAccessBypass = false;
-
     public function __construct(bool $fullAccessBypass = false)
     {
-        $this->fullAccessBypass = $fullAccessBypass;
+        // Kept for constructor compatibility. Full-access bypass is disabled.
     }
 
     /**
@@ -59,17 +57,8 @@ class SystemPermissionGate
      */
     public function requiresPermission(string $action, array $params = []): bool
     {
-        if ($this->fullAccessBypass) {
-            return false;
-        }
-
-        $level = $this->getRiskLevel($action, $params);
-        if ($level < self::LEVEL_2_SENSITIVE_WRITE) {
-            return false;
-        }
-
-        // Check if user already granted session permission for this action/category
-        return !$this->hasSessionPermission($action);
+        // Every system action, including reads, requires a fresh human approval.
+        return true;
     }
 
     /**
@@ -113,7 +102,7 @@ class SystemPermissionGate
     }
 
     /**
-     * Resolve a permission request (APPROVE / REJECT / ALLOW_SESSION).
+     * Resolve a permission request for this action only (APPROVE / REJECT).
      */
     public function resolvePermission(string $requestId, string $decision, string $resolvedBy = 'OWNER'): array
     {
@@ -130,8 +119,7 @@ class SystemPermissionGate
         if (in_array($cleanDecision, ['YES', 'APPROVE', 'GRANTED', '1', 'TRUE'], true)) {
             $req['status'] = 'GRANTED';
         } elseif (in_array($cleanDecision, ['ALLOW_SESSION', 'SESSION', 'ALWAYS'], true)) {
-            $req['status'] = 'SESSION_GRANTED';
-            $this->grantSessionPermission($req['action']);
+            $req['status'] = 'REJECTED';
         } else {
             $req['status'] = 'REJECTED';
         }
@@ -152,22 +140,17 @@ class SystemPermissionGate
         return [
             'success'   => true,
             'request'   => $req,
-            'is_granted'=> in_array($req['status'], ['GRANTED', 'SESSION_GRANTED'], true),
+            'is_granted'=> $req['status'] === 'GRANTED',
         ];
     }
 
     /**
-     * Grant session-wide permission for an action category or 'all'.
+     * Deprecated compatibility method. Session-wide permission is disabled.
      */
     public function grantSessionPermission(string $category = 'all'): void
     {
-        $this->sessionPermissions[strtolower(trim($category))] = [
-            'granted_at' => date('c'),
-            'expires_at' => time() + 86400, // 24hr session TTL
-        ];
-
         $this->logAudit([
-            'event'    => 'SESSION_PERMISSION_GRANTED',
+            'event'    => 'SESSION_PERMISSION_BLOCKED',
             'category' => $category,
         ]);
     }
@@ -177,16 +160,7 @@ class SystemPermissionGate
      */
     public function hasSessionPermission(string $action): bool
     {
-        if ($this->fullAccessBypass) {
-            return true;
-        }
-
-        if (isset($this->sessionPermissions['all'])) {
-            return true;
-        }
-
-        $actionLower = strtolower(trim($action));
-        return isset($this->sessionPermissions[$actionLower]);
+        return false;
     }
 
     /**
@@ -196,7 +170,6 @@ class SystemPermissionGate
     {
         $this->sessionPermissions = [];
         $this->pendingRequests = [];
-        $this->fullAccessBypass = false;
 
         $this->logAudit([
             'event' => 'ALL_PERMISSIONS_REVOKED',
@@ -210,8 +183,8 @@ class SystemPermissionGate
     {
         return [
             'gate'               => 'SystemPermissionGate (Phase 110)',
-            'full_access_bypass' => $this->fullAccessBypass,
-            'active_session_grants' => array_keys($this->sessionPermissions),
+            'full_access_bypass' => false,
+            'active_session_grants' => [],
             'pending_requests'   => array_values($this->pendingRequests),
             'audit_log_count'    => count($this->auditTrail),
             'timestamp'          => date('c'),

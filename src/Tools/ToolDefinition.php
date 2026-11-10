@@ -32,7 +32,7 @@ class ToolDefinition
 
     public function requiresHumanApproval(): bool
     {
-        return $this->riskLevel === 'high';
+        return true;
     }
 
     public function toArray(): array

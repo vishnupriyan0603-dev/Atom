@@ -103,6 +103,47 @@ function addMsg(type, content) {
   container.scrollTop = container.scrollHeight;
 }
 
+function renderApprovalCard(pending) {
+  var action = pending && pending.action ? pending.action : {};
+  var container = document.getElementById('messages');
+  var card = document.createElement('section');
+  card.className = 'msg approval-card';
+  card.setAttribute('aria-label', 'Action approval required');
+  var title = document.createElement('h3');
+  title.textContent = 'ATOM is asking before acting';
+  card.appendChild(title);
+  var intro = document.createElement('p');
+  intro.className = 'approval-intro';
+  intro.textContent = 'Review this one action. It will run once only if you approve it.';
+  card.appendChild(intro);
+  [['Action', action.action], ['Target', action.target], ['Purpose', action.purpose], ['Access', action.access], ['External sharing', action.external_data_sharing], ['Effects', action.consequences], ['Parameters', action.parameters]].forEach(function(row) {
+    if (row[1] === undefined || row[1] === null || row[1] === '') return;
+    var item = document.createElement('div'); item.className = 'approval-detail';
+    var label = document.createElement('strong'); label.textContent = row[0];
+    var value = document.createElement('span'); value.textContent = typeof row[1] === 'string' ? row[1] : JSON.stringify(row[1]);
+    item.appendChild(label); item.appendChild(value); card.appendChild(item);
+  });
+  var actions = document.createElement('div'); actions.className = 'approval-actions';
+  var reject = document.createElement('button'); reject.type = 'button'; reject.className = 'approval-reject'; reject.textContent = 'Reject';
+  var approve = document.createElement('button'); approve.type = 'button'; approve.className = 'approval-approve'; approve.textContent = 'Approve this action';
+  var status = document.createElement('p'); status.className = 'approval-status'; status.setAttribute('aria-live', 'polite');
+  function resolve(accept) {
+    reject.disabled = true; approve.disabled = true; status.textContent = accept ? 'Executing approved action…' : 'Rejecting action…';
+    apiFetch('/approvals/' + encodeURIComponent(pending.approval_id) + (accept ? '/approve' : '/reject'), 'POST', {}).then(function(result) {
+      if (!result.success) { reject.disabled = false; approve.disabled = false; status.textContent = result.message || 'Could not record your decision.'; return; }
+      card.classList.add('approval-resolved');
+      var update = result.data && (result.data.chat || result.data);
+      if (result.data && result.data.status === 'failed') { status.textContent = 'Approval was recorded, but the action failed. No chat continuation was produced.'; }
+      else if (update && update.pending_approval) { status.textContent = 'The approved action finished. Review the next action below.'; renderApprovalCard(update.pending_approval); }
+      else if (update && update.content) { status.textContent = accept ? 'Approved action finished.' : 'Rejected. Nothing was executed.'; addMsg('assistant', update.content); }
+      else status.textContent = accept ? 'Approved.' : 'Rejected. Nothing was executed.';
+    });
+  }
+  reject.onclick = function() { resolve(false); }; approve.onclick = function() { resolve(true); };
+  actions.appendChild(reject); actions.appendChild(approve); card.appendChild(actions); card.appendChild(status);
+  container.appendChild(card); container.scrollTop = container.scrollHeight;
+}
+
 function addMsgRaw(type, contentHtml) {
   msgCount++;
   var container = document.getElementById('messages');
@@ -195,7 +236,8 @@ async function sendMsg() {
     hideTyping();
 
     if (result.success) {
-      addMsg('assistant', result.data.content);
+      if (result.data && result.data.pending_approval) renderApprovalCard(result.data.pending_approval);
+      else addMsg('assistant', result.data.content);
     } else {
       addMsgRaw('assistant', '<span style="color:var(--red)">Error: ' + escHtml(result.message || 'Unknown error') + '</span>');
     }
@@ -257,6 +299,17 @@ async function loadChat(chatId, title) {
   if (result.success && result.data && result.data.messages) {
     result.data.messages.forEach(function(msg) {
       addMsg(msg.role === 'user' ? 'user' : 'assistant', msg.content);
+    });
+  }
+  var pending = await apiFetch('/approvals?status=pending', 'GET');
+  if (pending.success && Array.isArray(pending.data)) {
+    pending.data.forEach(function(item) {
+      var params = item.parameters || {};
+      if (item.tool_name === 'brain_chat' && Number(params.chat_id) === Number(chatId)) {
+        var explanation = item.reason;
+        try { explanation = typeof explanation === 'string' ? JSON.parse(explanation) : explanation; } catch (_) { explanation = {purpose: String(item.reason || 'Review this action.')}; }
+        renderApprovalCard({approval_id: item.id, action: explanation || {}});
+      }
     });
   }
 

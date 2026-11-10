@@ -91,18 +91,22 @@ class AtomSituationReasonerEngineTest extends TestCase
 
     public function testExecuteSandboxTools(): void
     {
+        $pending = $this->engine->executeTool('calc', ['expression' => '500 + 250', 'human_approved' => true]);
+        $this->assertFalse($pending['success']);
+        $this->assertTrue($pending['requires_human_gate']);
+
         // 1. Calc tool
-        $calcRes = $this->engine->executeTool('calc', ['expression' => '(500 * 12) + 250']);
+        $calcRes = $this->engine->executeTool('calc', ['expression' => '(500 * 12) + 250'], true);
         $this->assertTrue($calcRes['success']);
         $this->assertEquals(6250.0, $calcRes['result']);
 
         // 2. System Inspect tool
-        $sysRes = $this->engine->executeTool('system_inspect');
+        $sysRes = $this->engine->executeTool('system_inspect', [], true);
         $this->assertTrue($sysRes['success']);
         $this->assertNotEmpty($sysRes['php_version']);
 
         // 3. Code diagnostics tool
-        $diagRes = $this->engine->executeTool('code_diagnostics', ['target' => 'backend']);
+        $diagRes = $this->engine->executeTool('code_diagnostics', ['target' => 'backend'], true);
         $this->assertTrue($diagRes['success']);
         $this->assertEquals('healthy', $diagRes['status']);
 
@@ -110,19 +114,19 @@ class AtomSituationReasonerEngineTest extends TestCase
         $regexRes = $this->engine->executeTool('regex_test', [
             'pattern' => '/^[a-z0-9_]+$/i',
             'subject' => 'atom_brain_42'
-        ]);
+        ], true);
         $this->assertTrue($regexRes['success']);
         $this->assertTrue($regexRes['is_match']);
 
         // 5. JSON validate tool
         $jsonRes = $this->engine->executeTool('json_validate', [
             'json' => '{"engine": "Atom Brain", "version": 3}'
-        ]);
+        ], true);
         $this->assertTrue($jsonRes['success']);
         $this->assertTrue($jsonRes['valid']);
 
         // 6. Invalid tool
-        $invalidRes = $this->engine->executeTool('dangerous_bash_cmd');
+        $invalidRes = $this->engine->executeTool('dangerous_bash_cmd', [], true);
         $this->assertFalse($invalidRes['success']);
     }
 

@@ -90,11 +90,17 @@ class ArcSystemDevControllerTest extends TestCase
         $this->assertIsArray($res);
         $this->assertTrue($res['success']);
         $this->assertArrayHasKey('telemetry', $res);
+        $this->assertArrayHasKey('available', $res);
 
         $t = $res['telemetry'];
         $this->assertArrayHasKey('cpu', $t);
         $this->assertArrayHasKey('ram', $t);
         $this->assertArrayHasKey('disks', $t);
+        if (!$res['available']) {
+            $this->assertNull($t['cpu']);
+            $this->assertNull($t['ram']);
+            $this->assertSame([], $t['disks']);
+        }
     }
 
     public function testGetEnvironmentVariablesReturnsMap(): void

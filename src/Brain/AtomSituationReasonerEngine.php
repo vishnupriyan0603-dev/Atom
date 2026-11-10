@@ -93,8 +93,18 @@ class AtomSituationReasonerEngine
     /**
      * Execute a whitelisted minimalist tool safely.
      */
-    public function executeTool(string $toolName, array $params = []): array
+    public function executeTool(string $toolName, array $params = [], bool $humanApproved = false): array
     {
+        if (!$humanApproved) {
+            return [
+                'success' => false,
+                'requires_human_gate' => true,
+                'tool_name' => $toolName,
+                'approval_explanation' => $this->describeToolAction($toolName, $params),
+                'error' => 'This tool requires explicit human approval before execution.',
+            ];
+        }
+
         switch ($toolName) {
             case 'calc':
                 return $this->toolCalc($params['expression'] ?? ($params['query'] ?? ''));
@@ -112,6 +122,32 @@ class AtomSituationReasonerEngine
                     'error' => "Unknown or unauthorized tool: {$toolName}",
                 ];
         }
+    }
+
+    public function describeToolAction(string $toolName, array $params = []): array
+    {
+        $descriptions = [
+            'calc' => ['purpose' => 'Evaluate the requested arithmetic expression.', 'access' => 'Calculation input only.', 'target' => $params['expression'] ?? $params['query'] ?? 'No expression provided.'],
+            'system_inspect' => ['purpose' => 'Read PHP environment, memory use, and system load.', 'access' => 'Read-only local system status.', 'target' => 'Current server environment'],
+            'code_diagnostics' => ['purpose' => 'Run read-only PHP syntax and test-readiness diagnostics.', 'access' => 'Read-only project files.', 'target' => $params['target'] ?? 'backend'],
+            'regex_test' => ['purpose' => 'Test a regular expression against the supplied text.', 'access' => 'Provided pattern and subject only.', 'target' => 'Provided subject'],
+            'json_validate' => ['purpose' => 'Validate the supplied JSON text.', 'access' => 'Provided JSON only.', 'target' => 'Provided JSON payload'],
+        ];
+        $details = $descriptions[$toolName] ?? [
+            'purpose' => 'Run an unclassified tool action.',
+            'access' => 'Unclassified; approval required.',
+            'target' => 'See supplied parameters',
+        ];
+
+        return [
+            'action' => $toolName,
+            'target' => $details['target'],
+            'purpose' => $details['purpose'],
+            'access' => $details['access'],
+            'external_data_sharing' => 'No additional external sharing is performed by this local reasoner tool.',
+            'consequences' => 'One tool action; no follow-on tools run automatically.',
+            'parameters' => $this->redactor->redact(json_encode($params, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '{}'),
+        ];
     }
 
     /**

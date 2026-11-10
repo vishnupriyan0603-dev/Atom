@@ -38,6 +38,7 @@
 14. [Interactive Chat & CLI Slash Commands Reference](#14-interactive-chat--cli-slash-commands-reference)
 15. [Real-Time Voice Commands & Audio Duplex Manual](#15-real-time-voice-commands--audio-duplex-manual)
 16. [How to Add & Update New Commands (Developer Guide)](#16-how-to-add--update-new-commands-developer-guide)
+17. [MyLife OS Local Pairing Security](#17-mylife-os-local-pairing-security)
 
 ---
 
@@ -361,25 +362,26 @@ ATOM includes a low-level developer system and operating system controller (`Arc
 * **Safe Process Termination (`sys.kill_process`)**:
   - Terminates or forces process shutdown by PID or process name.
 * **Hardware Compute & Storage Telemetry (`/arc:sys` | `sys.telemetry`)**:
-  - CPU model, logical & physical core topology, RAM breakdown (used/free/total), and active disk volume usage.
+  - When the read-only OS query is supported and succeeds, shows CPU topology, RAM usage, and disk volume usage. Otherwise reports telemetry as unavailable; missing values are not displayed as zero or simulated hardware.
 
 ---
 
 ## 15.3 Phase 110: Full System Access & Interactive User Permission Gate
 
-ATOM provides a unified **Full System Access & Security Permission Gate** (`SystemPermissionGate`) that grants comprehensive OS-level automation while strictly enforcing human-in-the-loop permission verification before executing sensitive or critical actions.
+ATOM uses a **per-action human approval gate** for assistant-triggered tools and system actions. Before execution, it explains the action, target, purpose, requested access, known data sharing, and effects. A fresh approval applies to that one exact action only.
 
 ### Risk Levels & Granular Classification:
-* **Level 0 (Read-Only)**: Autonomous execution (telemetry, hardware stats, listening ports, toolchain discovery, file reading).
-* **Level 1 (Safe Desktop)**: Autonomous execution (launching Chrome/Notepad, opening YouTube URLs, focusing windows, typing in approved apps).
-* **Level 2 (Sensitive Write)**: Permission required (writing arbitrary system files outside workspace, modifying environment variables).
-* **Level 3 (Critical System)**: Explicit confirmation required (killing processes, restarting Windows services, executing raw shell scripts).
+* All levels, including read-only inspection and calculations, require explicit approval for assistant-triggered tool actions.
+* Unknown actions fail closed and require approval.
+* Approval is bound to the exact action and parameters, is single-use, and expires after 15 minutes for API requests.
 
 ### CLI & Interactive Controls:
-* `/permission:status` — View active session permission grants and pending requests.
-* `/permission:grant-session [all|<category>]` — Authorize full system access for current active session.
-* `/permission:revoke` — Revoke active session permissions and enforce confirmation prompts for every modifying operation.
-* **Natural Language Grant**: Saying `"give full system access"`, `"grant permission"`, or `"allow session"` activates session-level authorization immediately.
+* `/permission:status` — View permission-gate status and pending in-memory requests.
+* `/permission:grant-session` — Deprecated; reports that session-wide grants are disabled.
+* `/permission:revoke` — Clear pending and in-memory permission requests.
+* Natural-language phrases such as `"give full system access"` never grant access; ATOM explains that each action needs separate approval.
+* Web Brain sandbox tool calls create a pending request and show a one-action confirmation. Approving executes the stored action once; rejecting cancels it. Requests expire after 15 minutes and are visible only to the authenticated owner.
+* Mobile approval review requires signing in. The short-lived JWT stays in memory and is cleared when the app exits. Review the displayed request details and parameters before selecting **Approve** or **Reject**.
 
 ---
 
@@ -425,7 +427,7 @@ ATOM includes the **ARC (Autonomous Robotic Controller)** engine for active, vis
 | `"open chrome search that youtube play <song>"` | `ArcTwoDesktopController` | Opens Google Chrome and plays the requested YouTube video / music. |
 | `"close notepad"` | `ArcTwoDesktopController` | Cleanly terminates the Notepad process. |
 | `"list ports"` / `"check port 8080"` | `ArcThreeDeveloperEngine` | Inspects active listening ports and process ownership. |
-| `"give full system"` / `"grant permission"` | `SystemPermissionGate` | Grants session-level autonomous authorization for critical system actions. |
+| `"give full system"` / `"grant permission"` | `SystemPermissionGate` | Explains that session-wide grants are disabled; each action needs separate approval. |
 
 #### 3. Execution Standard: Foreground Visible Only
 All desktop applications, browsers, and text editors opened by ATOM launch strictly in the visible foreground on the user's active monitor using `ShowWindowAsync` and `SetForegroundWindow`. Background, minimized, or hidden execution is strictly prohibited.
@@ -476,3 +478,28 @@ If the command should be callable via spoken voice:
 1. Document the command, arguments, and example in `docs/ATOM_User_Manual_Guide.md` under Section 14 or 15.
 2. Re-export HTML / PDF documentation if required.
 3. Add a PHPUnit test in `backend/tests/unit/` to verify automated test coverage.
+
+## 17. MyLife OS Local Pairing Security
+
+MyLife OS exposes its phone-hosted API only on a discovered private IPv4 address. If the phone cannot find a private network address, the server listens on loopback and is not reachable from other devices. The server does not bind to every network interface.
+
+Pair ATOM from the phone’s MyLife server screen using the displayed QR pairing payload. The phone accepts a pairing request only when its HMAC-SHA256 proof matches the client ID, device name, fingerprint, and current Unix timestamp. Pairing proofs expire after 60 seconds. Protected API calls require a completed pairing, the registered `X-MyLife-Client` identity, and a valid per-request HMAC signature. A failed pairing attempt does not register or replace a client.
+
+See [the MyLife OS pairing security specification](MYLIFE_PAIRING_SECURITY_SPEC.md) for the signing format and request headers.
+
+### Connect ATOM CLI to the phone
+
+1. Start the MyLife OS server from the phone’s **MyLife OS Server** screen and display its pairing QR payload.
+2. In the repository root `.env` file, set `MYLIFE_BASE_URL` to the QR payload’s `mdns_name` and `port` with `/api/v1` appended, and set `MYLIFE_SHARED_SECRET` to the QR payload’s secret. Keep this value out of commands and chat history.
+3. Run `/mylife ping` to check connectivity, then `/mylife pair` to register this client.
+4. Use `/mylife status`, `/mylife summary`, or `/mylife module 02_finance` to explicitly retrieve data. These commands print personal data in the terminal; the CLI does not automatically add it to AI prompts.
+
+The first connector release provides explicit reads for phone API routes that currently exist. Digital usage, tracking pause/resume, and encrypted backup download return an unsupported status until the phone API implements those routes.
+
+**Current privacy and telemetry limitation:** the phone database currently uses standard SQLite through `sqflite`; SQLCipher is not active and the Android Keystore channel is not wired into database initialization. The MyLife Server screen reports that encryption is not active. Do not treat phone records as SQLCipher-encrypted until an encrypted database migration is implemented and verified. Uncollected battery, screen-time, network, tracking, and GPS values are returned as `null` with an availability flag set to `false`; `null` means unknown, not zero.
+
+When the chat model needs MyLife data to answer a direct personal question, it may request one read-only status, summary, or module operation. ATOM asks for approval in the CLI before fetching the data and explains that the configured AI provider or a fallback may receive it. The model cannot approve its own request. After an approved read, that turn skips cross-model learning, persistent chat-content logs, session history, and any additional tools. Ask again for another read.
+
+## 18. Approving chat actions in Web and Mobile
+
+When ATOM needs a tool during a Web or Mobile chat, the chat pauses and displays the action, target, purpose, requested access, external data sharing, effects, and parameters. Select **Approve this action** (Web) or **Approve once** (Mobile) to run that exact stored action one time. Select **Reject** to cancel it. ATOM resumes the original turn after approval; if it needs another tool, it shows a fresh approval card. Resolve a pending action before sending another message in that chat. Only the authenticated owner can decide, and approvals expire. Mobile sign-in is held in memory and clears when the app closes.

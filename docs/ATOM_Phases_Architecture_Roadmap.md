@@ -94,8 +94,12 @@ This document serves as the single source of truth for the complete phased archi
 
 ## 📈 Quality & Testing Standard
 
-Every phase is backed by dedicated automated unit and integration tests:
-- **Total Test Suite**: **1,385+ automated tests**
-- **Assertions**: **5,304+ assertions**
-- **Test Pass Rate**: **100% Green (0 Errors, 0 Failures)**
+Each phase must provide its own acceptance evidence before it is marked complete. The aggregate backend suite is a regression gate; its totals do not prove that every phase or client has been validated.
+
+**Latest verified backend snapshot (10 Nov 2026):**
+- **Tests**: 1,433
+- **Assertions**: 5,535
+- **Result**: 0 failures, 0 errors, 2 skipped; exit code 0 with coverage disabled and the required PHP extensions enabled.
+- A coverage-enabled run has no test failures but exits nonzero because no code coverage driver is installed. Treat coverage reporting as an environment gap, not as a clean coverage result.
+- Android device, Flutter, and cross-client acceptance evidence must be recorded separately; backend tests do not establish those phase gates.
 

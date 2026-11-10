@@ -251,7 +251,7 @@ class _MyLifeServerScreenState extends State<MyLifeServerScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text('SQLCipher 256', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
+                const Text('Encryption not active', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
               ],
             ),
           ),

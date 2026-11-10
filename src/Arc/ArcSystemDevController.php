@@ -466,10 +466,11 @@ POWERSHELL;
             return $this->logResult([
                 'success' => true,
                 'action' => 'get_hardware_telemetry',
-                'cpu' => ['cores_logical' => 8, 'cores_physical' => 4, 'name' => 'Generic CPU'],
-                'ram' => ['total_gb' => 16.0, 'free_gb' => 8.0, 'used_gb' => 8.0],
-                'disks' => [['drive' => 'C:', 'total_gb' => 500.0, 'free_gb' => 250.0]],
-                'simulated' => true,
+                'available' => false,
+                'telemetry' => ['cpu' => null, 'ram' => null, 'disks' => []],
+                'cpu' => null,
+                'ram' => null,
+                'disks' => [],
             ]);
         }
 
@@ -504,12 +505,21 @@ POWERSHELL;
 POWERSHELL;
 
         $rawJson = trim($this->runPowerShell($psScript));
-        $data = json_decode($rawJson, true) ?: [];
+        $data = json_decode($rawJson, true);
+        $available = is_array($data)
+            && isset($data['cpu'], $data['ram'], $data['disks'])
+            && is_array($data['cpu'])
+            && is_array($data['ram'])
+            && is_array($data['disks']);
+        if (!$available) {
+            $data = ['cpu' => null, 'ram' => null, 'disks' => []];
+        }
 
         return $this->logResult([
             'success' => true,
             'action' => 'get_hardware_telemetry',
             'telemetry' => $data,
+            'available' => $available,
         ]);
     }
 

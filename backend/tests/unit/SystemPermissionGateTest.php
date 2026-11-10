@@ -31,10 +31,10 @@ class SystemPermissionGateTest extends TestCase
         $this->assertSame(SystemPermissionGate::LEVEL_3_CRITICAL_SYSTEM, $this->gate->getRiskLevel('restart_service'));
     }
 
-    public function testRequiresPermissionForCriticalActions(): void
+    public function testEverySystemActionRequiresPermission(): void
     {
-        $this->assertFalse($this->gate->requiresPermission('ports'));
-        $this->assertFalse($this->gate->requiresPermission('open_url'));
+        $this->assertTrue($this->gate->requiresPermission('ports'));
+        $this->assertTrue($this->gate->requiresPermission('open_url'));
         $this->assertTrue($this->gate->requiresPermission('kill_process'));
         $this->assertTrue($this->gate->requiresPermission('restart_service'));
         $this->assertTrue($this->gate->requiresPermission('write_system_file'));
@@ -63,18 +63,31 @@ class SystemPermissionGateTest extends TestCase
         $this->assertSame('REJECTED', $res['request']['status']);
     }
 
-    public function testSessionPermissionBypassesIndividualPrompts(): void
+    public function testSessionPermissionCannotBypassIndividualPrompts(): void
     {
         $this->assertTrue($this->gate->requiresPermission('kill_process'));
 
         $this->gate->grantSessionPermission('all');
-        $this->assertFalse($this->gate->requiresPermission('kill_process'));
-        $this->assertFalse($this->gate->requiresPermission('restart_service'));
-        $this->assertTrue($this->gate->hasSessionPermission('kill_process'));
+        $this->assertTrue($this->gate->requiresPermission('kill_process'));
+        $this->assertTrue($this->gate->requiresPermission('restart_service'));
+        $this->assertFalse($this->gate->hasSessionPermission('kill_process'));
+        $this->assertSame([], $this->gate->getStatus()['active_session_grants']);
 
         // Revoke
         $this->gate->revokePermissions();
         $this->assertTrue($this->gate->requiresPermission('kill_process'));
+    }
+
+    public function testLegacyBypassAndSessionApprovalDecisionsAreDisabled(): void
+    {
+        $gate = new SystemPermissionGate(true);
+        $this->assertTrue($gate->requiresPermission('telemetry'));
+
+        $request = $gate->createPermissionRequest('kill_process', 'Terminate a process', 'worker.exe');
+        $result = $gate->resolvePermission($request['request_id'], 'ALLOW_SESSION');
+        $this->assertFalse($result['is_granted']);
+        $this->assertSame('REJECTED', $result['request']['status']);
+        $this->assertFalse($gate->hasSessionPermission('kill_process'));
     }
 
     public function testMasterControllerWiresPermissionGate(): void

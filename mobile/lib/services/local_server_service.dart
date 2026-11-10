@@ -39,7 +39,7 @@ class LocalServerService {
           .addMiddleware(_authMiddleware())
           .addHandler(router);
 
-      _server = await io.serve(handler, InternetAddress.anyIPv4, _port);
+      _server = await io.serve(handler, InternetAddress(_localIp), _port);
       _isRunning = true;
       return true;
     } catch (e) {
@@ -62,18 +62,26 @@ class LocalServerService {
         type: InternetAddressType.IPv4,
         includeLoopback: false,
       );
-      for (var interface in interfaces) {
-        for (var addr in interface.addresses) {
-          if (!addr.isLoopback && addr.address.startsWith("192.168.")) {
-            return addr.address;
-          }
+      for (final interface in interfaces) {
+        for (final address in interface.addresses) {
+          if (_isPrivateIpv4(address.address)) return address.address;
         }
-      }
-      if (interfaces.isNotEmpty && interfaces.first.addresses.isNotEmpty) {
-        return interfaces.first.addresses.first.address;
       }
     } catch (_) {}
     return "127.0.0.1";
+  }
+
+  bool _isPrivateIpv4(String address) {
+    final octets = address.split('.').map(int.tryParse).toList();
+    if (octets.length != 4 ||
+        octets.any((octet) => octet == null || octet < 0 || octet > 255)) {
+      return false;
+    }
+    final first = octets[0]!;
+    final second = octets[1]!;
+    return first == 10 ||
+        (first == 172 && second >= 16 && second <= 31) ||
+        (first == 192 && second == 168);
   }
 
   void _registerRoutes(Router router) {
@@ -88,15 +96,35 @@ class LocalServerService {
       });
     });
 
-    // 2. Initial Device Pairing Handshake (Public handshake validated by secret)
+    // 2. Initial Device Pairing Handshake (public route with required HMAC proof)
     router.post('/api/v1/pair', (Request request) async {
       try {
-        final payload = jsonDecode(await request.readAsString());
-        final clientId = payload['client_id'] ?? 'ATOM-WINDOWS';
-        final fingerprint = payload['client_fingerprint'] ?? 'atom-win-default';
+        final decoded = jsonDecode(await request.readAsString());
+        if (decoded is! Map<String, dynamic>) {
+          return _jsonResponse({'success': false, 'error': 'Invalid pairing request'}, status: 400);
+        }
+        final clientId = decoded['client_id'];
+        final deviceName = decoded['device_name'];
+        final fingerprint = decoded['client_fingerprint'];
+        final timestamp = decoded['timestamp'];
+        final signature = decoded['signature'];
+        if (clientId is! String ||
+            deviceName is! String ||
+            fingerprint is! String ||
+            timestamp is! int ||
+            signature is! String ||
+            !PairingService().verifyPairingProof(
+              clientName: clientId,
+              deviceName: deviceName,
+              fingerprint: fingerprint,
+              timestampStr: timestamp.toString(),
+              signature: signature,
+            )) {
+          return _jsonResponse({'success': false, 'error': 'Pairing proof is invalid or expired'}, status: 401);
+        }
 
         await PairingService().registerPairedClient(clientId, fingerprint);
-        await DatabaseService().logAudit('SYSTEM', 'PAIR', clientId, 'Successfully paired with $clientId');
+        await DatabaseService().logAudit('SYSTEM', 'PAIR', clientId, 'Successfully paired client $clientId');
 
         return _jsonResponse({
           'success': true,
@@ -119,13 +147,15 @@ class LocalServerService {
           'mdns': 'mylife-os.local:$_port',
         },
         'battery': {
-          'level': 85,
-          'charging': false,
+          'level': null,
+          'charging': null,
+          'available': false,
         },
         'tracking': {
-          'is_paused': false,
-          'step_counter': true,
-          'gps_geofence': true,
+          'is_paused': null,
+          'step_counter': null,
+          'gps_geofence': null,
+          'available': false,
         },
         'paired': PairingService().isPaired,
         'paired_client': PairingService().pairedClientName,
@@ -394,10 +424,18 @@ class LocalServerService {
           return innerHandler(request);
         }
 
+        if (!PairingService().isPaired) {
+          return _jsonResponse({'success': false, 'error': 'Device pairing is required'}, status: 401);
+        }
+
         final signature = request.headers['x-mylife-signature'];
         final timestampStr = request.headers['x-mylife-timestamp'];
+        final clientName = request.headers['x-mylife-client'];
 
-        if (signature == null || timestampStr == null) {
+        if (signature == null ||
+            timestampStr == null ||
+            clientName == null ||
+            clientName != PairingService().pairedClientName) {
           return _jsonResponse({
             'success': false,
             'error': 'Unauthorized: Missing X-MyLife-Signature or X-MyLife-Timestamp header',

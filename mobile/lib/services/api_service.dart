@@ -3,7 +3,59 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   static String _customBaseUrl = "http://192.168.29.91:8080/api/v1";
+  static String? _approvalToken;
   static String get baseUrl => _customBaseUrl;
+  bool get hasApprovalSession => _approvalToken != null && _approvalToken!.isNotEmpty;
+  bool get hasSession => hasApprovalSession;
+  void clearSession() { _approvalToken = null; }
+  Map<String, String> get _authHeaders => {
+    'Content-Type': 'application/json',
+    if (hasSession) 'Authorization': 'Bearer $_approvalToken',
+  };
+
+  Future<List<dynamic>> fetchChats() async {
+    try {
+      final r = await http.get(Uri.parse('$baseUrl/chats?per_page=50'), headers: _authHeaders);
+      if (r.statusCode == 200) return (jsonDecode(r.body)['data'] as List<dynamic>?) ?? [];
+    } catch (_) {}
+    return [];
+  }
+
+  Future<Map<String, dynamic>> fetchChat(int id) async {
+    try {
+      final r = await http.get(Uri.parse('$baseUrl/chats/$id'), headers: _authHeaders);
+      if (r.statusCode == 200) return jsonDecode(r.body) as Map<String, dynamic>;
+    } catch (_) {}
+    return {'success': false, 'message': 'Could not load this chat.'};
+  }
+
+  Future<Map<String, dynamic>> createChat() async {
+    try {
+      final r = await http.post(Uri.parse('$baseUrl/chats'), headers: _authHeaders,
+        body: jsonEncode({'title': 'New Chat', 'provider': 'Groq', 'model': 'openai/gpt-oss-120b'}));
+      if (r.statusCode == 201 || r.statusCode == 200) return jsonDecode(r.body) as Map<String, dynamic>;
+    } catch (_) {}
+    return {'success': false, 'message': 'Could not create a chat.'};
+  }
+
+  Future<Map<String, dynamic>> sendChatMessage(int chatId, String message) async {
+    try {
+      final r = await http.post(Uri.parse('$baseUrl/chat/$chatId/preview'), headers: _authHeaders,
+        body: jsonEncode({'message': message}));
+      if (r.statusCode == 200 || r.statusCode == 202) return jsonDecode(r.body) as Map<String, dynamic>;
+      return {'success': false, 'message': 'Chat request failed (${r.statusCode}).'};
+    } catch (_) { return {'success': false, 'message': 'Could not reach ATOM.'}; }
+  }
+
+  Future<Map<String, dynamic>> resolveChatApproval(int id, {required bool approve}) async {
+    try {
+      final endpoint = approve ? 'approve' : 'reject';
+      final r = await http.post(Uri.parse('$baseUrl/approvals/$id/$endpoint'), headers: _authHeaders,
+        body: jsonEncode(approve ? {} : {'reason': 'Rejected in active Mobile chat'}));
+      if (r.statusCode == 200 || r.statusCode == 202) return jsonDecode(r.body) as Map<String, dynamic>;
+      return {'success': false, 'message': 'Could not record that decision (${r.statusCode}).'};
+    } catch (_) { return {'success': false, 'message': 'Could not reach ATOM.'}; }
+  }
 
   static void setBaseUrl(String url) {
     _customBaseUrl = url.endsWith('/') ? url.substring(0, url.length - 1) : url;
@@ -32,13 +84,36 @@ class ApiService {
 
   Future<List<dynamic>> fetchPendingApprovals() async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/approvals?status=pending'));
+      if (!hasApprovalSession) return [];
+      final response = await http.get(
+        Uri.parse('$baseUrl/approvals?status=pending'),
+        headers: {'Authorization': 'Bearer $_approvalToken'},
+      );
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         return body['data'] ?? [];
       }
     } catch (_) {}
     return [];
+  }
+
+  Future<bool> loginForApprovals(String email, String password) async {
+    try {
+      final authBaseUrl = baseUrl.endsWith('/v1') ? baseUrl.substring(0, baseUrl.length - 3) : baseUrl;
+      final response = await http.post(
+        Uri.parse('$authBaseUrl/auth/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email, 'password': password}),
+      );
+      if (response.statusCode != 200) return false;
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final token = body['data'] is Map ? body['data']['token'] : null;
+      if (token is! String || token.isEmpty) return false;
+      _approvalToken = token;
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<List<dynamic>> fetchAgentTasks() async {
@@ -154,7 +229,15 @@ class ApiService {
 
 
     try {
-      final response = await http.post(Uri.parse('$baseUrl/approvals/$id/approve'));
+      if (!hasApprovalSession) return false;
+      final response = await http.post(
+        Uri.parse('$baseUrl/approvals/$id/approve'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_approvalToken',
+        },
+        body: jsonEncode({}),
+      );
       return response.statusCode == 200;
     } catch (_) {
       return false;
@@ -163,7 +246,15 @@ class ApiService {
 
   Future<bool> rejectRequest(int id) async {
     try {
-      final response = await http.post(Uri.parse('$baseUrl/approvals/$id/reject'));
+      if (!hasApprovalSession) return false;
+      final response = await http.post(
+        Uri.parse('$baseUrl/approvals/$id/reject'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_approvalToken',
+        },
+        body: jsonEncode({'reason': 'Rejected in active Mobile client'}),
+      );
       return response.statusCode == 200;
     } catch (_) {
       return false;

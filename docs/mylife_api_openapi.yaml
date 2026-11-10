@@ -2,8 +2,9 @@ openapi: 3.0.3
 info:
   title: MyLife OS Embedded Local REST API
   description: >
-    Private Local-First REST API hosted by Samsung Galaxy M31 on port 8765.
-    Powers ATOM Windows AI integration and personal life management.
+    Contract for routes currently implemented by the MyLife OS server hosted on
+    the Samsung Galaxy M31 at port 8765. Planned routes are listed in the
+    x-atom-planned-endpoints extension and are not callable yet.
   version: 1.0.0
 servers:
   - url: http://mylife-os.local:8765/api/v1
@@ -13,6 +14,25 @@ servers:
 
 security:
   - HmacSignatureAuth: []
+    MyLifeClientId: []
+    MyLifeTimestamp: []
+
+x-atom-planned-endpoints:
+  - path: /digital/usage
+    method: get
+    status: not-implemented
+  - path: /tracking/pause
+    method: post
+    status: not-implemented
+  - path: /tracking/resume
+    method: post
+    status: not-implemented
+  - path: /documents
+    method: post
+    status: not-implemented
+  - path: /backup/export
+    method: post
+    status: not-implemented
 
 paths:
   /ping:
@@ -56,7 +76,7 @@ paths:
 
   /status:
     get:
-      summary: Detailed server, battery, and tracking status
+      summary: Server and tracking status; unavailable telemetry is null
       responses:
         '200':
           description: Status retrieved
@@ -67,9 +87,11 @@ paths:
                 properties:
                   battery:
                     type: object
+                    description: Values are null and available is false until live battery telemetry is wired to this API.
                     properties:
-                      level: { type: integer, example: 84 }
-                      charging: { type: boolean, example: false }
+                      level: { type: integer, nullable: true, example: null }
+                      charging: { type: boolean, nullable: true, example: null }
+                      available: { type: boolean, example: false }
                   storage:
                     type: object
                     properties:
@@ -77,14 +99,19 @@ paths:
                       total_mb: { type: integer, example: 128000 }
                   tracking:
                     type: object
+                    description: Values are null and available is false until live tracker state is wired to this API.
                     properties:
-                      gps_active: { type: boolean, example: true }
-                      step_counter_active: { type: boolean, example: true }
-                      is_paused: { type: boolean, example: false }
+                      gps_geofence: { type: boolean, nullable: true, example: null }
+                      step_counter: { type: boolean, nullable: true, example: null }
+                      is_paused: { type: boolean, nullable: true, example: null }
+                      available: { type: boolean, example: false }
 
   /modules/summary:
     get:
       summary: Aggregated executive summary across all 14 modules
+      description: >
+        Device and screen-time values that are not yet collected are returned as null;
+        their telemetry_available flag is false. Consumers must not treat unknown values as zero.
       responses:
         '200':
           description: Consolidated 14-module snapshot
@@ -106,6 +133,8 @@ paths:
       responses:
         '200':
           description: Profile updated
+        '400':
+          description: Invalid profile payload
 
   /finance/summary:
     get:
@@ -120,6 +149,13 @@ paths:
       responses:
         '200':
           description: Finance summary retrieved
+
+  /finance/accounts:
+    get:
+      summary: List finance accounts
+      responses:
+        '200':
+          description: Accounts retrieved
 
   /finance/transactions:
     get:
@@ -142,10 +178,19 @@ paths:
           application/json:
             schema:
               type: object
-              required: [account_id, type, category, amount, transaction_date]
+              required: [amount]
+              properties:
+                account_id: { type: integer, default: 1 }
+                type: { type: string, default: EXPENSE }
+                category: { type: string, default: General }
+                amount: { type: number }
+                transaction_date: { type: string, format: date-time, description: Defaults to server time when omitted }
+                note: { type: string, nullable: true }
       responses:
         '201':
           description: Transaction created
+        '400':
+          description: Invalid transaction payload
 
   /health/today:
     get:
@@ -163,16 +208,40 @@ paths:
           application/json:
             schema:
               type: object
-              required: [amount_ml]
               properties:
-                amount_ml: { type: integer, example: 250 }
+                amount_ml: { type: integer, default: 250, example: 250 }
       responses:
         '200':
           description: Water logged
+        '400':
+          description: Invalid water intake payload
+
+  /health/metrics:
+    post:
+      summary: Record a health metric
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [metric_value]
+              properties:
+                metric_type: { type: string, example: WEIGHT_KG }
+                metric_value: { type: number, example: 68.5 }
+                notes: { type: string, nullable: true }
+      responses:
+        '200':
+          description: Health metric recorded
+        '400':
+          description: Invalid health metric payload
 
   /wellbeing/mood:
     get:
       summary: Mood and wellbeing logs (Module 04)
+      responses:
+        '200':
+          description: Mood logs retrieved
     post:
       summary: Check in daily emotional state and journal
       requestBody:
@@ -181,21 +250,49 @@ paths:
           application/json:
             schema:
               type: object
-              required: [mood_rating, primary_emotion]
-      responses:
-        '201':
-          description: Mood recorded
-
-  /location/recent:
-    get:
-      summary: Recent location breadcrumbs and visited hubs (Module 05)
+              properties:
+                mood_rating: { type: integer, default: 4 }
+                primary_emotion: { type: string, default: Calm }
+                journal_entry: { type: string, nullable: true }
       responses:
         '200':
-          description: Locations list
+          description: Mood recorded
+        '400':
+          description: Invalid mood payload
+
+  /location/places:
+    get:
+      summary: List saved places (Module 05)
+      responses:
+        '200':
+          description: Places list
+
+  /location/breadcrumbs:
+    post:
+      summary: Record a location breadcrumb
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [latitude, longitude]
+              properties:
+                latitude: { type: number, minimum: -90, maximum: 90 }
+                longitude: { type: number, minimum: -180, maximum: 180 }
+                accuracy: { type: number, nullable: true, minimum: 0 }
+      responses:
+        '200':
+          description: Breadcrumb recorded
+        '400':
+          description: Invalid location data
 
   /activities/today:
     get:
       summary: Tasks, routines, and scheduled time blocks for today (Module 06)
+      responses:
+        '200':
+          description: Today's activities retrieved
   /activities/tasks:
     post:
       summary: Create a new task
@@ -205,14 +302,22 @@ paths:
           application/json:
             schema:
               type: object
-              required: [title]
+              properties:
+                title: { type: string, default: New Task }
+                priority: { type: string, default: MEDIUM }
+                due_date: { type: string, nullable: true }
       responses:
         '201':
           description: Task created
+        '400':
+          description: Invalid task payload
 
   /habits:
     get:
       summary: Active habits and streaks (Module 07)
+      responses:
+        '200':
+          description: Habits retrieved
   /habits/{id}/checkin:
     post:
       summary: Check in a habit for today
@@ -224,10 +329,15 @@ paths:
       responses:
         '200':
           description: Habit checked in
+        '400':
+          description: Invalid habit ID
 
   /learning/progress:
     get:
       summary: GATE CS and technical roadmap progress (Module 08)
+      responses:
+        '200':
+          description: Learning progress retrieved
   /learning/study-session:
     post:
       summary: Log completed study session
@@ -237,22 +347,38 @@ paths:
           application/json:
             schema:
               type: object
-              required: [subject_id, topic, duration_minutes]
+              required: [subject_id, duration_minutes]
+              properties:
+                subject_id: { type: integer }
+                topic: { type: string, default: GATE Study }
+                duration_minutes: { type: integer }
+                problems_solved: { type: integer, default: 0 }
       responses:
-        '201':
+        '200':
           description: Study session logged
+        '400':
+          description: Invalid study session payload
 
   /career/summary:
     get:
       summary: Employment history, skill inventory, and freelance clients (Module 09)
+      responses:
+        '200':
+          description: Career summary retrieved
 
   /social/contacts:
     get:
       summary: Contact roster, birthdays, and last interactions (Module 10)
+      responses:
+        '200':
+          description: Contacts retrieved
 
   /nutrition/today:
     get:
       summary: Logged meals and dietary preferences (Module 11)
+      responses:
+        '200':
+          description: Today's nutrition data retrieved
   /nutrition/meals:
     post:
       summary: Log meal
@@ -262,44 +388,47 @@ paths:
           application/json:
             schema:
               type: object
-              required: [meal_type, food_items]
+              properties:
+                meal_type: { type: string, default: LUNCH }
+                food_items: { type: string, default: Meal }
+                calories: { type: number, nullable: true }
+                cost: { type: number, nullable: true }
       responses:
-        '201':
+        '200':
           description: Meal logged
-
-  /digital/usage:
-    get:
-      summary: Screen time and app usage stats via UsageStatsManager (Module 12)
+        '400':
+          description: Invalid meal payload
 
   /documents:
     get:
       summary: List indexed documents in vault (Module 13)
-    post:
-      summary: Upload new encrypted document
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [title, category, file]
       responses:
-        '201':
-          description: Document stored in encrypted vault
+        '200':
+          description: Documents retrieved
 
-  /backup/export:
+  /insights:
+    get:
+      summary: List AI personal insights (Module 14)
+      responses:
+        '200':
+          description: Insights retrieved
     post:
-      summary: Stream password-encrypted `.mylife.enc` backup bundle
+      summary: Record an AI personal insight
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [passphrase]
+              properties:
+                insight_type: { type: string, default: DAILY_SUMMARY }
+                title: { type: string, default: Insight }
+                content: { type: string, default: '' }
       responses:
         '200':
-          description: Binary `.mylife.enc` archive stream
+          description: Insight recorded
+        '400':
+          description: Invalid insight payload
 
 components:
   securitySchemes:
@@ -308,6 +437,16 @@ components:
       in: header
       name: X-MyLife-Signature
       description: >
-        HMAC-SHA256 signature calculated using the shared pairing secret.
-        Must also include X-MyLife-Client and X-MyLife-Timestamp headers.
+        HMAC-SHA256 signature over method, exact request URI, timestamp, and body hash.
+        The client ID and timestamp headers are also required.
+    MyLifeClientId:
+      type: apiKey
+      in: header
+      name: X-MyLife-Client
+      description: Paired client ID registered by the phone during the proof-checked pairing handshake.
+    MyLifeTimestamp:
+      type: apiKey
+      in: header
+      name: X-MyLife-Timestamp
+      description: Unix timestamp in seconds; signed requests outside the phone's ±60-second window are rejected.
 

@@ -248,21 +248,54 @@ class Brain extends BaseApiController
     public function executeTool()
     {
         $json = $this->request->getJSON(true) ?? [];
-        $toolName = trim($json['tool'] ?? ($json['name'] ?? ''));
+        $rawToolName = $json['tool'] ?? ($json['name'] ?? '');
+        $toolName = is_string($rawToolName) ? trim($rawToolName) : '';
         $params = $json['parameters'] ?? ($json['params'] ?? []);
 
         if (empty($toolName)) {
             return $this->respondError('Tool name is required', 400);
         }
 
-        $reasoner = new \Atom\Brain\AtomSituationReasonerEngine();
-        $res = $reasoner->executeTool($toolName, $params);
-
-        if (!empty($res['success'])) {
-            return $this->respondSuccess($res, "Tool {$toolName} executed successfully");
+        if (!is_array($params)) {
+            return $this->respondError('Tool parameters must be an object', 400);
+        }
+        if (strlen(json_encode($params, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '') > 8192) {
+            return $this->respondError('Tool parameters exceed the 8 KB limit', 413);
         }
 
-        return $this->respondError($res['error'] ?? 'Tool execution failed', 400, $res);
+        $reasoner = new \Atom\Brain\AtomSituationReasonerEngine();
+        $toolNames = array_column($reasoner->getAvailableTools(), 'name');
+        if (!in_array($toolName, $toolNames, true)) {
+            return $this->respondError("Unknown or unauthorized tool: {$toolName}", 400);
+        }
+
+        $userId = $this->currentUserId();
+        if ($userId === null) {
+            return $this->respondError('Authentication is required', 401);
+        }
+
+        $explanation = $reasoner->describeToolAction($toolName, $params);
+        $gate = new \Atom\Security\HumanApprovalGate();
+        $requestId = $gate->createToolApprovalRequest(
+            $userId,
+            'brain_reasoner',
+            'brain_tool:' . $toolName,
+            $params,
+            'medium',
+            json_encode($explanation, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: 'Review this tool action before execution.',
+            15
+        );
+
+        if ($requestId <= 0) {
+            return $this->respondError('Could not create the pending action approval request', 500);
+        }
+
+        return $this->respondSuccess([
+            'approval_id' => $requestId,
+            'status' => 'pending',
+            'action' => $explanation,
+            'message' => 'ATOM is waiting for your explicit approval. No tool has run yet.',
+        ], 'Human approval required', 202);
     }
 
     /**

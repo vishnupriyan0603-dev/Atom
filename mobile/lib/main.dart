@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'services/api_service.dart';
 import 'screens/mylife_server_screen.dart';
@@ -169,39 +170,109 @@ class MobileChatScreen extends StatefulWidget {
 }
 
 class _MobileChatScreenState extends State<MobileChatScreen> {
-  final List<Map<String, dynamic>> _messages = [
-    {
-      "sender": "ai",
-      "text": "Greetings Vishnupriyan! I am ATOM, your Personal AI Assistant with integrated Model Gateway, Advanced RAG, and Tool Calling Framework.",
-      "citation": "[CodeIgniter 4 Manual | Page 12 | Score: 0.94]"
-    }
-  ];
+  final ApiService _api = ApiService();
+  final List<Map<String, dynamic>> _messages = [];
+  List<dynamic> _chats = [];
   final TextEditingController _controller = TextEditingController();
-  String _selectedModel = "Gemini 3.6 Flash";
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
+  int? _chatId;
   bool _isThinking = false;
+  bool _loggingIn = false;
+  String? _error;
 
-  void _sendMessage() {
+  @override
+  void initState() { super.initState(); if (_api.hasSession) _loadChats(); }
+
+  Future<void> _login() async {
+    setState(() { _loggingIn = true; _error = null; });
+    final ok = await _api.loginForApprovals(_email.text.trim(), _password.text);
+    if (!mounted) return;
+    setState(() { _loggingIn = false; _error = ok ? null : 'Sign in failed. Check the API connection and credentials.'; });
+    if (ok) { _password.clear(); await _loadChats(); }
+  }
+
+  Future<void> _loadChats() async {
+    final chats = await _api.fetchChats();
+    if (mounted) setState(() { _chats = chats; });
+    if (_chatId == null && chats.isNotEmpty) await _selectChat(chats.first);
+  }
+
+  Future<void> _newChat() async {
+    final result = await _api.createChat();
+    final data = result['data'];
+    if (!mounted) return;
+    if (result['success'] == true && data is Map && data['id'] != null) {
+      setState(() { _chatId = int.tryParse(data['id'].toString()); _messages.clear(); _error = null; });
+      await _loadChats();
+    } else { setState(() => _error = result['message']?.toString() ?? 'Could not create chat.'); }
+  }
+
+  Future<void> _selectChat(dynamic chat) async {
+    final id = int.tryParse(chat['id'].toString());
+    if (id == null) return;
+    setState(() { _chatId = id; _messages.clear(); _error = null; });
+    final result = await _api.fetchChat(id);
+    if (!mounted || _chatId != id) return;
+    final data = result['data'];
+    if (result['success'] == true && data is Map && data['messages'] is List) {
+      setState(() { for (final m in data['messages']) { _messages.add({'sender': m['role'] == 'user' ? 'user' : 'ai', 'text': m['content'] ?? ''}); } });
+    }
+    final approvals = await _api.fetchPendingApprovals();
+    if (!mounted || _chatId != id) return;
+    for (final approval in approvals) {
+      final params = approval['parameters'];
+      if (approval['tool_name'] == 'brain_chat' && params is Map && int.tryParse('${params['chat_id']}') == id) {
+        dynamic explanation = approval['reason'];
+        try { if (explanation is String) explanation = jsonDecode(explanation); } catch (_) { explanation = {'purpose': approval['reason']}; }
+        setState(() => _messages.add({'sender': 'ai', 'pending': {'approval_id': approval['id'], 'action': explanation is Map ? explanation : {}}}));
+      }
+    }
+  }
+
+  Future<void> _sendMessage() async {
     final text = _controller.text.trim();
-    if (text.isEmpty) return;
+    if (text.isEmpty || _chatId == null || _isThinking) return;
 
     setState(() {
       _messages.add({"sender": "user", "text": text});
       _isThinking = true;
+      _error = null;
     });
     _controller.clear();
-
-    Future.delayed(const Duration(milliseconds: 800), () {
-      if (!mounted) return;
-      setState(() {
-        _isThinking = false;
-        _messages.add({
-          "sender": "ai",
-          "text": "ATOM AI Gateway ($_selectedModel): Processed query: '$text'. API v1.0 response verified.",
-          "citation": "[ATOM Knowledge Graph | Hybrid Score: 0.88]"
-        });
-      });
+    final response = await _api.sendChatMessage(_chatId!, text);
+    if (!mounted) return;
+    final data = response['data'];
+    setState(() {
+      _isThinking = false;
+      if (response['success'] == true && data is Map) {
+        if (data['pending_approval'] is Map) _messages.add({'sender': 'ai', 'pending': data['pending_approval']});
+        else _messages.add({'sender': 'ai', 'text': data['content'] ?? ''});
+      } else { _error = response['message']?.toString() ?? 'Message could not be sent.'; }
     });
   }
+
+  Future<void> _resolveApproval(Map pending, bool approve) async {
+    final id = int.tryParse('${pending['approval_id']}');
+    if (id == null) return;
+    setState(() { pending['busy'] = true; pending['error'] = null; });
+    final response = await _api.resolveChatApproval(id, approve: approve);
+    if (!mounted) return;
+    final data = response['data'];
+    final chat = data is Map ? data['chat'] : null;
+    setState(() {
+      pending['busy'] = false;
+      if (response['success'] != true) { pending['error'] = response['message'] ?? 'Decision failed.'; return; }
+      pending['resolved'] = true;
+      if (data is Map && data['status'] == 'failed') _messages.add({'sender': 'ai', 'text': 'Approval was recorded, but the action failed. The chat turn could not continue.'});
+      else if (chat is Map && chat['pending_approval'] is Map) _messages.add({'sender': 'ai', 'pending': chat['pending_approval']});
+      else if (chat is Map && chat['content'] != null) _messages.add({'sender': 'ai', 'text': chat['content']});
+      else _messages.add({'sender': 'ai', 'text': approve ? 'Approved action completed.' : 'Action rejected. Nothing was executed.'});
+    });
+  }
+
+  @override
+  void dispose() { _controller.dispose(); _email.dispose(); _password.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
@@ -210,34 +281,11 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
         title: const Text('AI Gateway Console', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF0C0F14),
         elevation: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: DropdownButton<String>(
-              value: _selectedModel,
-              dropdownColor: const Color(0xFF11151C),
-              underline: const SizedBox(),
-              style: const TextStyle(color: Color(0xFF00F2FE), fontSize: 12, fontWeight: FontWeight.bold),
-              items: <String>['Gemini 3.6 Flash', 'Groq (OSS-120B)', 'OpenAI GPT-4o', 'Ollama (Local)', 'Llama.cpp (Local)']
-                  .map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() {
-                    _selectedModel = val;
-                  });
-                }
-              },
-            ),
-          ),
-        ],
+        actions: [if (_api.hasSession) IconButton(tooltip: 'New chat', icon: const Icon(Icons.add_comment_outlined, color: Color(0xFF00F2FE)), onPressed: _newChat)],
       ),
-      body: Column(
+      body: !_api.hasSession ? _buildChatLogin() : Column(
         children: [
+          if (_chats.isNotEmpty) SizedBox(height: 56, child: ListView(scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7), children: _chats.map((chat) => Padding(padding: const EdgeInsets.only(right: 8), child: ChoiceChip(label: Text((chat['title'] ?? 'Chat').toString(), overflow: TextOverflow.ellipsis), selected: int.tryParse('${chat['id']}') == _chatId, onSelected: (_) => _selectChat(chat)))).toList())),
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
@@ -245,6 +293,8 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
               itemBuilder: (context, index) {
                 final msg = _messages[index];
                 final isUser = msg["sender"] == "user";
+                final pending = msg['pending'] is Map<String, dynamic> ? msg['pending'] as Map<String, dynamic> : null;
+                if (pending != null) return _buildApprovalCard(pending);
                 return Align(
                   alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
@@ -269,13 +319,6 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
                             height: 1.4,
                           ),
                         ),
-                        if (msg["citation"] != null) ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            msg["citation"],
-                            style: const TextStyle(color: Color(0xFFA855F7), fontSize: 10, fontWeight: FontWeight.bold),
-                          ),
-                        ],
                       ],
                     ),
                   ),
@@ -306,17 +349,18 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
                   child: TextField(
                     controller: _controller,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Ask ATOM anything...',
                       hintStyle: TextStyle(color: Color(0xFF64748B)),
                       border: InputBorder.none,
                     ),
                     onSubmitted: (_) => _sendMessage(),
+                    enabled: _chatId != null && !_isThinking,
                   ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.send_rounded, color: Color(0xFF00F2FE)),
-                  onPressed: _sendMessage,
+                  onPressed: _chatId == null || _isThinking ? null : _sendMessage,
                 ),
               ],
             ),
@@ -324,6 +368,15 @@ class _MobileChatScreenState extends State<MobileChatScreen> {
         ],
       ),
     );
+  }
+
+  Widget _buildChatLogin() => Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 420), child: Card(color: const Color(0xFF11151C), margin: const EdgeInsets.all(20), child: Padding(padding: const EdgeInsets.all(20), child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [const Text('Sign in to chat with ATOM', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)), const SizedBox(height: 8), const Text('Your session stays in memory and clears when the app closes.', style: TextStyle(color: Color(0xFF94A3B8))), const SizedBox(height: 14), TextField(controller: _email, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email')), TextField(controller: _password, obscureText: true, decoration: const InputDecoration(labelText: 'Password')), if (_error != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_error!, style: const TextStyle(color: Colors.redAccent))), const SizedBox(height: 14), ElevatedButton(onPressed: _loggingIn ? null : _login, child: Text(_loggingIn ? 'Signing in…' : 'Sign in'))])))));
+
+  Widget _buildApprovalCard(Map<String, dynamic> pending) {
+    final action = pending['action'] is Map ? pending['action'] as Map : const {};
+    Widget detail(String label, String key) { final value = action[key]; if (value == null || value.toString().isEmpty) return const SizedBox.shrink(); return Padding(padding: const EdgeInsets.only(top: 8), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(label.toUpperCase(), style: const TextStyle(color: Color(0xFF7F93AA), fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 1)), const SizedBox(height: 3), Text(value is String ? value : jsonEncode(value), style: const TextStyle(color: Color(0xFFE5EDF7), fontSize: 12, height: 1.4))])); }
+    final busy = pending['busy'] == true; final resolved = pending['resolved'] == true;
+    return Card(color: const Color(0xFF111A24), margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 2), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0x6600F2FE))), child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [const Text('ATOM is asking before acting', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)), const SizedBox(height: 5), const Text('Review this one action. Approval applies once.', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 12)), detail('Action', 'action'), detail('Target', 'target'), detail('Purpose', 'purpose'), detail('Access', 'access'), detail('External sharing', 'external_data_sharing'), detail('Effects', 'consequences'), detail('Parameters', 'parameters'), if (pending['error'] != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(pending['error'].toString(), style: const TextStyle(color: Colors.redAccent, fontSize: 12))), if (resolved) const Padding(padding: EdgeInsets.only(top: 12), child: Text('Decision recorded', style: TextStyle(color: Color(0xFF34D399), fontWeight: FontWeight.bold))) else Padding(padding: const EdgeInsets.only(top: 14), child: Row(children: [Expanded(child: OutlinedButton(onPressed: busy ? null : () => _resolveApproval(pending, false), child: const Text('Reject'))), const SizedBox(width: 10), Expanded(child: ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF34D399), foregroundColor: const Color(0xFF061A15)), onPressed: busy ? null : () => _resolveApproval(pending, true), child: Text(busy ? 'Working…' : 'Approve once')))]))])));
   }
 }
 
@@ -394,8 +447,12 @@ class MobileApprovalsScreen extends StatefulWidget {
 
 class _MobileApprovalsScreenState extends State<MobileApprovalsScreen> {
   final ApiService _api = ApiService();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   List<dynamic> _requests = [];
   bool _loading = true;
+  bool _loggingIn = false;
+  String? _loginError;
 
   @override
   void initState() {
@@ -404,12 +461,79 @@ class _MobileApprovalsScreenState extends State<MobileApprovalsScreen> {
   }
 
   Future<void> _loadData() async {
+    if (!_api.hasApprovalSession) {
+      setState(() {
+        _requests = [];
+        _loading = false;
+      });
+      return;
+    }
     setState(() => _loading = true);
     final data = await _api.fetchPendingApprovals();
     setState(() {
       _requests = data;
       _loading = false;
     });
+  }
+
+  Future<void> _login() async {
+    setState(() {
+      _loggingIn = true;
+      _loginError = null;
+    });
+    final ok = await _api.loginForApprovals(_emailController.text.trim(), _passwordController.text);
+    if (!mounted) return;
+    setState(() {
+      _loggingIn = false;
+      _loginError = ok ? null : 'Login failed. Check the API connection and credentials.';
+    });
+    if (ok) {
+      _passwordController.clear();
+      await _loadData();
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildLoginForm() {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Card(
+          color: const Color(0xFF11151C),
+          margin: const EdgeInsets.all(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Sign in to review approvals', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                const Text('Your session token stays in memory and is cleared when ATOM Mobile closes.', style: TextStyle(color: Color(0xFF94A3B8))),
+                const SizedBox(height: 16),
+                TextField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email')),
+                TextField(controller: _passwordController, obscureText: true, decoration: const InputDecoration(labelText: 'Password')),
+                if (_loginError != null) ...[
+                  const SizedBox(height: 8),
+                  Text(_loginError!, style: const TextStyle(color: Colors.redAccent)),
+                ],
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loggingIn ? null : _login,
+                  child: Text(_loggingIn ? 'Signing in…' : 'Sign in'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -423,7 +547,9 @@ class _MobileApprovalsScreenState extends State<MobileApprovalsScreen> {
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadData),
         ],
       ),
-      body: _loading
+      body: !_api.hasApprovalSession
+          ? _buildLoginForm()
+          : _loading
           ? const Center(child: CircularProgressIndicator(color: Color(0xFF00F2FE)))
           : _requests.isEmpty
               ? const Center(child: Text("No pending approval requests", style: TextStyle(color: Colors.grey, fontSize: 13)))
@@ -455,12 +581,14 @@ class _MobileApprovalsScreenState extends State<MobileApprovalsScreen> {
                                     borderRadius: BorderRadius.circular(6),
                                     border: Border.all(color: Colors.red.withOpacity(0.4)),
                                   ),
-                                  child: const Text('HIGH RISK', style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                                  child: Text((item['risk_level'] ?? 'ACTION').toString().toUpperCase(), style: const TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 6),
                             Text(item['reason'] ?? '', style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
+                            const SizedBox(height: 6),
+                            Text('Exact parameters: ' + (item['parameters']?.toString() ?? '{}'), style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 11)),
                             const SizedBox(height: 12),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
