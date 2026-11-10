@@ -99,7 +99,11 @@ function authHeaders(json) {
   var h = {};
   if (json) h['Content-Type'] = 'application/json';
   var token = getAuthToken();
-  if (token) h['Authorization'] = 'Bearer ' + token;
+  if (token) {
+    h['Authorization'] = 'Bearer ' + token;
+    h['X-Authorization'] = 'Bearer ' + token;
+    h['X-Admin-Token'] = token;
+  }
   return h;
 }
 

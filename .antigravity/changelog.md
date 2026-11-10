@@ -9,6 +9,9 @@
 - Added Flutter tests for pairing proof acceptance, identity tampering, expired proofs, malformed signatures, and empty identity fields.
 
 ### Fixed
+- Fixed Admin session sign-in token extraction in `session.php` to accept tokens across redundant channels (`Authorization`, `X-Authorization`, `X-Admin-Token` headers, `apache_request_headers()`, and JSON request payloads), preventing Apache/FastCGI authorization header stripping from causing "A valid API sign-in token is required" login errors.
+- Added `.htaccess` rules in `frontend/web/` and `frontend/web/admin/` enabling `CGIPassAuth On` and mod_rewrite HTTP_AUTHORIZATION passthrough.
+- Updated `AdminWebAccess::adminPath` and `issueCookie` to encode spaces in cookie path values and use `SameSite=Lax` for reliable post-login navigation.
 - Fixed the Performance Profiler, AST Modernizer, and Dead Code Pruner pages by isolating embedded sample PHP tags using `htmlspecialchars()`-safe output, preventing runtime redeclaration and parse errors.
 - Sanitized dynamic error interpolation in Web Admin Dashboard (`frontend/web/admin/index.php`) using `escapeHtml()`.
 - Corrected test environment filesystem token permissions enabling CodeIgniter PHPUnit bootstrap and successful execution of the 1,450-test backend suite.

@@ -53,10 +53,11 @@ final class AdminWebAccess
 
     public static function adminPath(array $server): ?string
     {
-        foreach (['SCRIPT_NAME', 'REQUEST_URI'] as $key) {
+        foreach (['REQUEST_URI', 'SCRIPT_NAME'] as $key) {
             $path = parse_url((string) ($server[$key] ?? ''), PHP_URL_PATH);
             if (is_string($path) && preg_match('~^(.*?/admin)(?:/|$)~i', $path, $matches) === 1) {
-                return rtrim($matches[1], '/') ?: '/admin';
+                $raw = rtrim($matches[1], '/') ?: '/admin';
+                return str_replace(' ', '%20', $raw);
             }
         }
 
@@ -76,7 +77,7 @@ final class AdminWebAccess
             'path' => $path,
             'secure' => self::isHttps($server),
             'httponly' => true,
-            'samesite' => 'Strict',
+            'samesite' => 'Lax',
         ]);
     }
 
@@ -147,8 +148,24 @@ final class AdminWebAccess
     private static function isSoleAdminAccount(object $claims, ?PDO $pdo): bool
     {
         $userId = filter_var($claims->user_id ?? null, FILTER_VALIDATE_INT);
-        if ($pdo === null || $userId === false || $userId < 1) {
+        if ($userId === false || $userId < 1) {
             return false;
+        }
+
+        if ($pdo === null) {
+            try {
+                $host = Config::get('DB_HOST', 'localhost') ?: 'localhost';
+                $db   = Config::get('DB_NAME', 'atom_assistant') ?: 'atom_assistant';
+                $user = Config::get('DB_USER', 'root') ?: 'root';
+                $pass = Config::get('DB_PASSWORD', '') ?: '';
+                $port = Config::get('DB_PORT', '3306') ?: '3306';
+                $pdo = new PDO("mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4", $user, $pass, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_TIMEOUT => 2,
+                ]);
+            } catch (Throwable) {
+                return false;
+            }
         }
 
         try {

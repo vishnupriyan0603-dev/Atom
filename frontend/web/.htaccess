@@ -1,0 +1,9 @@
+# Ensure Authorization headers are passed to PHP under Apache / FastCGI
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+</IfModule>
+<IfModule mod_authz_core.c>
+    CGIPassAuth On
+</IfModule>

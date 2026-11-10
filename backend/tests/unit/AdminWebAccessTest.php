@@ -85,6 +85,13 @@ class AdminWebAccessTest extends TestCase
         $this->assertTrue(AdminWebAccess::isAdminRequest($server));
         $this->assertSame('/my%20work/Atom/frontend/web/admin', AdminWebAccess::adminPath($server));
         $this->assertFalse(AdminWebAccess::isAdminRequest(['REQUEST_URI' => '/my%20work/Atom/frontend/web/chat.php']));
+
+        // Ensures raw spaces in SCRIPT_NAME or REQUEST_URI are safely encoded for cookie Path attribute
+        $serverWithSpaces = [
+            'SCRIPT_NAME' => '/my work/Atom/frontend/web/admin/session.php',
+            'REQUEST_URI' => '/my work/Atom/frontend/web/admin/session.php',
+        ];
+        $this->assertSame('/my%20work/Atom/frontend/web/admin', AdminWebAccess::adminPath($serverWithSpaces));
     }
 
     private function token(array $overrides = []): string

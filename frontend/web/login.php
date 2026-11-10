@@ -115,6 +115,22 @@ require_once __DIR__ . '/bootstrap.php';
         var authData = json && json.data ? json.data : json;
         if (json && json.success && authData && authData.token) {
           setAuthToken(authData.token, authData.user && authData.user.email);
+
+          // Establish Admin session cookie in background so navigation to Admin works
+          try {
+            await fetch('admin/session.php', {
+              method: 'POST',
+              credentials: 'same-origin',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + authData.token,
+                'X-Authorization': 'Bearer ' + authData.token,
+                'X-Admin-Token': authData.token
+              },
+              body: JSON.stringify({ token: authData.token })
+            });
+          } catch (sessionErr) {}
+
           var next = new URLSearchParams(window.location.search).get('next');
           var fallback = '<?= $getBaseUrl() ?>/chat.php';
           var destination = fallback;

@@ -56,7 +56,7 @@ require_once __DIR__ . '/../bootstrap.php';
 
   <script src="<?= $getBaseUrl() ?>/admin/js/shared.js"></script>
   <script>
-    var ATOM_API = 'http://localhost:8080/api';
+    var ATOM_API = (typeof getApiBaseUrl === 'function') ? getApiBaseUrl() : 'http://localhost:8080/api';
     function showError(msg) {
       var box = document.getElementById('errorBox');
       box.textContent = msg;
@@ -76,11 +76,34 @@ require_once __DIR__ . '/../bootstrap.php';
       btn.textContent = 'Please wait...';
 
       try {
-        var resp = await fetch(ATOM_API + '/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: username, password: password })
-        });
+        var primaryApi = (typeof getApiBaseUrl === 'function') ? getApiBaseUrl() : ATOM_API;
+        var fallbackApi = primaryApi.includes(':8080')
+          ? (window.location.origin + window.location.pathname.replace(/\/frontend\/web\/admin\/.*$/i, '') + '/backend/public/index.php/api')
+          : 'http://localhost:8080/api';
+
+        var resp;
+        try {
+          resp = await fetch(primaryApi + '/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username, email: username, password: password })
+          });
+        } catch (err1) {
+          if (fallbackApi && fallbackApi !== primaryApi) {
+            try {
+              resp = await fetch(fallbackApi + '/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: username, email: username, password: password })
+              });
+            } catch (err2) {
+              throw err1;
+            }
+          } else {
+            throw err1;
+          }
+        }
+
         var text = await resp.text();
         if (!text || text.trim().startsWith('<')) {
           throw new Error('ATOM login API returned an invalid response.');
@@ -103,7 +126,13 @@ require_once __DIR__ . '/../bootstrap.php';
         var sessionResponse = await fetch('session.php', {
           method: 'POST',
           credentials: 'same-origin',
-          headers: { 'Authorization': 'Bearer ' + authData.token }
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + authData.token,
+            'X-Authorization': 'Bearer ' + authData.token,
+            'X-Admin-Token': authData.token
+          },
+          body: JSON.stringify({ token: authData.token })
         });
         var sessionText = await sessionResponse.text();
         var sessionResult = sessionText && !sessionText.trim().startsWith('<') ? JSON.parse(sessionText) : null;
